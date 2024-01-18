@@ -47,29 +47,29 @@ def hello_world():  # put application's code here
 
     return "OK"
 
-@app.route('/project_summary')
+@app.route('/project_summary', methods=['GET'])
 def get_project_summary():  # put application's code here
-    # TODO: Parameter aus URL auslesen
-    back = bservice.get_project_summary(11828, True)
+    psp = request.args.get('psp')
+    back = bservice.get_project_summary(psp, True)
     return back
 
 
-@app.route('/buchungen')
+@app.route('/buchungen',  methods=['GET'])
 def gib_buchungen():  # put application's code here
-    # TODO: Parameter aus URL auslesen
-    back = bservice.get_bookings_for_psp("11828", True)
+    psp = request.args.get('psp')
+    back = bservice.get_bookings_for_psp(psp, True)
     return back
 
-@app.route('/monatsbuchungen')
+@app.route('/monatsbuchungen', methods=['GET'])
 def gib_monatsbuchungen():  # put application's code here
-    # TODO: Parameter aus URL auslesen
-    back = bservice.get_bookings_for_psp_by_month("11828", True)
+    psp = request.args.get('psp')
+    back = bservice.get_bookings_for_psp_by_month(psp, True)
     return back
 
-@app.route('/maBookingsSummary')
+@app.route('/maBookingsSummary', methods=['GET'])
 def get_ma_bookings_summary():  # put application's code here
-    # TODO: Parameter aus URL auslesen
-    back = bservice.get_ma_bookings_summary_for_psp("11828", True)
+    psp = request.args.get('psp')
+    back = bservice.get_ma_bookings_summary_for_psp(psp, True)
     return back
 
 
