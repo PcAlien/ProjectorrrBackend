@@ -1,0 +1,29 @@
+{
+  "projekt_name": "ESL Q1 2024",
+  "psp": 11829,
+  "volumen": 238150,
+  "laufzeit_von": "01.01.2024",
+  "laufzeit_bis": "31.03.2024",
+  "projektmitarbeiter": [
+    {
+      "personalnummer": 175,
+      "name": "Wedekind, Dr. Peter",
+      "stundensatz": 140.0,
+      "stundenbudget": 160,
+      "psp_bezeichnung": "ESL Q1 2024- Psdt. Wedekind",
+      "psp_element": "11829.1",
+      "laufzeit_von": "01.01.2024",
+      "laufzeit_bis": "31.03.2024"
+    },
+    {
+      "personalnummer": 176,
+      "name": "Frerix, Stefan",
+      "stundensatz": 115.0,
+      "stundenbudget": 120,
+      "psp_bezeichnung": "ESL Q1 2024- Psdt. Frerix",
+      "psp_element": "11829.2",
+      "laufzeit_von": "15.01.2024",
+      "laufzeit_bis": "31.03.2024"
+    }
+  ]
+}
