@@ -52,12 +52,12 @@ class Projekt(Base):
     projekt_name: Mapped[str] = mapped_column("projekt_name", String(30))
     laufzeit_von: Mapped[str] = mapped_column("laufzeit_von", String(30))
     laufzeit_bis: Mapped[str] = mapped_column("laufzeit_bis", String(30))
-    psp: Mapped[int] = mapped_column("psp")
+    psp: Mapped[str] = mapped_column("psp")
 
     projektmitarbeiter = relationship("ProjektMitarbeiter", back_populates="projekt", lazy=False)
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
-    def __init__(self, volumen: int, projekt_name: str, laufzeit_bis: str, psp: int, laufzeit_von: str,
+    def __init__(self, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str, laufzeit_von: str,
                  projektmitarbeiter: [ProjektMitarbeiter]) -> None:
         self.volumen = volumen
         self.projekt_name = projekt_name

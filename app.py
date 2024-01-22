@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import date, datetime
+from datetime import datetime
 
 from flask import Flask, request
 from flask_cors import CORS
@@ -11,11 +11,11 @@ from dto.booking_dto import BookingDTO
 from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from entities.Base import Base
 from excel.eh_projektmeldung import EhProjektmeldung
+from helpers import data_helper
 from helpers.unfertig.employee_summary import EmployeeSummary
 from services.booking_service import BookingService
 from services.db_service import DBService
 from services.projekt_service import ProjektService
-from helpers import data_helper
 
 app = Flask(__name__)
 CORS(app)
@@ -30,8 +30,6 @@ bservice = BookingService(engine)
 dbservice = DBService(engine)
 
 
-
-
 def convert_json_file(file_path):
     with open(file_path, 'r') as file:
         json_data = json.load(file)
@@ -39,13 +37,19 @@ def convert_json_file(file_path):
         return employee_summary
 
 
-@app.route('/')
-def hello_world():  # put application's code here
+@app.route('/init')
+def init_app():  # put application's code here
 
-    #create_init_data()
-    #bservice.get_latest_bookings_for_psp("11828", True)
+    create_init_data()
+    # bservice.get_latest_bookings_for_psp("11828", True)
 
     return "OK"
+
+
+@app.route('/')
+def hello_world():  # put application's code here
+    return "OK"
+
 
 @app.route('/project_summary', methods=['GET'])
 def get_project_summary():  # put application's code here
@@ -54,11 +58,12 @@ def get_project_summary():  # put application's code here
     return back
 
 
-@app.route('/buchungen',  methods=['GET'])
+@app.route('/buchungen', methods=['GET'])
 def gib_buchungen():  # put application's code here
     psp = request.args.get('psp')
     back = bservice.get_bookings_for_psp(psp, True)
     return back
+
 
 @app.route('/monatsbuchungen', methods=['GET'])
 def gib_monatsbuchungen():  # put application's code here
@@ -66,12 +71,18 @@ def gib_monatsbuchungen():  # put application's code here
     back = bservice.get_bookings_for_psp_by_month(psp, True)
     return back
 
+
 @app.route('/maBookingsSummary', methods=['GET'])
 def get_ma_bookings_summary():  # put application's code here
     psp = request.args.get('psp')
     back = bservice.get_ma_bookings_summary_for_psp(psp, True)
     return back
 
+
+@app.route('/projects', methods=['GET'])
+def get_projects():  # put application's code here
+    back = pservice.get_all_projects(True)
+    return back
 
 
 def _lade_demoprojekte():
@@ -162,7 +173,7 @@ def bookings_upload():
 
     file = request.files['bookings_file']
 
-    json_buchungsdaten = json.loads(request.form['base_data_booking'])
+    # json_buchungsdaten = json.loads(request.form['base_data_booking'])
 
     # Überprüfe, ob eine Datei ausgewählt wurde
     if file.filename == '':
@@ -174,19 +185,23 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-    bservice.convert_bookings_from_excel_export(filename, 1)
 
-    # todo
+    missing_psps:set = bservice.convert_bookings_from_excel_export(filename, 1)
+    mpsp_str = ""
+    if len(missing_psps) > 0:
+        mpsp_str = missing_psps.__str__()
+        print("Folgende PSPs fehlen:", mpsp_str)
 
     return {'status': 200,
             'answer': "File uploaded successfully",
-            'Antwort': "Alles paletti"}
+            'missingPSPs': mpsp_str,
+            }
 
 
 def create_init_data():
     dbservice.create_import_settings()
-    _lade_demoprojekte()
-    _lade_demobuchungen()
+    # _lade_demoprojekte()
+    # _lade_demobuchungen()
 
 
 if __name__ == '__main__':

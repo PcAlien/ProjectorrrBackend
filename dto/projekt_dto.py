@@ -38,11 +38,11 @@ class ProjektDTO:
     projekt_name: str
     laufzeit_bis: str
     projektmitarbeiter: [ProjektmitarbeiterDTO]
-    psp: int
+    psp: str
     laufzeit_von: str
     uploaddatum: datetime
 
-    def __init__(self, projekt_name: str, psp: int, volumen: int, laufzeit_von: str, laufzeit_bis: str,
+    def __init__(self, projekt_name: str, psp: str, volumen: int, laufzeit_von: str, laufzeit_bis: str,
                  projektmitarbeiter: [ProjektmitarbeiterDTO], dbID=0, uploaddatum = datetime.today()) -> None:
         self.volumen = volumen
         self.projekt_name = projekt_name

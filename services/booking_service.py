@@ -63,13 +63,28 @@ class BookingService:
                                             key, group_list_item.stundensatz, stunden_sum, umsatz_sum))
         return result
 
-    def create_new_from_dto_and_save(self, bookingDTO: BookingDTO) -> BookingDTO:
+    def create_new_from_dto_and_save(self, bookingDTO: BookingDTO) -> str:
         """
         Erstellt einen neuen Buchungseintrag in der DB und gibt ein entsprechendes DTO zurück.
         :param bookingDTO: das DTO welches in die DB übertragen werden soll
         :return: neues DTO, mit Stundensatz, Umsatz und DB-Id
         """
-        pmaDTO = ProjektService.getInstance().get_pma_for_psp_element(bookingDTO.pspElement)
+
+        ps = ProjektService.getInstance()
+        project_dtos: [ProjektDTO] = ps.get_all_projects(False)
+
+        pro: ProjektDTO
+
+        found = False
+        for pro in project_dtos:
+            if pro.psp == bookingDTO.psp:
+                found = True
+                break
+
+        if not found:
+            return bookingDTO.psp
+
+        pmaDTO = ps.get_pma_for_psp_element(bookingDTO.pspElement)
         bookingDTO.stundensatz = pmaDTO.stundensatz
         bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
 
@@ -84,8 +99,6 @@ class BookingService:
             session.add(buchung)
             session.commit()
             session.refresh(buchung)
-
-        return BookingDTO.create_from_db(buchung)
 
     # def get_all_bookings_ever(self) -> [BookingDTO]:
     #     Session = sessionmaker(bind=self.engine)
@@ -173,10 +186,16 @@ class BookingService:
                 sum_month += dto.umsatz
 
             madtos_compressed.append(MonatsaufteilungDTO(monat, MaBookingsSummaryDTO(result, sum_month)))
+
+        madtos_compressed = sorted(madtos_compressed, key=self._sort_by_month)
+
         if (json_format):
             return json.dumps(madtos_compressed, default=data_helper.serialize)
         else:
             return madtos_compressed
+
+    def _sort_by_month(self, monatsaufteilung: MonatsaufteilungDTO):
+        return monatsaufteilung.monat
 
     def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
         """
@@ -238,7 +257,7 @@ class BookingService:
         else:
             return ma_bookings_summary_dto
 
-    def get_project_summary(self, psp: str, json_format=bool) ->  ProjectSummaryDTO or str:
+    def get_project_summary(self, psp: str, json_format=bool) -> ProjectSummaryDTO or str:
         monatsaufteilung_dtos: [MonatsaufteilungDTO] = self.get_bookings_for_psp_by_month(psp, False)
         # restbudget
         project_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp)
@@ -257,24 +276,26 @@ class BookingService:
         ps_dto.spent = sum_verbraucht
         ps_dto.restbudget = restbudget
 
-
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)
         else:
             return ps_dto
 
-
-
-
-    def convert_bookings_from_excel_export(self, filename: str, export_type: int):
+    def convert_bookings_from_excel_export(self, filename: str, export_type: int) -> [str]:
         """
         TODO: Export type noch berücksichtigen
         :param filename:
         :param export_type:
-        :return:
+        :return: missing PSPs
         """
         ifc = DBService.getInstance().get_import_settings(1)
         bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename, ifc)
         dto: BookingDTO
+
+        missing_psps: {str} = ProjektService.getInstance().get_missing_project_psp_for_bookings(bookingDTOs)
+
         for dto in bookingDTOs:
-            self.create_new_from_dto_and_save(dto)
+            if dto.psp not in missing_psps:
+                self.create_new_from_dto_and_save(dto)
+
+        return missing_psps
