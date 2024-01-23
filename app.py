@@ -12,8 +12,10 @@ from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from entities.Base import Base
 from excel.eh_projektmeldung import EhProjektmeldung
 from helpers import data_helper
+from helpers.unfertig import demo_calender_data_importer
 from helpers.unfertig.employee_summary import EmployeeSummary
 from services.booking_service import BookingService
+from services.calender_service import CalendarService
 from services.db_service import DBService
 from services.projekt_service import ProjektService
 
@@ -27,6 +29,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 pservice = ProjektService(engine)
 bservice = BookingService(engine)
+cservice = CalendarService(engine)
 dbservice = DBService(engine)
 
 
@@ -128,6 +131,9 @@ def _lade_demobuchungen() -> str:
                          uploaddatum=uploadDatum)
         bservice.create_new_from_dto_and_save(dto)
 
+def _lade_demoabwesenheiten() -> str:
+    demo_calender_data_importer.run()
+
 
 @app.route('/projektupload', methods=["POST"])
 def projektupload():  # put application's code here
@@ -198,10 +204,20 @@ def bookings_upload():
             }
 
 
+
+@app.route('/abwesenheiten', methods=["GET"])
+def get_abwesenheiten():
+
+    back = cservice.getInstance().get_calender_data(True)
+    return back
+
+
+
 def create_init_data():
     dbservice.create_import_settings()
     # _lade_demoprojekte()
     # _lade_demobuchungen()
+    _lade_demoabwesenheiten()
 
 
 if __name__ == '__main__':

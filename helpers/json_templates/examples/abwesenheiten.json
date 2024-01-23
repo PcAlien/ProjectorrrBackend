@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Markus",
+    "personalnummer": 123,
+    "rolle": "Architekt",
+    "abwesenheiten": [
+      {
+        "datum": "30.01.2024",
+        "typ": "U"
+      },
+      {
+        "datum": "15.03.2024",
+        "typ": "A"
+      },
+      {
+        "datum": "16.03.2024",
+        "typ": "S"
+      }
+    ]
+  }
+]
+
