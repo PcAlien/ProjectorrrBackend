@@ -131,6 +131,7 @@ def _lade_demobuchungen() -> str:
                          uploaddatum=uploadDatum)
         bservice.create_new_from_dto_and_save(dto)
 
+
 def _lade_demoabwesenheiten() -> str:
     demo_calender_data_importer.run()
 
@@ -191,8 +192,7 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-
-    missing_psps:set = bservice.convert_bookings_from_excel_export(filename, 1)
+    missing_psps: set = bservice.convert_bookings_from_excel_export(filename, 1)
     mpsp_str = ""
     if len(missing_psps) > 0:
         mpsp_str = missing_psps.__str__()
@@ -204,13 +204,25 @@ def bookings_upload():
             }
 
 
-
 @app.route('/abwesenheiten', methods=["GET"])
 def get_abwesenheiten():
-
     back = cservice.getInstance().get_calender_data(True)
     return back
 
+
+@app.route('/addAbwesenheit', methods=["POST"])
+def add_abwesenheit():
+    abw = request.form.get("abwesenheit")
+    cservice.getInstance().add_abwesenheit(abw)
+
+    return {'answer': "Added Abwesenheit!!!"}
+
+
+@app.route('/pspForecast', methods=["POST"])
+def get_psp_forecast():
+    psp = request.form.get("psp")
+    back = bservice.getInstance().mach_forecast(psp, True)
+    return back
 
 
 def create_init_data():

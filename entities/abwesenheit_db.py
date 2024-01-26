@@ -22,7 +22,7 @@ class AbwesenheitDetails(Base):
 
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
-    def __init__(self, datum: str, typ:str, uploadDatum = datetime.now()):
+    def __init__(self, datum: str, typ:str, uploadDatum: datetime = datetime.now()):
         self.datum = datum
         self.typ = typ
         self.uploadDatum = uploadDatum
@@ -42,7 +42,7 @@ class Abwesenheit(Base):
 
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
-    def __init__(self, name:str, personalnummer: str, rolle: str, abwesenheiten: [AbwesenheitDetails], uploadDatum = datetime.now()):
+    def __init__(self, name:str, personalnummer: str, rolle: str, abwesenheiten: [AbwesenheitDetails], uploadDatum :datetime= datetime.now()):
         self.name = name
         self.personalnummer = personalnummer
         self.rolle = rolle

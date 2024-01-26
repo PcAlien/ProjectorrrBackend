@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
 from typing import Type
@@ -6,16 +7,21 @@ from typing import Type
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 
+from dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
 from dto.booking_dto import BookingDTO
+from dto.calendar_data import CalenderData
+from dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO
 from dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 from dto.monatsaufteilung_dto import MonatsaufteilungDTO
 from dto.project_summary import ProjectSummaryDTO, UmsatzDTO
-from dto.projekt_dto import ProjektDTO
+from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from entities.booking import Booking
 from excel.eh_buchungen import EhBuchungen
 from helpers import data_helper
+from services.calender_service import CalendarService
 from services.db_service import DBService
 from services.projekt_service import ProjektService
+from services.tempclasses import Ma_Zwischenspeicher
 
 
 class BookingService:
@@ -197,7 +203,7 @@ class BookingService:
     def _sort_by_month(self, monatsaufteilung: MonatsaufteilungDTO):
         return monatsaufteilung.monat
 
-    def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
+    def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> MaBookingsSummaryDTO or str:
         """
         Liefert alle Buchung zu einem PSP und gruppiert diese nach den PSP-Elementen.
         :param psp: Das PSP, für das die Buchungen ausgegeben werden sollen.
@@ -299,3 +305,122 @@ class BookingService:
                 self.create_new_from_dto_and_save(dto)
 
         return missing_psps
+
+    def mach_forecast(self, psp, json_format=bool) -> PspForecastDTO or str:
+
+        # -----------------------------------------------------------------------
+
+        # 1. Alle Buchungen zu einem PSP beziehen
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+        b: BookingDTO
+
+        ma_dict: dict = {}
+        mas_without_entries: set = set()
+
+        # 2. Ein Dict erstellen, um alle erfassten Stunden und Tage eines MA aufzuaddieren.
+        # Dies dient als Vorbereitung zur Ermittlung des Tagesdurchschnittwerts.
+        for b in booking_dtos:
+            if b.pspElement not in ma_dict.keys():
+                ma_dict[b.pspElement] = Ma_Zwischenspeicher(b.name, b.personalnummer, b.pspElement, b.stundensatz)
+
+            ma_dict[b.pspElement].stunden = ma_dict[b.pspElement].stunden + b.stunden
+            ma_dict[b.pspElement].tage = ma_dict[b.pspElement].tage + 1
+
+        # 3. Errechnen, was je tag verbraucht wird unter Berücksichtigung der Urlaube.
+
+        calender_data: CalenderData = CalendarService.getInstance().get_calender_data(False)
+
+        ein_tag = timedelta(days=1)
+
+        projektDTO: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp)
+        datum_format = "%d.%m.%Y"
+        # Datetime-Objekt erstellen und Uhrzeit auf Mitternacht setzen
+        # psp_enddatum = datetime.strptime(projektDTO.laufzeit_bis, datum_format).replace(hour=0, minute=0, second=0,
+        #                                                                                 microsecond=0)
+
+        forecast_day_views: [ForecastDayView] = []
+
+        # jeden Tag betrachten und dann Summe ziehen.
+        betrachteter_tag = datetime.now() + ein_tag
+        betrachteter_tag = datetime(day=betrachteter_tag.day, month=betrachteter_tag.month,
+                                    year=betrachteter_tag.year)
+        betrachteter_tag_str = betrachteter_tag.strftime(datum_format)
+        psp_to_gesamtumsatz_dict: dict = {}
+        fertig = False
+        while (not fertig):
+            psp_element_day_forecasts: [PspElementDayForecast] = []
+
+            # für jeden Projektmitarbeiter
+            ma: ProjektmitarbeiterDTO
+            for ma in projektDTO.projektmitarbeiter:
+
+                if ma.psp_element in ma_dict.keys():
+
+                    if ma.psp_element not in psp_to_gesamtumsatz_dict.keys():
+                        psp_to_gesamtumsatz_dict[ma.psp_element] = ma_dict[ma.psp_element].stunden * ma_dict[
+                            ma.psp_element].stundensatz
+
+                    durchschnitts_tagesarbeitszeit: float = ma_dict[ma.psp_element].stunden / ma_dict[
+                        ma.psp_element].tage
+
+                    durchschnitts_tagesumsatz: float = durchschnitts_tagesarbeitszeit * ma_dict[
+                        ma.psp_element].stundensatz
+
+                    letzter_gesamtumsatz_ma: float = psp_to_gesamtumsatz_dict[ma.psp_element]
+
+                    ma_abwesenheiten: [AbwesenheitDetailsDTO] = []
+
+                    abw: AbwesenheitDTO
+                    for abw in calender_data.abwesenheiten:
+                        if abw.personalnummer == ma.personalnummer:
+                            ma_abwesenheiten.append(abw.abwesenheitDetails)
+
+                    tagesumsatz = 0
+
+                    # Datum betrachten: wird es ein WE Tag, ein Urlaubstag, ein Abwesenheitstag sein? Falls ja, kein Umsatz.
+
+                    wochende = betrachteter_tag.weekday() >= 5
+                    abwesenheit_existiert = any(
+                        abwesenheitDetails.datum == betrachteter_tag_str for abwesenheitDetails in ma_abwesenheiten)
+                    feiertag_existiert = any(
+                        feiertag.datum == betrachteter_tag_str for feiertag in calender_data.specialDays.feiertage)
+
+                    if wochende or abwesenheit_existiert or feiertag_existiert:
+                        tagesumsatz = 0
+                    else:
+                        tagesumsatz = durchschnitts_tagesumsatz
+
+                    letzter_gesamtumsatz_ma += tagesumsatz
+
+                    pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
+                                                 tagesumsatz,
+                                                 letzter_gesamtumsatz_ma)
+                    psp_element_day_forecasts.append(pedf)
+                    psp_to_gesamtumsatz_dict[ma.psp_element] = letzter_gesamtumsatz_ma
+
+                else:
+                    if ma.psp_element not in psp_to_gesamtumsatz_dict.keys():
+                        psp_to_gesamtumsatz_dict[ma.psp_element] = 0
+                        mas_without_entries.add(ma)
+
+                    pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
+                                                 0,
+                                                 0)
+                    psp_element_day_forecasts.append(pedf)
+
+            # jetzt auf den gesamten Tag betrachten
+            fdv = ForecastDayView(betrachteter_tag, psp_element_day_forecasts)
+            forecast_day_views.append(fdv)
+
+            if fdv.summe >= projektDTO.volumen:
+                fertig = True
+            else:
+                betrachteter_tag = betrachteter_tag + ein_tag
+                betrachteter_tag_str = betrachteter_tag.strftime(datum_format)
+
+        pfcdto = PspForecastDTO(projektDTO, forecast_day_views, mas_without_entries)
+
+        if json_format:
+            return json.dumps(pfcdto, default=data_helper.serialize)
+        else:
+            return pfcdto

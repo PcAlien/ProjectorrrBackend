@@ -5,7 +5,6 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
-# from dto.projekt_dto import ProjektDTO
 from entities.Base import Base
 
 
@@ -68,7 +67,7 @@ class Projekt(Base):
         self.uploadDatum = datetime.now()
 
 
-    #
+
     # @classmethod
     # def create_from_dto(cls,dto: ProjektDTO):
     #     projektmitarbeiter : [ProjektMitarbeiter] = []

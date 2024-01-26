@@ -1,9 +1,10 @@
 import json
+from datetime import datetime
 from typing import Type
 
 from sqlalchemy.orm import sessionmaker
 
-from dto.abwesenheiten import AbwesenheitDTO
+from dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
 from dto.calendar_data import CalenderData
 from entities.abwesenheit_db import Abwesenheit, AbwesenheitDetails
 from helpers import data_helper
@@ -32,6 +33,34 @@ class CalendarService:
             return json.dumps(cd, default=data_helper.serialize)
         else:
             return cd
+
+    def add_abwesenheit(self, abwesenheit: AbwesenheitDTO or str):
+
+        datum = datetime.now()
+        dto = abwesenheit
+        if type(abwesenheit) == str:
+            jsontext = json.loads(abwesenheit)
+            dto = AbwesenheitDTO(**jsontext)
+
+
+        details =[]
+        detail: AbwesenheitDetailsDTO
+        for detail in dto.abwesenheitDetails:
+            if(type(detail) == dict):
+                details.append(AbwesenheitDetails(detail["datum"], detail["typ"], uploadDatum=datum))
+            else:
+                details.append(AbwesenheitDetails(detail.datum, detail.typ, uploadDatum=datum))
+
+        abw = Abwesenheit(dto.name, dto.personalnummer, dto.rolle, details, uploadDatum=datum)
+        session = sessionmaker(bind=self.engine)
+
+        with session() as session:
+            session.add(abw)
+            session.commit()
+
+
+
+
 
 
 
