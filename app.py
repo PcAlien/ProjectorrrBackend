@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
 from dto.booking_dto import BookingDTO
+from dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
 from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from entities.Base import Base
 from excel.eh_projektmeldung import EhProjektmeldung
@@ -192,14 +193,21 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-    missing_psps: set = bservice.convert_bookings_from_excel_export(filename, 1)
+
+    missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename,1)
+
     mpsp_str = ""
     if len(missing_psps) > 0:
         mpsp_str = missing_psps.__str__()
         print("Folgende PSPs fehlen:", mpsp_str)
 
-    return {'status': 200,
-            'answer': "File uploaded successfully",
+    if (not dbResult.complete):
+        return {'status': "Failed",
+                'missingPSPs': mpsp_str,
+                'error': dbResult.message
+                }
+
+    return {'status': "Success",
             'missingPSPs': mpsp_str,
             }
 
@@ -223,6 +231,24 @@ def get_psp_forecast():
     psp = request.form.get("psp")
     back = bservice.getInstance().mach_forecast(psp, True)
     return back
+
+@app.route('/pspForecastTest', methods=["GET"])
+def get_psp_forecast_test():
+    psp = "11828"
+    back: PspForecastDTO = bservice.getInstance().mach_forecast(psp, False)
+
+    durchschnitt = 0.0
+    s: MaDurchschnittsarbeitszeitDTO
+    for s in back.avg_tagesumsaetze:
+        durchschnitt += s.durchschnitts_tagesumsatz
+
+        formatted_string = str(s.durchschnitts_tagesumsatz).replace(".", ",")
+        print (s.name , formatted_string)
+
+    print(f"AVG Tagesumsatz: {durchschnitt}")
+
+    return back
+
 
 
 def create_init_data():

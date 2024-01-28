@@ -3,6 +3,21 @@ from datetime import datetime
 from dto.projekt_dto import ProjektmitarbeiterDTO, ProjektDTO
 
 
+class MaDurchschnittsarbeitszeitDTO:
+    name: str
+    personalnummer: int
+    psp_element: str
+    durchschnitts_tages_az: float
+    durchschnitts_tages_umsatz: float
+
+    def __init__(self, name, personalnummer, psp_element, durchschnitts_tages_az,durchschnitts_tagesumsatz) -> None:
+        self.name = name
+        self.personalnummer = personalnummer
+        self.psp_element = psp_element
+        self.durchschnitts_tages_az = durchschnitts_tages_az
+        self.durchschnitts_tagesumsatz = durchschnitts_tagesumsatz
+
+
 class PspElementDayForecast:
     tag: datetime
     name: str
@@ -47,17 +62,20 @@ class PspForecastDTO:
     tage: [ForecastDayView]
     missing: [ProjektmitarbeiterDTO]
 
+    avg_tagesumsaetze: [MaDurchschnittsarbeitszeitDTO]
+
     fc_psp_enddate_umsatz: float
     fc_psp_enddate_restbudget: float
     fc_enddate: str
     fc_enddate_umsatz: float
     fc_enddate_restbudget: float
 
-    def __init__(self, projekt: ProjektDTO, tage: [ForecastDayView], missing: [ProjektmitarbeiterDTO]) -> None:
+    def __init__(self, projekt: ProjektDTO, tage: [ForecastDayView], missing: [ProjektmitarbeiterDTO],  avg_tagesumsaetze: [MaDurchschnittsarbeitszeitDTO]) -> None:
         self.projekt = projekt
 
         self.missing = missing
         self.tage = tage
+        self.avg_tagesumsaetze = avg_tagesumsaetze
 
         psp_ende = self.projekt.laufzeit_bis
         fdv: ForecastDayView
@@ -69,8 +87,6 @@ class PspForecastDTO:
                 self.fc_psp_enddate_restbudget = self.projekt.volumen - fdv.summe
                 found = True
                 break
-
-
 
         letzter_tag_forecast: ForecastDayView = self.tage[-1]
         self.fc_enddate = letzter_tag_forecast.tag.strftime(datum_format)

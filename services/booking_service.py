@@ -2,19 +2,21 @@ import json
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
-from typing import Type
+from typing import Type, Tuple, List
 
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
 from dto.booking_dto import BookingDTO
 from dto.calendar_data import CalenderData
-from dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO
+from dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO, MaDurchschnittsarbeitszeitDTO
 from dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 from dto.monatsaufteilung_dto import MonatsaufteilungDTO
 from dto.project_summary import ProjectSummaryDTO, UmsatzDTO
 from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
+from dto.returners import DbResult
 from entities.booking import Booking
 from excel.eh_buchungen import EhBuchungen
 from helpers import data_helper
@@ -69,6 +71,60 @@ class BookingService:
                                             key, group_list_item.stundensatz, stunden_sum, umsatz_sum))
         return result
 
+    def create_new_from_dtos_and_save(self, bookingDTOs: [BookingDTO]) -> DbResult:
+        """
+        Erstellt einen neuen Buchungseintrag in der DB .
+        :param bookingDTOs: die DTOs elches in die DB übertragen werden sollen
+        :return: Ergebnis des Datenbankaufrufs.
+        """
+
+        ps = ProjektService.getInstance()
+        project_dtos: [ProjektDTO] = ps.get_all_projects(False)
+
+        pro: ProjektDTO
+        buchungen: [Booking] = []
+
+        for bookingDTO in bookingDTOs:
+
+            found = False
+            for pro in project_dtos:
+                if pro.psp == bookingDTO.psp:
+                    found = True
+                    break
+
+            if not found:
+                return bookingDTO.psp
+
+            pmaDTO = ps.get_pma_for_psp_element(bookingDTO.pspElement)
+            bookingDTO.stundensatz = pmaDTO.stundensatz
+            bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
+
+            buchung = Booking(bookingDTO.name, bookingDTO.personalnummer, bookingDTO.datum, bookingDTO.berechnungsmotiv,
+                              bookingDTO.bearbeitungsstatus, bookingDTO.bezeichnung, bookingDTO.psp,
+                              bookingDTO.pspElement,
+                              bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm, bookingDTO.letzteAenderung,
+                              bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
+            buchungen.append(buchung)
+
+        session = sessionmaker(bind=self.engine)
+
+        with session() as session:
+            try:
+                # Füge alle Buchungen hinzu
+                session.add_all(buchungen)
+
+                # Führe die Transaktion durch
+                session.commit()
+
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                return DbResult(False, e)
+
+        return DbResult(True, "All bookings have been stored successfully.")
+
+
     def create_new_from_dto_and_save(self, bookingDTO: BookingDTO) -> str:
         """
         Erstellt einen neuen Buchungseintrag in der DB und gibt ein entsprechendes DTO zurück.
@@ -106,20 +162,21 @@ class BookingService:
             session.commit()
             session.refresh(buchung)
 
-    # def get_all_bookings_ever(self) -> [BookingDTO]:
-    #     Session = sessionmaker(bind=self.engine)
-    #     buchungenDTOs: [BookingDTO] = []
-    #
-    #     with Session() as session:
-    #         buchungen = session.query(Booking).all()
-    #         for buchung in buchungen:
-    #             pma = ProjektService.getInstance().get_pma_for_psp_element(buchung.pspElement)
-    #             buchungDTO = BookingDTO.create_from_db(buchung)
-    #             buchungDTO.stundensatz = pma.stundensatz
-    #             buchungDTO.umsatz = pma.stundensatz * buchung.stunden
-    #             buchungenDTOs.append(buchungDTO)
-    #
-    #         return buchungenDTOs
+
+# def get_all_bookings_ever(self) -> [BookingDTO]:
+#     Session = sessionmaker(bind=self.engine)
+#     buchungenDTOs: [BookingDTO] = []
+#
+#     with Session() as session:
+#         buchungen = session.query(Booking).all()
+#         for buchung in buchungen:
+#             pma = ProjektService.getInstance().get_pma_for_psp_element(buchung.pspElement)
+#             buchungDTO = BookingDTO.create_from_db(buchung)
+#             buchungDTO.stundensatz = pma.stundensatz
+#             buchungDTO.umsatz = pma.stundensatz * buchung.stunden
+#             buchungenDTOs.append(buchungDTO)
+#
+#         return buchungenDTOs
 
     def get_bookings_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
         """
@@ -153,6 +210,7 @@ class BookingService:
             return json.dumps(booking_dtos, default=data_helper.serialize)
         else:
             return booking_dtos
+
 
     def get_bookings_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungDTO] or str:
         """
@@ -200,8 +258,10 @@ class BookingService:
         else:
             return madtos_compressed
 
+
     def _sort_by_month(self, monatsaufteilung: MonatsaufteilungDTO):
         return monatsaufteilung.monat
+
 
     def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> MaBookingsSummaryDTO or str:
         """
@@ -263,6 +323,7 @@ class BookingService:
         else:
             return ma_bookings_summary_dto
 
+
     def get_project_summary(self, psp: str, json_format=bool) -> ProjectSummaryDTO or str:
         monatsaufteilung_dtos: [MonatsaufteilungDTO] = self.get_bookings_for_psp_by_month(psp, False)
         # restbudget
@@ -287,27 +348,28 @@ class BookingService:
         else:
             return ps_dto
 
-    def convert_bookings_from_excel_export(self, filename: str, export_type: int) -> [str]:
-        """
-        TODO: Export type noch berücksichtigen
-        :param filename:
-        :param export_type:
-        :return: missing PSPs
-        """
+
+
+    def convert_bookings_from_excel_export(self, filename: str, export_type: int) -> Tuple[List[str], DbResult]:
+        # TODO: Export type noch berücksichtigen
+
         ifc = DBService.getInstance().get_import_settings(1)
         bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename, ifc)
         dto: BookingDTO
 
         missing_psps: {str} = ProjektService.getInstance().get_missing_project_psp_for_bookings(bookingDTOs)
 
+        not_missing_psp_bookings: [BookingDTO] = []
         for dto in bookingDTOs:
             if dto.psp not in missing_psps:
-                self.create_new_from_dto_and_save(dto)
+                not_missing_psp_bookings.append(dto)
 
-        return missing_psps
+        dbResult = self.create_new_from_dtos_and_save(not_missing_psp_bookings)
+
+        return missing_psps, dbResult
+
 
     def mach_forecast(self, psp, json_format=bool) -> PspForecastDTO or str:
-
         # -----------------------------------------------------------------------
 
         # 1. Alle Buchungen zu einem PSP beziehen
@@ -315,6 +377,7 @@ class BookingService:
         b: BookingDTO
 
         ma_dict: dict = {}
+        ma_tdurchschnitt_dtos: [MaDurchschnittsarbeitszeitDTO] = []
         mas_without_entries: set = set()
 
         # 2. Ein Dict erstellen, um alle erfassten Stunden und Tage eines MA aufzuaddieren.
@@ -325,6 +388,12 @@ class BookingService:
 
             ma_dict[b.pspElement].stunden = ma_dict[b.pspElement].stunden + b.stunden
             ma_dict[b.pspElement].tage = ma_dict[b.pspElement].tage + 1
+
+        v: Ma_Zwischenspeicher
+        for k, v in ma_dict.items():
+            ma_tdurchschnitt_dtos.append(
+                MaDurchschnittsarbeitszeitDTO(v.name, v.personalnummer, k, (v.stunden / v.tage),
+                                              (v.stundensatz * (v.stunden / v.tage))))
 
         # 3. Errechnen, was je tag verbraucht wird unter Berücksichtigung der Urlaube.
 
@@ -372,14 +441,20 @@ class BookingService:
 
                     abw: AbwesenheitDTO
                     for abw in calender_data.abwesenheiten:
+                        if ma.personalnummer == 867:
+                            print("MICH GFUNEDN")
                         if abw.personalnummer == ma.personalnummer:
-                            ma_abwesenheiten.append(abw.abwesenheitDetails)
+                            ma_abwesenheiten = abw.abwesenheitDetails
 
                     tagesumsatz = 0
 
                     # Datum betrachten: wird es ein WE Tag, ein Urlaubstag, ein Abwesenheitstag sein? Falls ja, kein Umsatz.
 
                     wochende = betrachteter_tag.weekday() >= 5
+                    if betrachteter_tag_str == "26.02.2024":
+                        if ma.personalnummer == 867:
+                            print("HALT MAL")
+
                     abwesenheit_existiert = any(
                         abwesenheitDetails.datum == betrachteter_tag_str for abwesenheitDetails in ma_abwesenheiten)
                     feiertag_existiert = any(
@@ -418,7 +493,7 @@ class BookingService:
                 betrachteter_tag = betrachteter_tag + ein_tag
                 betrachteter_tag_str = betrachteter_tag.strftime(datum_format)
 
-        pfcdto = PspForecastDTO(projektDTO, forecast_day_views, mas_without_entries)
+        pfcdto = PspForecastDTO(projektDTO, forecast_day_views, mas_without_entries, ma_tdurchschnitt_dtos)
 
         if json_format:
             return json.dumps(pfcdto, default=data_helper.serialize)
