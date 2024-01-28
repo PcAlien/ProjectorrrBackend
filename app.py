@@ -164,13 +164,13 @@ def projektupload():  # put application's code here
     dto = ProjektDTO(**json_projektdaten)
     dto.projektmitarbeiter = pmas
 
-    neuesDTO = pservice.create_new_from_dto_and_save(dto)
+    neuesDTO, dbResult = pservice.create_new_from_dto_and_save(dto)
 
-    neues_json = json.dumps(neuesDTO, default=data_helper.serialize)
-
-    return {'status': 200,
-            'answer': "File uploaded successfully",
-            'Antwort': neues_json}
+    if dbResult.complete:
+        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
+        return {'status': "Success", 'project': project_json}
+    else:
+        return {'status': "Error", 'error': dbResult.message}
 
 
 @app.route('/bookingsupload', methods=["POST"])
@@ -193,8 +193,7 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-
-    missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename,1)
+    missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename, 1)
 
     mpsp_str = ""
     if len(missing_psps) > 0:
@@ -232,6 +231,7 @@ def get_psp_forecast():
     back = bservice.getInstance().mach_forecast(psp, True)
     return back
 
+
 @app.route('/pspForecastTest', methods=["GET"])
 def get_psp_forecast_test():
     psp = "11828"
@@ -243,12 +243,11 @@ def get_psp_forecast_test():
         durchschnitt += s.durchschnitts_tagesumsatz
 
         formatted_string = str(s.durchschnitts_tagesumsatz).replace(".", ",")
-        print (s.name , formatted_string)
+        print(s.name, formatted_string)
 
     print(f"AVG Tagesumsatz: {durchschnitt}")
 
     return back
-
 
 
 def create_init_data():
