@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
 from dto.booking_dto import BookingDTO
 from dto.calendar_data import CalenderData
+from dto.erfassungsnachweise import ErfassungsnachweisDTO
 from dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO, MaDurchschnittsarbeitszeitDTO
 from dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 from dto.monatsaufteilung_dto import MonatsaufteilungDTO
@@ -19,7 +20,7 @@ from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from dto.returners import DbResult
 from entities.booking import Booking
 from excel.eh_buchungen import EhBuchungen
-from helpers import data_helper
+from helpers import data_helper, date_helper
 from services.calender_service import CalendarService
 from services.db_service import DBService
 from services.projekt_service import ProjektService
@@ -124,7 +125,6 @@ class BookingService:
 
         return DbResult(True, "All bookings have been stored successfully.")
 
-
     def create_new_from_dto_and_save(self, bookingDTO: BookingDTO) -> str:
         """
         Erstellt einen neuen Buchungseintrag in der DB und gibt ein entsprechendes DTO zurück.
@@ -162,21 +162,20 @@ class BookingService:
             session.commit()
             session.refresh(buchung)
 
-
-# def get_all_bookings_ever(self) -> [BookingDTO]:
-#     Session = sessionmaker(bind=self.engine)
-#     buchungenDTOs: [BookingDTO] = []
-#
-#     with Session() as session:
-#         buchungen = session.query(Booking).all()
-#         for buchung in buchungen:
-#             pma = ProjektService.getInstance().get_pma_for_psp_element(buchung.pspElement)
-#             buchungDTO = BookingDTO.create_from_db(buchung)
-#             buchungDTO.stundensatz = pma.stundensatz
-#             buchungDTO.umsatz = pma.stundensatz * buchung.stunden
-#             buchungenDTOs.append(buchungDTO)
-#
-#         return buchungenDTOs
+    # def get_all_bookings_ever(self) -> [BookingDTO]:
+    #     Session = sessionmaker(bind=self.engine)
+    #     buchungenDTOs: [BookingDTO] = []
+    #
+    #     with Session() as session:
+    #         buchungen = session.query(Booking).all()
+    #         for buchung in buchungen:
+    #             pma = ProjektService.getInstance().get_pma_for_psp_element(buchung.pspElement)
+    #             buchungDTO = BookingDTO.create_from_db(buchung)
+    #             buchungDTO.stundensatz = pma.stundensatz
+    #             buchungDTO.umsatz = pma.stundensatz * buchung.stunden
+    #             buchungenDTOs.append(buchungDTO)
+    #
+    #         return buchungenDTOs
 
     def get_bookings_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
         """
@@ -210,7 +209,6 @@ class BookingService:
             return json.dumps(booking_dtos, default=data_helper.serialize)
         else:
             return booking_dtos
-
 
     def get_bookings_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungDTO] or str:
         """
@@ -258,10 +256,8 @@ class BookingService:
         else:
             return madtos_compressed
 
-
     def _sort_by_month(self, monatsaufteilung: MonatsaufteilungDTO):
         return monatsaufteilung.monat
-
 
     def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> MaBookingsSummaryDTO or str:
         """
@@ -323,7 +319,6 @@ class BookingService:
         else:
             return ma_bookings_summary_dto
 
-
     def get_project_summary(self, psp: str, json_format=bool) -> ProjectSummaryDTO or str:
         monatsaufteilung_dtos: [MonatsaufteilungDTO] = self.get_bookings_for_psp_by_month(psp, False)
         # restbudget
@@ -348,8 +343,6 @@ class BookingService:
         else:
             return ps_dto
 
-
-
     def convert_bookings_from_excel_export(self, filename: str, export_type: int) -> Tuple[List[str], DbResult]:
         # TODO: Export type noch berücksichtigen
 
@@ -367,7 +360,6 @@ class BookingService:
         dbResult = self.create_new_from_dtos_and_save(not_missing_psp_bookings)
 
         return missing_psps, dbResult
-
 
     def mach_forecast(self, psp, json_format=bool) -> PspForecastDTO or str:
         # -----------------------------------------------------------------------
@@ -441,8 +433,6 @@ class BookingService:
 
                     abw: AbwesenheitDTO
                     for abw in calender_data.abwesenheiten:
-                        if ma.personalnummer == 867:
-                            print("MICH GFUNEDN")
                         if abw.personalnummer == ma.personalnummer:
                             ma_abwesenheiten = abw.abwesenheitDetails
 
@@ -451,9 +441,6 @@ class BookingService:
                     # Datum betrachten: wird es ein WE Tag, ein Urlaubstag, ein Abwesenheitstag sein? Falls ja, kein Umsatz.
 
                     wochende = betrachteter_tag.weekday() >= 5
-                    if betrachteter_tag_str == "26.02.2024":
-                        if ma.personalnummer == 867:
-                            print("HALT MAL")
 
                     abwesenheit_existiert = any(
                         abwesenheitDetails.datum == betrachteter_tag_str for abwesenheitDetails in ma_abwesenheiten)
@@ -499,3 +486,117 @@ class BookingService:
             return json.dumps(pfcdto, default=data_helper.serialize)
         else:
             return pfcdto
+
+    def erstelle_erfassungsauswertung(self, psp, json_format=bool) -> ErfassungsnachweisDTO or str:
+        projekt_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp)
+
+        laufzeit_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_von)
+        anzahl_tage_seit_projektstart = (datetime.now().date() - laufzeit_date).days
+
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+
+        # vorfiltern --> Datum
+        jetzt = datetime.now()
+        jetzt_um_null_uhr = datetime(year=jetzt.year, month=jetzt.month, day=jetzt.day, minute=0, hour=0, second=0)
+
+        sechs_tage = timedelta(days=6)
+
+        suchzeit = jetzt - timedelta(days=10)
+        filtered_booking_dtos: [BookingDTO] = []
+
+        suchtage: [datetime] = []
+        counter = 0
+        abbruchkante = 6
+        if anzahl_tage_seit_projektstart < 6:
+            abbruchkante = anzahl_tage_seit_projektstart
+        done = False
+        delta = timedelta(days=1)
+        oneDayBack = jetzt_um_null_uhr
+        while not done:
+            oneDayBack = oneDayBack - delta
+            if oneDayBack.weekday() < 5:
+                suchtage.append(oneDayBack)
+                counter += 1
+                if counter == abbruchkante:
+                    done = True
+
+        suchtage.reverse()
+
+        b: BookingDTO
+        for b in booking_dtos:
+            if b.datum >= suchzeit:
+                filtered_booking_dtos.append(b)
+
+        # grouped_booking_by_personalnummer = {key: list(group) for key, group in groupby(filtered_booking_dtos, key=lambda x: x.personalnummer)}
+        #
+        # for psnr, group in grouped_booking_by_personalnummer.items():
+        #     bo:BookingDTO
+        #     for bo in group:
+        #         grouped_booking_by_date = {key: list(group) for key, group in groupby(filtered_booking_dtos, key=lambda x: x.datum)}
+        #         for datum, g2 in grouped_booking_by_date:
+        #             bo2:BookingDTO
+        #             sum = 0
+        #             for bo2 in g2:
+        #                 sum += bo2.stunden
+
+        # personr / tag
+
+        # alle Personalnummern rausholen:
+        nachweise: [ErfassungsnachweisDTO] = []
+
+        # vorher filtern
+
+        pmas = dict()
+        for pma in projekt_dto.projektmitarbeiter:
+            pmas[pma.personalnummer] = pma.name
+
+        CalendarService.getInstance().get_calender_data()
+
+        for pnummer, name in pmas.items():
+            stunden: [float or str] = []
+
+            abwesenheiten: [AbwesenheitDTO] = CalendarService.getInstance().get_abwesenheiten_for_psnr(pnummer, False)
+            for gesuchtesDatum in suchtage:
+                found = False
+                for abw in abwesenheiten:
+                    if abw.personalnummer == pnummer:
+
+                        for x in abw.abwesenheitDetails:
+                            if pnummer == 1006 and x.datum == "22.01.2024":
+                                print("HODL!")
+
+                            d = date_helper.from_date_to_string(gesuchtesDatum)
+                            if x.datum == d:
+                                stunden.append(x.typ)
+                                print("TYP", x.typ)
+                                found = True
+                                break
+
+                if not found:
+                    gesammelte_stunden = 0.0
+                    for b in filtered_booking_dtos:
+                        if b.personalnummer == pnummer and b.datum == gesuchtesDatum:
+                            gesammelte_stunden += b.stunden
+                    stunden.append(gesammelte_stunden)
+
+            edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
+            nachweise.append(edto)
+
+        # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
+        # nachweise_korrigiert = dict()
+        #
+        # for edto in nachweise:
+        #     if edto.personalnummer not in nachweise_korrigiert.keys():
+        #         nachweise_korrigiert[edto.personalnummer] = edto
+        #     else:
+        #         watched_edto: ErfassungsnachweisDTO = nachweise_korrigiert[edto.personalnummer]
+        #         anzahl_tage = len(watched_edto.tage)
+        #         for i in range(anzahl_tage):
+        #             watched_edto.stunden[i] += edto.stunden[i]
+        #
+        # nachweise = list(nachweise_korrigiert.values())
+
+        if json_format:
+            return json.dumps(nachweise, default=data_helper.serialize)
+        else:
+            return nachweise

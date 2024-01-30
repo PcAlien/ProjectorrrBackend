@@ -249,6 +249,12 @@ def get_psp_forecast_test():
 
     return back
 
+@app.route('/nachweise', methods=["GET"])
+def get_nachweise():
+    #psp = request.form.get("psp")
+    back = bservice.getInstance().erstelle_erfassungsauswertung("11828", True)
+    return back
+
 
 def create_init_data():
     dbservice.create_import_settings()
