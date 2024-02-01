@@ -319,29 +319,36 @@ class BookingService:
         else:
             return ma_bookings_summary_dto
 
-    def get_project_summary(self, psp: str, json_format=bool) -> ProjectSummaryDTO or str:
+    def get_project_summary(self, psp: str, json_format: bool) -> ProjectSummaryDTO or str:
         monatsaufteilung_dtos: [MonatsaufteilungDTO] = self.get_bookings_for_psp_by_month(psp, False)
         # restbudget
-        project_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp)
+        project_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp, False)
 
-        ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(psp, project_dto.volumen, 0, project_dto.volumen, [])
-        restbudget = ps_dto.restbudget
+        umsaetze_dtos: [UmsatzDTO] = []
+
         sum_verbraucht = 0
-        umsaetze_dtos: [UmsatzDTO] = ps_dto.umsaetze
-
         ma_dto: MonatsaufteilungDTO
         for ma_dto in monatsaufteilung_dtos:
             umsaetze_dtos.append(UmsatzDTO(ma_dto.monat, ma_dto.maBookingsSummary.sum))
             sum_verbraucht += ma_dto.maBookingsSummary.sum
 
-        restbudget -= sum_verbraucht
-        ps_dto.spent = sum_verbraucht
-        ps_dto.restbudget = restbudget
+        ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos)
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)
         else:
             return ps_dto
+
+    def get_project_summaries(self, json_format: bool) -> [ProjectSummaryDTO]:
+        projekte = ProjektService.getInstance().get_all_projects(False)
+        ps_dtos = []
+        for pro in projekte:
+            ps_dtos.append(self.get_project_summary(pro.psp, False))
+
+        if json_format:
+            return json.dumps(ps_dtos, default=data_helper.serialize)
+        else:
+            return ps_dtos
 
     def convert_bookings_from_excel_export(self, filename: str, export_type: int) -> Tuple[List[str], DbResult]:
         # TODO: Export type noch berücksichtigen
@@ -361,7 +368,7 @@ class BookingService:
 
         return missing_psps, dbResult
 
-    def mach_forecast(self, psp, json_format=bool) -> PspForecastDTO or str:
+    def mach_forecast(self, psp, json_format: bool) -> PspForecastDTO or str:
         # -----------------------------------------------------------------------
 
         # 1. Alle Buchungen zu einem PSP beziehen
@@ -393,7 +400,7 @@ class BookingService:
 
         ein_tag = timedelta(days=1)
 
-        projektDTO: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp)
+        projektDTO: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp, False)
         datum_format = "%d.%m.%Y"
         # Datetime-Objekt erstellen und Uhrzeit auf Mitternacht setzen
         # psp_enddatum = datetime.strptime(projektDTO.laufzeit_bis, datum_format).replace(hour=0, minute=0, second=0,
@@ -487,8 +494,8 @@ class BookingService:
         else:
             return pfcdto
 
-    def erstelle_erfassungsauswertung(self, psp, json_format=bool) -> ErfassungsnachweisDTO or str:
-        projekt_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp)
+    def erstelle_erfassungsauswertung(self, psp, json_format: bool) -> ErfassungsnachweisDTO or str:
+        projekt_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp, False)
 
         laufzeit_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_von)
         anzahl_tage_seit_projektstart = (datetime.now().date() - laufzeit_date).days

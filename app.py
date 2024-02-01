@@ -55,13 +55,6 @@ def hello_world():  # put application's code here
     return "OK"
 
 
-@app.route('/project_summary', methods=['GET'])
-def get_project_summary():  # put application's code here
-    psp = request.args.get('psp')
-    back = bservice.get_project_summary(psp, True)
-    return back
-
-
 @app.route('/buchungen', methods=['GET'])
 def gib_buchungen():  # put application's code here
     psp = request.args.get('psp')
@@ -89,52 +82,25 @@ def get_projects():  # put application's code here
     return back
 
 
-def _lade_demoprojekte():
-    # Schritt 1: kann ein JSON String in ein BookingDTO umgewandelt werden?
-    json_data = data_helper.read_json_file("helpers/json_templates/demoprojekte.json")
-    projekte: [ProjektDTO] = []
-
-    for pro in json_data:
-
-        pmas: [ProjektmitarbeiterDTO] = []
-
-        for pma in pro["projektmitarbeiter"]:
-            pmas.append(
-                ProjektmitarbeiterDTO(pma["personalnummer"], pma["name"], pma["psp_bezeichnung"], pma["psp_element"],
-                                      pma["stundensatz"], pma["stundenbudget"], pma["laufzeit_von"],
-                                      pma["laufzeit_bis"]))
-
-        projekte.append(
-            ProjektDTO(pro["projekt_name"], pro["psp"], pro["volumen"], pro["laufzeit_von"], pro["laufzeit_bis"], pmas))
-
-    for p in projekte:
-        pservice.create_new_from_dto_and_save(p)
+@app.route('/project', methods=['GET'])
+def get_project():  # put application's code here
+    psp = request.args.get('psp')
+    back = pservice.get_project_by_psp(psp, True)
+    return back
 
 
-def _lade_demobuchungen() -> str:
-    # Schritt 1:
-    json_data = data_helper.read_json_file("helpers/json_templates/examples/bookings.json")
-    uploadDatum = datetime.now()
-
-    for booking in json_data:
-        dto = BookingDTO(booking["name"],
-                         booking["personalnummer"],
-                         booking["datum"],
-                         booking["berechnungsmotiv"],
-                         booking["bearbeitungsstatus"],
-                         booking["bezeichnung"],
-                         booking["psp"],
-                         booking["pspElement"],
-                         booking["stunden"],
-                         booking["text"],
-                         booking["erstelltAm"],
-                         booking["letzteAenderung"],
-                         uploaddatum=uploadDatum)
-        bservice.create_new_from_dto_and_save(dto)
+@app.route('/project_summary', methods=['GET'])
+def get_project_summary():  # put application's code here
+    psp = request.args.get('psp')
+    back = bservice.get_project_summary(psp, True)
+    return back
 
 
-def _lade_demoabwesenheiten() -> str:
-    demo_calender_data_importer.run()
+@app.route('/project_summaries', methods=['GET'])
+def get_project_summaries():  # put application's code here
+    # psp = request.args.get('psp')
+    back = bservice.get_project_summaries(True)
+    return back
 
 
 @app.route('/projektupload', methods=["POST"])
@@ -164,13 +130,92 @@ def projektupload():  # put application's code here
     dto = ProjektDTO(**json_projektdaten)
     dto.projektmitarbeiter = pmas
 
-    neuesDTO, dbResult = pservice.create_new_from_dto_and_save(dto)
+    neuesDTO, dbResult = pservice.save_update_project(dto)
 
     if dbResult.complete:
         project_json = json.dumps(neuesDTO, default=data_helper.serialize)
         return {'status': "Success", 'project': project_json}
     else:
         return {'status': "Error", 'error': dbResult.message}
+
+
+@app.route('/editProject', methods=["POST"])
+def edit_project():  # put application's code here
+
+    json_projektdaten = json.loads(request.form['basis'])
+
+    dto = ProjektDTO(**json_projektdaten)
+
+    if 'file' in request.files:
+        file = request.files['file']
+        if file.filename != "":
+            # Sichere den Dateinamen, um böswillige Dateinamen zu verhindern
+            filename = secure_filename(file.filename)
+
+            # Speichere die Datei im Upload-Ordner
+            file.save("./uploads/" + filename)
+
+            eh = EhProjektmeldung()
+            pmas = eh.create_pms_from_export("./uploads/" + filename)
+            dto.projektmitarbeiter = pmas
+
+
+
+    neuesDTO, dbResult = pservice.save_update_project(dto, True)
+
+    if dbResult.complete:
+        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
+        return {'status': "Success", 'project': project_json}
+    else:
+        return {'status': "Error", 'error': dbResult.message}
+
+
+def _lade_demoprojekte():
+    # Schritt 1: kann ein JSON String in ein BookingDTO umgewandelt werden?
+    json_data = data_helper.read_json_file("helpers/json_templates/demoprojekte.json")
+    projekte: [ProjektDTO] = []
+
+    for pro in json_data:
+
+        pmas: [ProjektmitarbeiterDTO] = []
+
+        for pma in pro["projektmitarbeiter"]:
+            pmas.append(
+                ProjektmitarbeiterDTO(pma["personalnummer"], pma["name"], pma["psp_bezeichnung"], pma["psp_element"],
+                                      pma["stundensatz"], pma["stundenbudget"], pma["laufzeit_von"],
+                                      pma["laufzeit_bis"]))
+
+        projekte.append(
+            ProjektDTO(pro["projekt_name"], pro["psp"], pro["volumen"], pro["laufzeit_von"], pro["laufzeit_bis"], pmas))
+
+    for p in projekte:
+        pservice.save_update_project(p)
+
+
+def _lade_demobuchungen() -> str:
+    # Schritt 1:
+    json_data = data_helper.read_json_file("helpers/json_templates/examples/bookings.json")
+    uploadDatum = datetime.now()
+
+    for booking in json_data:
+        dto = BookingDTO(booking["name"],
+                         booking["personalnummer"],
+                         booking["datum"],
+                         booking["berechnungsmotiv"],
+                         booking["bearbeitungsstatus"],
+                         booking["bezeichnung"],
+                         booking["psp"],
+                         booking["pspElement"],
+                         booking["stunden"],
+                         booking["text"],
+                         booking["erstelltAm"],
+                         booking["letzteAenderung"],
+                         uploaddatum=uploadDatum)
+        bservice.create_new_from_dto_and_save(dto)
+
+
+def _lade_demoabwesenheiten() -> str:
+    demo_calender_data_importer.run()
 
 
 @app.route('/bookingsupload', methods=["POST"])
@@ -249,9 +294,10 @@ def get_psp_forecast_test():
 
     return back
 
+
 @app.route('/nachweise', methods=["GET"])
 def get_nachweise():
-    #psp = request.form.get("psp")
+    # psp = request.form.get("psp")
     back = bservice.getInstance().erstelle_erfassungsauswertung("11828", True)
     return back
 

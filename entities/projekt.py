@@ -22,7 +22,7 @@ class ProjektMitarbeiter(Base):
 
     projekt_id = Column(Integer, ForeignKey("projekte.id"))
     projekt = relationship("Projekt", back_populates="projektmitarbeiter", lazy=False)
-    uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
+
 
     def __init__(self,
                  personalnummer: int,
@@ -41,7 +41,7 @@ class ProjektMitarbeiter(Base):
         self.psp_bezeichnung = psp_bezeichnung
         self.laufzeit_von = laufzeit_von
         self.stundensatz = stundensatz
-        self.uploadDatum = datetime.now()
+
 
 
 class Projekt(Base):

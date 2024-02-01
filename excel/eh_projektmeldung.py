@@ -22,16 +22,6 @@ class EhProjektmeldung(ExcelHelper):
 
         for row in ws.iter_rows(values_only=True, min_row=2):
             if row[1] != None:
-               # ALT
-                # mitarbeiter_und_id = row[1]
-                # id = int(mitarbeiter_und_id[:5])
-                # name = mitarbeiter_und_id[8:]
-                # stundensatz = row[4]
-                # stundenbudet = row[6]
-                # bezeichnung = row[9]
-                # laufzeit_von = row[11]
-                # laufzeit_bis = row[12]
-
                mitarbeiter_und_id = row[0]
                id = int(mitarbeiter_und_id[:5])
                name = mitarbeiter_und_id[8:]

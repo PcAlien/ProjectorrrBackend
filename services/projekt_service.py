@@ -2,6 +2,7 @@ import json
 from types import NoneType
 from typing import Type, Tuple
 
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
@@ -10,7 +11,6 @@ from dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from dto.returners import DbResult
 from entities.projekt import ProjektMitarbeiter, Projekt
 from helpers import data_helper
-from services.db_service import DBService
 
 
 class ProjektService:
@@ -28,7 +28,13 @@ class ProjektService:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
 
-    def create_new_from_dto_and_save(self, projektDTO: ProjektDTO) -> Tuple[ProjektDTO, DbResult]:
+    def save_update_project(self, projektDTO: ProjektDTO, update=False) -> Tuple[ProjektDTO, DbResult]:
+
+        if update:
+            if not projektDTO.projektmitarbeiter:
+                project_dto: ProjektDTO = self.get_project_by_psp(projektDTO.psp, False)
+                projektDTO.projektmitarbeiter = project_dto.projektmitarbeiter
+
         projektmitarbeiter: [ProjektMitarbeiter] = []
         # pma: ProjektmitarbeiterDTO
         for pma in projektDTO.projektmitarbeiter:
@@ -40,21 +46,20 @@ class ProjektService:
                           projektDTO.laufzeit_von, projektmitarbeiter)
 
         Session = sessionmaker(bind=self.engine)
-
         with Session() as session:
             try:
 
-                pro = session.query(Projekt).filter(Projekt.psp == projekt.psp).first()
-                if pro:
-                    result = DbResult(False, "Ein Projekt mit der gleichen PSP Nummer ist bereits in der Datenbank vorhanden.")
-                    return None, result
-                else:
+                if not update:
+                    pro = session.query(Projekt).filter(Projekt.psp == projekt.psp).first()
+                    if pro:
+                        result = DbResult(False,
+                                          "Ein Projekt mit der gleichen PSP Nummer ist bereits in der Datenbank vorhanden.")
+                        return None, result
 
-                    session.add(projekt)
-                    # Änderungen in die Datenbank schreiben
-                    # session.flush()
-                    session.commit()
-                    session.refresh(projekt)
+                session.add(projekt)
+                session.commit()
+                session.refresh(projekt)
+
 
             except IntegrityError as e:
                 # Behandle den Fehler speziell für Integritätsverletzungen
@@ -63,14 +68,32 @@ class ProjektService:
                 result = DbResult(False, e)
                 return None, result
 
-        return ProjektDTO.create_from_db(projekt), DbResult(True, "A new project has been created")
+        if update:
+            return ProjektDTO.create_from_db(projekt), DbResult(True, "Project has been updated")
+        else:
+            return ProjektDTO.create_from_db(projekt), DbResult(True, "A new project has been created")
 
-    def get_project_by_psp(self, psp: str):
+    def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
         Session = sessionmaker(bind=self.engine)
         with Session() as session:
-            pro = session.query(Projekt).filter(Projekt.psp == psp).first()
+            subquery = (
+                session.query(func.max(Projekt.uploadDatum))
+                .filter(Projekt.psp == psp)
+                .subquery()
+            )
 
-            return ProjektDTO.create_from_db(pro)
+            pro = (
+                session.query(Projekt)
+                .filter(Projekt.psp == psp)
+                .filter(Projekt.uploadDatum.in_(subquery)).first()
+            )
+
+        dto = ProjektDTO.create_from_db(pro)
+        if json_format:
+            return json.dumps(dto, default=data_helper.serialize)
+        else:
+            return dto
+
 
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
         Session = sessionmaker(bind=self.engine)
@@ -81,11 +104,33 @@ class ProjektService:
 
             return ProjektmitarbeiterDTO.create_from_db(pma)
 
+
     def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
         Session = sessionmaker(bind=self.engine)
         projektDTOs: [ProjektDTO] = []
         with Session() as session:
-            projekte = session.query(Projekt).all()
+
+            subquery = (
+                session.query(func.max(Projekt.uploadDatum))
+                .group_by(Projekt.psp)
+                .subquery()
+            )
+
+            projekte = (
+                session.query(Projekt)
+                .filter(Projekt.uploadDatum.in_(subquery))
+                #.join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
+            )
+            # subquery = (
+            #     session.query(func.max(Projekt.uploadDatum))
+            #     .subquery()
+            # )
+            #
+            # projekte = (
+            #     session.query(Projekt)
+            #     .filter(Projekt.uploadDatum.in_(subquery))
+            # )
+            #projekte = session.query(Projekt).all()
 
             for p in projekte:
                 projektDTOs.append(ProjektDTO.create_from_db(p))
@@ -94,6 +139,7 @@ class ProjektService:
             return json.dumps(projektDTOs, default=data_helper.serialize)
         else:
             return projektDTOs
+
 
     def get_missing_project_psp_for_bookings(self, bookings: [BookingDTO]) -> {}:
         projekte: [Projekt] = self.get_all_projects(False)
