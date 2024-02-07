@@ -54,7 +54,7 @@ class ExcelHelper:
             for cell in x:
                 cell.number_format = format
 
-    def format_first_line(self,wb: Workbook):
+    def format_first_line_of_every_sheet(self, wb: Workbook):
         font = Font(name="Arial", size=10, color="FFFFFF", bold=True)
 
         for sheet in wb.worksheets:
@@ -69,3 +69,7 @@ class ExcelHelper:
 
         liste = list(each for each in range(0, len(wb.worksheets)))
         self.activate_filter_in_sheet(workbook=wb, sheets=liste)
+
+    def autosize_current_only_way(self,activeSheet: Worksheet):
+        for idx, col in enumerate(activeSheet.columns, 1):
+            activeSheet.column_dimensions[get_column_letter(idx)].bestFit = True

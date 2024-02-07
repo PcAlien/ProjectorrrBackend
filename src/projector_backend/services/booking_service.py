@@ -14,7 +14,7 @@ from src.projector_backend.dto.calendar_data import CalenderData
 from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO
 from src.projector_backend.dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO, MaDurchschnittsarbeitszeitDTO
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
-from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungDTO
+from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSummaryDTO, MonatsaufteilungDTO
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.returners import DbResult
@@ -211,7 +211,7 @@ class BookingService:
         else:
             return booking_dtos
 
-    def get_bookings_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungDTO] or str:
+    def get_bookings_summary_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungSummaryDTO] or str:
         """
         Liefert alle Buchungen zu einem PSP und teilt diese in Monate auf.
         :param psp: Das PSP, für das die Buchungen ausgegeben werden sollen.
@@ -219,14 +219,14 @@ class BookingService:
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/monatsaufteilung.json".
         """
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
-        monatsaufteilung_dto: [MonatsaufteilungDTO] = []
+        monatsaufteilung_dto: [MonatsaufteilungSummaryDTO] = []
 
         dto: BookingDTO
         for dto in booking_dtos:
             divider = f"{dto.datum.month}.{dto.datum.year}"
             gesuchtes_dto = next((element for element in monatsaufteilung_dto if element.monat == divider), None)
             if gesuchtes_dto == None:
-                gesuchtes_dto = MonatsaufteilungDTO(divider, MaBookingsSummaryDTO([], 0))
+                gesuchtes_dto = MonatsaufteilungSummaryDTO(divider, MaBookingsSummaryDTO([], 0))
                 monatsaufteilung_dto.append(gesuchtes_dto)
 
             ma_booking_summary_dto: [MaBookingsSummaryDTO] = gesuchtes_dto.maBookingsSummary
@@ -237,7 +237,7 @@ class BookingService:
             bookings.append(x)
             sum += x.umsatz
 
-        madtos_compressed: [MonatsaufteilungDTO] = []
+        madtos_compressed: [MonatsaufteilungSummaryDTO] = []
 
         for madto in monatsaufteilung_dto:
             monat = madto.monat
@@ -248,7 +248,7 @@ class BookingService:
             for dto in result:
                 sum_month += dto.umsatz
 
-            madtos_compressed.append(MonatsaufteilungDTO(monat, MaBookingsSummaryDTO(result, sum_month)))
+            madtos_compressed.append(MonatsaufteilungSummaryDTO(monat, MaBookingsSummaryDTO(result, sum_month)))
 
         madtos_compressed = sorted(madtos_compressed, key=self._sort_by_month)
 
@@ -257,7 +257,28 @@ class BookingService:
         else:
             return madtos_compressed
 
-    def _sort_by_month(self, monatsaufteilung: MonatsaufteilungDTO):
+
+    def get_bookings_for_psp_by_month(self,psp:str, json_format:bool) -> [MonatsaufteilungDTO] or str:
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+
+        monatsaufteilung_dtos: [MonatsaufteilungDTO] = []
+
+        dto: BookingDTO
+        for dto in booking_dtos:
+            monat_jahr_str = f"{dto.datum.month}.{dto.datum.year}"
+            gesuchtes_dto = next((element for element in monatsaufteilung_dtos if element.monat == monat_jahr_str), None)
+            if gesuchtes_dto == None:
+                gesuchtes_dto = MonatsaufteilungDTO(monat_jahr_str, [])
+                monatsaufteilung_dtos.append(gesuchtes_dto)
+
+            gesuchtes_dto.bookings.append(dto)
+
+        if (json_format):
+            return json.dumps(monatsaufteilung_dtos, default=data_helper.serialize)
+        else:
+            return monatsaufteilung_dtos
+
+    def _sort_by_month(self, monatsaufteilung: MonatsaufteilungSummaryDTO):
         return monatsaufteilung.monat
 
     def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> MaBookingsSummaryDTO or str:
@@ -321,14 +342,14 @@ class BookingService:
             return ma_bookings_summary_dto
 
     def get_project_summary(self, psp: str, json_format: bool) -> ProjectSummaryDTO or str:
-        monatsaufteilung_dtos: [MonatsaufteilungDTO] = self.get_bookings_for_psp_by_month(psp, False)
+        monatsaufteilung_dtos: [MonatsaufteilungSummaryDTO] = self.get_bookings_summary_for_psp_by_month(psp, False)
         # restbudget
         project_dto: ProjektDTO = ProjektService.getInstance().get_project_by_psp(psp, False)
 
         umsaetze_dtos: [UmsatzDTO] = []
 
         sum_verbraucht = 0
-        ma_dto: MonatsaufteilungDTO
+        ma_dto: MonatsaufteilungSummaryDTO
         for ma_dto in monatsaufteilung_dtos:
             umsaetze_dtos.append(UmsatzDTO(ma_dto.monat, ma_dto.maBookingsSummary.sum))
             sum_verbraucht += ma_dto.maBookingsSummary.sum

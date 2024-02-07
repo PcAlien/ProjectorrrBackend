@@ -67,7 +67,7 @@ def gib_buchungen():  # put application's code here
 @app.route('/monatsbuchungen', methods=['GET'])
 def gib_monatsbuchungen():  # put application's code here
     psp = request.args.get('psp')
-    back = bservice.get_bookings_for_psp_by_month(psp, True)
+    back = bservice.get_bookings_summary_for_psp_by_month(psp, True)
     return back
 
 
@@ -327,7 +327,7 @@ def create_export():
     psp = request.args.get('psp')
 
     eh =  EhBuchungen()
-    filename = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False))
+    filename = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False), bservice.get_bookings_for_psp_by_month(psp, False))
 
     file_path = os.path.join(os.getcwd(), 'exports', filename)
 

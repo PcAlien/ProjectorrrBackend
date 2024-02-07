@@ -7,6 +7,7 @@ from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 from src.projector_backend.dto.booking_dto import BookingDTO
+from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungDTO
 from src.projector_backend.entities.ImportFileColumns import ImportFileColumns
 from src.projector_backend.excel.excelhelper import ExcelHelper
 
@@ -62,32 +63,46 @@ class EhBuchungen(ExcelHelper):
 
         # TODO: lässt sich das kürzen?
 
-    def export_buchungen(self, psp, booking_dtos:[BookingDTO]):
+    def export_buchungen(self, psp, booking_dtos:[BookingDTO], monatsaufteilung_dtos: [MonatsaufteilungDTO]):
         # 1. Als erstes mal eine Exceltabelle mit allen Buchungen erstellen
         # 2. Formatieren
         # 3 in Monate unterteilen
 
         export_file_folder = "./exports/"
         export_file_name = "exportdatei.xlsx"
+        first_row = ["Name", "Personalnummer", "Datum", "Berechnungsmotiv", "Bearbeitungsstatus", "Bezeichnung",
+                           "PSP", "PSP-Element", "Stunden", "Stundensatz", "Umsatz", "Text", "erstellt am",
+                           "letzte Änderung"]
 
         booking_xlsx = self.create_workbook(export_file_folder + export_file_name, "Alle Buchungen")
 
         first_sheet = booking_xlsx.active
-        first_sheet.append(["Name", "Personalnummer", "Datum", "Berechnungsmotiv", "Bearbeitungsstatus", "Bezeichnung",
-                           "PSP", "PSP-Element", "Stunden", "Stundensatz", "Umsatz", "Text", "erstellt am",
-                           "letzte Änderung"])
 
 
-        dto: BookingDTO
-        for dto in booking_dtos:
-            first_sheet.append([dto.name, dto.personalnummer, dto.datum, dto.berechnungsmotiv, dto.bearbeitungsstatus, dto.bezeichnung,
-                               dto.psp, dto.pspElement, dto.stunden, dto.stundensatz, dto.umsatz, dto.text,
-                               dto.erstelltAm, dto.letzteAenderung])
+        self._fill_bookings_in_exportfile(first_sheet, first_row, booking_dtos)
 
-        self.format_column(first_sheet, 8, numbers.FORMAT_NUMBER_00)
-        self.format_column(first_sheet, 9, '#,##0.00 €')
-        self.format_column(first_sheet, 10, '#,##0.00 €')
+        month_dto: MonatsaufteilungDTO
+        for month_dto in monatsaufteilung_dtos:
+            active_sheet = booking_xlsx.create_sheet(month_dto.monat)
+            self._fill_bookings_in_exportfile(active_sheet, first_row,month_dto.bookings)
 
+        self.format_first_line_of_every_sheet(booking_xlsx)
         booking_xlsx.save(export_file_folder +export_file_name)
 
         return  export_file_name
+
+    def _fill_bookings_in_exportfile(self, worksheet, first_row:[],  booking_dtos:[BookingDTO]):
+        worksheet.append(first_row)
+        dto: BookingDTO
+        for dto in booking_dtos:
+            worksheet.append(
+                [dto.name, dto.personalnummer, dto.datum, dto.berechnungsmotiv, dto.bearbeitungsstatus, dto.bezeichnung,
+                 dto.psp, dto.pspElement, dto.stunden, dto.stundensatz, dto.umsatz, dto.text,
+                 dto.erstelltAm, dto.letzteAenderung])
+
+        self.format_column(worksheet, 8, numbers.FORMAT_NUMBER_00)
+        self.format_column(worksheet, 9, '#,##0.00 €')
+        self.format_column(worksheet, 10, '#,##0.00 €')
+        self.autosize_current_only_way(worksheet)
+
+
