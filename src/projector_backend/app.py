@@ -34,6 +34,7 @@ pservice = ProjektService(engine)
 bservice = BookingService(engine)
 cservice = CalendarService(engine)
 dbservice = DBService(engine)
+eh =  EhBuchungen()
 
 
 def convert_json_file(file_path):
@@ -322,20 +323,21 @@ def get_nachweise():
     back = bservice.getInstance().erstelle_erfassungsauswertung("11828", True)
     return back
 
-@app.route('/exportExcel', methods=["GET"])
-def create_export():
+@app.route('/exportBuchungen', methods=["GET"])
+def create_buchungen_export():
     psp = request.args.get('psp')
+    filename_buchungen = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False), bservice.get_bookings_for_psp_by_month(psp, False))
+    file_path_buchungen = os.path.join(os.getcwd(), 'exports', filename_buchungen)
+    return send_file(file_path_buchungen, as_attachment=True)
 
-    eh =  EhBuchungen()
-    filename = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False), bservice.get_bookings_for_psp_by_month(psp, False))
+@app.route('/exportUmsaetze', methods=["GET"])
+def create_umsaetze_export():
+    psp = request.args.get('psp')
+    filename_umsaetze = eh.export_umsaetze(psp, bservice.get_ma_bookings_summary_for_psp(psp,False), bservice.get_bookings_summary_for_psp_by_month(psp,False))
+    file_path_umsaetze = os.path.join(os.getcwd(), 'exports', filename_umsaetze)
+    return send_file(file_path_umsaetze, as_attachment=True)
 
-    file_path = os.path.join(os.getcwd(), 'exports', filename)
 
-    # Verwende send_file, um die Datei als Antwort zu senden
-    return send_file(file_path, as_attachment=True)
-
-    # back = bservice.getInstance().erstelle_erfassungsauswertung(psp, True)
-    # return back
 
 def create_init_data():
     dbservice.create_import_settings()
