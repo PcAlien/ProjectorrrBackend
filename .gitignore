@@ -1,1 +1,4 @@
 /build/
+/exports/
+/dist/
+/src/my_python_app.egg-info/
