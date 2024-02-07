@@ -1,16 +1,18 @@
 import json
 import logging
+import os
 from datetime import datetime
 
-from flask import Flask, request
+from flask import Flask, request, send_file
 from flask_cors import CORS
 from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
-from src.projector_backend.dto.forecast_dto import PspForecastDTO
+from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
 from src.projector_backend.entities.Base import Base
+from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.excel.eh_projektmeldung import EhProjektmeldung
 from src.projector_backend.helpers import data_helper
 from src.projector_backend.helpers.unfertig import demo_calender_data_importer
@@ -320,6 +322,20 @@ def get_nachweise():
     back = bservice.getInstance().erstelle_erfassungsauswertung("11828", True)
     return back
 
+@app.route('/exportExcel', methods=["GET"])
+def create_export():
+    psp = request.args.get('psp')
+
+    eh =  EhBuchungen()
+    filename = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False))
+
+    file_path = os.path.join(os.getcwd(), 'exports', filename)
+
+    # Verwende send_file, um die Datei als Antwort zu senden
+    return send_file(file_path, as_attachment=True)
+
+    # back = bservice.getInstance().erstelle_erfassungsauswertung(psp, True)
+    # return back
 
 def create_init_data():
     dbservice.create_import_settings()
