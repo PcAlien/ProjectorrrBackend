@@ -333,7 +333,7 @@ def create_buchungen_export():
 @app.route('/exportUmsaetze', methods=["GET"])
 def create_umsaetze_export():
     psp = request.args.get('psp')
-    filename_umsaetze = eh.export_umsaetze(psp, bservice.get_ma_bookings_summary_for_psp(psp,False), bservice.get_bookings_summary_for_psp_by_month(psp,False))
+    filename_umsaetze = eh.export_umsaetze(psp, bservice.get_ma_bookings_summary_for_psp(psp,False), bservice.get_bookings_summary_for_psp_by_month(psp,False), pservice.get_project_by_psp(psp,False).volumen)
     file_path_umsaetze = os.path.join(os.getcwd(), 'exports', filename_umsaetze)
     return send_file(file_path_umsaetze, as_attachment=True)
 

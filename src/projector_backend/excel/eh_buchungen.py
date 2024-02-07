@@ -89,7 +89,7 @@ class EhBuchungen(ExcelHelper):
         return export_file_name
 
     def export_umsaetze(self, psp, mab_summary_dto: MaBookingsSummaryDTO,
-                        monatsaufteilung_sum_dto: [MonatsaufteilungSummaryDTO]):
+                        monatsaufteilung_sum_dtos: [MonatsaufteilungSummaryDTO], budget: float):
         export_file_folder = "./exports/"
         export_date = datetime.datetime.now().strftime("%d.%m.%Y")
         export_file_name = f"Umsätze_{psp}_{export_date}.xlsx"
@@ -102,9 +102,26 @@ class EhBuchungen(ExcelHelper):
         self._fill_umsaetze_in_exportfile(first_sheet, first_row, mab_summary_dto.bookings)
 
         month_dto: MonatsaufteilungSummaryDTO
-        for month_dto in monatsaufteilung_sum_dto:
+        for month_dto in monatsaufteilung_sum_dtos:
             active_sheet = booking_xlsx.create_sheet(month_dto.monat)
             self._fill_umsaetze_in_exportfile(active_sheet, first_row, month_dto.maBookingsSummary.bookings)
+
+        # Weiteres Sheet: Zusammenfassung:
+        active_sheet = booking_xlsx.create_sheet("Budgetübersicht")
+        active_sheet.append(["Monat", "Gesamtumsatz"])
+        for month_dto in monatsaufteilung_sum_dtos:
+            monat = month_dto.monat
+            umsatz = month_dto.maBookingsSummary.sum
+            active_sheet.append([monat, umsatz])
+
+        active_sheet.append(["", ""])
+        active_sheet.append(["GESAMTUMSATZ", mab_summary_dto.sum])
+        active_sheet.append(["Projektbudget", budget])
+        active_sheet.append(["Restbudget", budget - mab_summary_dto.sum])
+        self.format_column(active_sheet, 1, '#,##0.00 €')
+        self.autosize_current_only_way(active_sheet)
+
+
 
         self.format_first_line_of_every_sheet(booking_xlsx)
         booking_xlsx.save(export_file_folder + export_file_name)
@@ -124,7 +141,6 @@ class EhBuchungen(ExcelHelper):
         self.format_column(worksheet, 9, '#,##0.00 €')
         self.format_column(worksheet, 10, '#,##0.00 €')
         self.autosize_current_only_way(worksheet)
-
 
     def _fill_umsaetze_in_exportfile(self, worksheet, first_row: [], mas_dtos: [MaBookingsSummaryElementDTO]):
         worksheet.append(first_row)
