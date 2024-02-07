@@ -69,7 +69,8 @@ class EhBuchungen(ExcelHelper):
         # 3 in Monate unterteilen
 
         export_file_folder = "./exports/"
-        export_file_name = "exportdatei.xlsx"
+        export_date = datetime.datetime.now().strftime("%d.%m.%Y")
+        export_file_name = f"Summary_{psp}_{export_date}.xlsx"
         first_row = ["Name", "Personalnummer", "Datum", "Berechnungsmotiv", "Bearbeitungsstatus", "Bezeichnung",
                            "PSP", "PSP-Element", "Stunden", "Stundensatz", "Umsatz", "Text", "erstellt am",
                            "letzte Änderung"]
