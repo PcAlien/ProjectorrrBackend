@@ -6,7 +6,7 @@ from src.projector_backend.services.calender_service import CalendarService
 
 
 def run():
-    json_data = data_helper.read_json_file("./helpers/json_templates/demodata_abwesenheiten.json")
+    json_data = data_helper.read_json_file("./src/projector_backend/helpers/json_templates/demodata_abwesenheiten.json")
     uploadDatum = datetime.now()
 
     abs = []

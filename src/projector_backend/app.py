@@ -81,7 +81,7 @@ def get_ma_bookings_summary():  # put application's code here
 
 @app.route('/projects', methods=['GET'])
 def get_projects():  # put application's code here
-    back = pservice.get_all_projects(True)
+    back = pservice.get_active_projects(True)
     return back
 
 
@@ -260,7 +260,8 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-    missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename, 1)
+
+    missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename)
 
     mpsp_str = ""
     if len(missing_psps) > 0:
@@ -319,8 +320,8 @@ def get_psp_forecast_test():
 
 @app.route('/nachweise', methods=["GET"])
 def get_nachweise():
-    # psp = request.form.get("psp")
-    back = bservice.getInstance().erstelle_erfassungsauswertung("11828", True)
+    psp = request.args.get('psp')
+    back = bservice.getInstance().erstelle_erfassungsauswertung(psp, True)
     return back
 
 @app.route('/exportBuchungen', methods=["GET"])

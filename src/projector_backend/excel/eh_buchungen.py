@@ -1,4 +1,5 @@
 import datetime
+import sys
 from types import NoneType
 
 from openpyxl.cell import Cell
@@ -11,21 +12,44 @@ from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryD
 from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungDTO, MonatsaufteilungSummaryDTO
 from src.projector_backend.entities.ImportFileColumns import ImportFileColumns
 from src.projector_backend.excel.excelhelper import ExcelHelper
+from src.projector_backend.services.db_service import DBService
 
 
 class EhBuchungen(ExcelHelper):
 
-    def create_bookings_from_export(self, source_file_path: str, ifc: ImportFileColumns) -> [BookingDTO]:
+    def get_export_type(self, wb: Workbook) -> ImportFileColumns:
+        ws: Worksheet = wb.active
+        if ws.title == "Loader":
+            return DBService.getInstance().get_import_settings(2)
+        else:
+            return DBService.getInstance().get_import_settings(1)
+
+    def create_bookings_from_export(self, source_file_path: str) -> [BookingDTO]:
 
         wb: Workbook = self.load_workbook(source_file_path)
-
-        ws: Worksheet = wb.active
+        ifc: ImportFileColumns = self.get_export_type(wb)
         bookingDTOs: [BookingDTO] = []
+        uploadDatum = datetime.datetime.now()
 
+        if ifc.type == 1:
+            ws: Worksheet = wb.active
+
+            bookingDTOs = self._process_excel_reading(uploadDatum, ws, ifc, bookingDTOs)
+
+        elif ifc.type == 2:
+            sheetNames = wb.sheetnames
+
+            for sheetName in sheetNames:
+                if sheetName != "Loader":
+                    ws: Worksheet = wb[sheetName]
+                    bookingDTOs = self._process_excel_reading(uploadDatum, ws, ifc, bookingDTOs)
+
+
+        return bookingDTOs
+
+    def _process_excel_reading(self, uploadDatum: datetime, ws: Worksheet, ifc: ImportFileColumns, bookingDTOs: [BookingDTO]):
         if ifc.delete_empty_lines:
             self._delete_summary_rows(ws)
-
-        uploadDatum = datetime.datetime.now()
 
         for row in ws.iter_rows(values_only=True, min_row=2):
             dto = BookingDTO(
@@ -43,9 +67,13 @@ class EhBuchungen(ExcelHelper):
                 row[ifc.letzte_aenderung],
                 uploaddatum=uploadDatum
             )
+            if dto.erstelltAm == None:
+                dto.erstelltAm = dto.letzteAenderung
             bookingDTOs.append(dto)
 
         return bookingDTOs
+
+
 
     def _delete_summary_rows(self, sheet: Worksheet):
         toDelete = []

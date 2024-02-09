@@ -363,9 +363,9 @@ class BookingService:
 
     def get_project_summaries(self, json_format: bool, archiviert = False) -> [ProjectSummaryDTO]:
         if archiviert:
-            projekte = ProjektService.getInstance().get_all_projects(False)
-        else:
             projekte = ProjektService.getInstance().get_archived_projects(False)
+        else:
+            projekte = ProjektService.getInstance().get_active_projects(False)
         ps_dtos = []
         for pro in projekte:
             ps_dtos.append(self.get_project_summary(pro.psp, False))
@@ -378,11 +378,8 @@ class BookingService:
 
 
 
-    def convert_bookings_from_excel_export(self, filename: str, export_type: int) -> Tuple[List[str], DbResult]:
-        # TODO: Export type noch berücksichtigen
-
-        ifc = DBService.getInstance().get_import_settings(1)
-        bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename, ifc)
+    def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str], DbResult]:
+        bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename)
         dto: BookingDTO
 
         missing_psps: {str} = ProjektService.getInstance().get_missing_project_psp_for_bookings(bookingDTOs)
@@ -595,15 +592,10 @@ class BookingService:
                 found = False
                 for abw in abwesenheiten:
                     if abw.personalnummer == pnummer:
-
                         for x in abw.abwesenheitDetails:
-                            if pnummer == 1006 and x.datum == "22.01.2024":
-                                print("HODL!")
-
                             d = date_helper.from_date_to_string(gesuchtesDatum)
                             if x.datum == d:
                                 stunden.append(x.typ)
-                                print("TYP", x.typ)
                                 found = True
                                 break
 

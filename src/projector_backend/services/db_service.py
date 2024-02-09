@@ -6,6 +6,7 @@ from src.projector_backend.entities.ImportFileColumns import ImportFileColumns
 from src.projector_backend.helpers import data_helper as dh
 
 
+
 class DBService:
     _instance = None
 
@@ -32,9 +33,15 @@ class DBService:
         with Session() as session:
             ipf = session.get(ImportFileColumns, 1)
             if (ipf == None):
-                json_data = dh.read_json_file("helpers/json_templates/importFileColoums.json")
-                ifc = ImportFileColumns(**json_data)
-                session.add(ifc)
+                import os
+                print("PFAD #########################")
+                print(os.getcwd())
+
+                json_data = dh.read_json_file("./src/projector_backend/helpers/json_templates/importFileColoums.json")
+                #ifcs = IFC_Holder(**json_data)
+                for i in json_data:
+                    ifc = ImportFileColumns(**i)
+                    session.add(ifc)
                 session.commit()
 
     def get_import_settings(self, type=1) -> ImportFileColumns:

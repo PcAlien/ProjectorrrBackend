@@ -1,7 +1,7 @@
-{
+[{
   "import_name": "SAP Export",
   "type": 1,
-  "bezeichnung": 0,
+  "bezeichnung": 10,
   "name": 1,
   "personalnummer": 0,
   "leistungsdatum": 2,
@@ -15,4 +15,22 @@
   "letzte_aenderung":23,
   "worksheet": 0,
   "delete_empty_lines": 1
-}
+},
+{
+  "import_name": "Excel Export",
+  "type": 2,
+  "bezeichnung": 10,
+  "name": 1,
+  "personalnummer": 0,
+  "leistungsdatum": 2,
+  "fakturierbar": 4,
+  "status":5,
+  "psp":9,
+  "psp_element": 11,
+  "stunden": 8,
+  "erfasst_am": 20,
+  "text": 14,
+  "letzte_aenderung":25,
+  "worksheet": 0,
+  "delete_empty_lines": 1
+}]

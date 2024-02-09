@@ -117,20 +117,11 @@ class ProjektService:
             )
 
             projekte = (
-                session.query(Projekt).where(Projekt.archiviert == False)
+                session.query(Projekt)
                 .filter(Projekt.uploadDatum.in_(subquery))
                 #.join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
-            # subquery = (
-            #     session.query(func.max(Projekt.uploadDatum))
-            #     .subquery()
-            # )
-            #
-            # projekte = (
-            #     session.query(Projekt)
-            #     .filter(Projekt.uploadDatum.in_(subquery))
-            # )
-            #projekte = session.query(Projekt).all()
+
 
             for p in projekte:
                 projektDTOs.append(ProjektDTO.create_from_db(p))
@@ -140,6 +131,30 @@ class ProjektService:
         else:
             return projektDTOs
 
+    def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
+        Session = sessionmaker(bind=self.engine)
+        projektDTOs: [ProjektDTO] = []
+        with Session() as session:
+
+            subquery = (
+                session.query(func.max(Projekt.uploadDatum))
+                .group_by(Projekt.psp)
+                .subquery()
+            )
+
+            projekte = (
+                session.query(Projekt).where(Projekt.archiviert == False)
+                .filter(Projekt.uploadDatum.in_(subquery))
+                # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
+            )
+
+            for p in projekte:
+                projektDTOs.append(ProjektDTO.create_from_db(p))
+
+        if (json_format):
+            return json.dumps(projektDTOs, default=data_helper.serialize)
+        else:
+            return projektDTOs
 
     def get_archived_projects(self, json_format: bool) -> [ProjektDTO] or str:
         Session = sessionmaker(bind=self.engine)
