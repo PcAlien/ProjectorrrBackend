@@ -18,7 +18,7 @@ from src.projector_backend.services.db_service import DBService
 class EhBuchungen(ExcelHelper):
 
     def get_export_type(self, wb: Workbook) -> ImportFileColumns:
-        ws: Worksheet = wb.active
+        ws: Worksheet = wb.worksheets[0]
         if ws.title == "Loader":
             return DBService.getInstance().get_import_settings(2)
         else:
