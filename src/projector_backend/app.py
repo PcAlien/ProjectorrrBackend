@@ -8,6 +8,7 @@ from flask_cors import CORS
 from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
@@ -184,6 +185,42 @@ def edit_project():  # put application's code here
 
 
     neuesDTO, dbResult = pservice.save_update_project(dto, True)
+
+    if dbResult.complete:
+        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
+        return {'status': "Success", 'project': project_json}
+    else:
+        return {'status': "Error", 'error': dbResult.message}
+
+
+@app.route('/addPspPackage', methods=["POST"])
+def add_psp_package():  # put application's code here
+
+    json_projektdaten = json.loads(request.form['package'])
+    dto = PspPackageDTO(**json_projektdaten)
+
+    neuesDTO, dbResult = pservice.add_psp_package(dto)
+
+    if dbResult.complete:
+        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
+        return {'status': "Success", 'project': project_json}
+    else:
+        return {'status': "Error", 'error': dbResult.message}
+
+
+@app.route('/loadPspPackage', methods=["GET"])
+def load_psp_package():  # put application's code here
+    identifier = request.args.get('identifier')
+    back = pservice.get_psp_package(identifier,True)
+    return back
+
+@app.route('/updatePspPackage', methods=["POST"])
+def update_psp_package():  # put application's code here
+
+    json_projektdaten = json.loads(request.form['package'])
+    dto = PspPackageDTO(**json_projektdaten)
+
+    neuesDTO, dbResult = pservice.update_psp_package(dto)
 
     if dbResult.complete:
         project_json = json.dumps(neuesDTO, default=data_helper.serialize)

@@ -6,9 +6,11 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.returners import DbResult
+from src.projector_backend.entities.PspPackage import PspPackage
 from src.projector_backend.entities.projekt import ProjektMitarbeiter, Projekt
 from src.projector_backend.helpers import data_helper
 
@@ -42,8 +44,15 @@ class ProjektService:
                                           pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
             projektmitarbeiter.append(neuerPMA)
 
+        pspPs: [PspPackage] = []
+        pspp_dto: PspPackageDTO
+        for pspp_dto in projektDTO.psp_packages:
+            dto = PspPackage(pspp_dto.psp, pspp_dto.package_name, pspp_dto.package_description, pspp_dto.volume,
+                             pspp_dto.tickets_identifier)
+            pspPs.append(dto)
+
         projekt = Projekt(projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis, projektDTO.psp,
-                          projektDTO.laufzeit_von, projektmitarbeiter)
+                          projektDTO.laufzeit_von, projektmitarbeiter, pspPs)
 
         Session = sessionmaker(bind=self.engine)
         with Session() as session:
@@ -94,7 +103,6 @@ class ProjektService:
         else:
             return dto
 
-
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
         Session = sessionmaker(bind=self.engine)
         with Session() as session:
@@ -103,7 +111,6 @@ class ProjektService:
                 print(psp_element)
 
             return ProjektmitarbeiterDTO.create_from_db(pma)
-
 
     def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
         Session = sessionmaker(bind=self.engine)
@@ -119,9 +126,8 @@ class ProjektService:
             projekte = (
                 session.query(Projekt)
                 .filter(Projekt.uploadDatum.in_(subquery))
-                #.join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
+                # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
-
 
             for p in projekte:
                 projektDTOs.append(ProjektDTO.create_from_db(p))
@@ -168,7 +174,7 @@ class ProjektService:
             )
 
             projekte = (
-                session.query(Projekt).where(Projekt.archiviert==True)
+                session.query(Projekt).where(Projekt.archiviert == True)
                 .filter(Projekt.uploadDatum.in_(subquery))
 
             )
@@ -180,7 +186,6 @@ class ProjektService:
             return json.dumps(projektDTOs, default=data_helper.serialize)
         else:
             return projektDTOs
-
 
     def toogle_archive_project(self, psp):
         Session = sessionmaker(bind=self.engine)
@@ -200,8 +205,7 @@ class ProjektService:
             pro.archiviert = not pro.archiviert
 
             session.commit()
-        return {"status":"ok"}
-
+        return {"status": "ok"}
 
     def get_missing_project_psp_for_bookings(self, bookings: [BookingDTO]) -> {}:
         projekte: [Projekt] = self.get_all_projects(False)
@@ -217,3 +221,48 @@ class ProjektService:
                 missing_psps.add(b.psp)
 
         return missing_psps
+
+    def add_psp_package(self, dto: PspPackageDTO):
+        projekt_dto: ProjektDTO
+        projekt_dto = self.get_project_by_psp(dto.psp, False)
+
+        # pdto = ProjektDTO("bla","jlj",2434,"n", "m", None, [] )
+        # pdto.psp_packages.append(dto)
+
+        projekt_dto.psp_packages.append(dto)
+
+        return self.save_update_project(projekt_dto, True)
+
+    def update_psp_package(self, dto: PspPackageDTO):
+        projekt_dto: ProjektDTO
+        projekt_dto = self.get_project_by_psp(dto.psp, False)
+
+        p: PspPackageDTO
+        for p in projekt_dto.psp_packages:
+            if p.package_identifier == dto.package_identifier:
+                projekt_dto.psp_packages.remove(p)
+                break
+
+        projekt_dto.psp_packages.append(dto)
+        return self.save_update_project(projekt_dto, True)
+
+
+
+    def get_psp_package(self, identifier: str, json_format: bool):
+        Session = sessionmaker(bind=self.engine)
+
+        with Session() as session:
+
+            package = (
+                session.query(PspPackage).where(PspPackage.package_identifier == identifier).first()
+
+
+            )
+
+
+        dto = PspPackageDTO.create_from_db(package)
+
+        if (json_format):
+            return json.dumps(dto, default=data_helper.serialize)
+        else:
+            return dto

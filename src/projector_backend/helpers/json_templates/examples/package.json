@@ -1,0 +1,11 @@
+{
+  "package_identifier": "sdizdq3ir5z43rfosdzft",
+  "psp": "11828",
+  "package_name": "Das ist der Paketname",
+  "package_description": "Hier kann iene Beschreibung rein.",
+  "volume": 0.5,
+  "tickets_identifier": [
+    "12345","45678", "123783"
+  ]
+
+}

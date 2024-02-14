@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
+from src.projector_backend.entities.PspPackage import PspPackage
 from src.projector_backend.entities.projekt import Projekt, ProjektMitarbeiter
 
 
@@ -15,7 +17,7 @@ class ProjektmitarbeiterDTO:
     uploaddatum: datetime
 
     def __init__(self, personalnummer: int, name: str, psp_bezeichnung: str, psp_element: str, stundensatz: int,
-                 stundenbudget: int, laufzeit_von: str, laufzeit_bis: str, dbID= 0, ) -> None:
+                 stundenbudget: int, laufzeit_von: str, laufzeit_bis: str, dbID=0, ) -> None:
         self.stundenbudget = stundenbudget
         self.psp_element = psp_element
         self.laufzeit_bis = laufzeit_bis
@@ -24,27 +26,28 @@ class ProjektmitarbeiterDTO:
         self.personalnummer = personalnummer
         self.laufzeit_von = laufzeit_von
         self.stundensatz = stundensatz
-        self.dbID=dbID
+        self.dbID = dbID
 
     @classmethod
     def create_from_db(cls, pma: ProjektMitarbeiter):
         return cls(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element, pma.stundensatz,
-                   pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id,)
+                   pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id, )
 
 
 class ProjektDTO:
-    volumen: int
-    projekt_name: str
-    laufzeit_bis: str
-    projektmitarbeiter: [ProjektmitarbeiterDTO]
     psp: str
+    projekt_name: str
+    projektmitarbeiter: [ProjektmitarbeiterDTO]
+    volumen: int
     laufzeit_von: str
+    laufzeit_bis: str
+    psp_packages: [PspPackageDTO]
     uploaddatum: datetime
     archiviert: bool
 
-
     def __init__(self, projekt_name: str, psp: str, volumen: int, laufzeit_von: str, laufzeit_bis: str,
-                 projektmitarbeiter: [ProjektmitarbeiterDTO], dbID=0, uploaddatum = datetime.today(), archiviert=False) -> None:
+                 projektmitarbeiter: [ProjektmitarbeiterDTO], psp_packages: [PspPackageDTO], dbID=0,
+                 uploaddatum=datetime.today(), archiviert=False) -> None:
         self.volumen = volumen
         self.projekt_name = projekt_name
         self.laufzeit_bis = laufzeit_bis
@@ -57,6 +60,10 @@ class ProjektDTO:
                 projektmitarbeiter_updated = projektmitarbeiter
 
         self.projektmitarbeiter: [ProjektmitarbeiterDTO] = projektmitarbeiter_updated
+        if psp_packages:
+            self.psp_packages: [PspPackageDTO] = psp_packages
+        else:
+            self.psp_packages: [PspPackageDTO] = []
         self.psp = psp
         self.laufzeit_von = laufzeit_von
         self.dbID = dbID
@@ -71,5 +78,15 @@ class ProjektDTO:
             projektmitarbeiter.append(
                 ProjektmitarbeiterDTO(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
+
+        pspPackages: [PspPackageDTO] = []
+        pspp: PspPackage
+        for pspp in projekt.psp_packages:
+            pspPackages.append(
+                PspPackageDTO.create_from_db(pspp)
+
+            )
+
         return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
-                   projektmitarbeiter, projekt.id, uploaddatum=projekt.uploadDatum, archiviert=projekt.archiviert)
+                   projektmitarbeiter, pspPackages, projekt.id, uploaddatum=projekt.uploadDatum,
+                   archiviert=projekt.archiviert)

@@ -1,7 +1,7 @@
 FROM python:3.10
 
 RUN pip install --upgrade pip
-RUN pip freeze > requirements.txt
+#RUN pip freeze > requirements.txt
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
