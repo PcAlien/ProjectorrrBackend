@@ -1,0 +1,346 @@
+{
+  "project": {
+    "volumen": 438800,
+    "projekt_name": "Shelf Tag Management (STM) Q1 2024",
+    "laufzeit_bis": "31.03.2024",
+    "projektmitarbeiter": [
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.5",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Wedekind, Dr. Peter",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Wedekind",
+        "personalnummer": 175,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 140.0,
+        "dbID": 1287
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.19",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Panneck, Marius",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Panneck",
+        "personalnummer": 531,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1288
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.25",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Buschhaus, Lara",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Buschhaus",
+        "personalnummer": 653,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 90.0,
+        "dbID": 1289
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.7",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Kemena, Devon",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Kemena",
+        "personalnummer": 729,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 90.0,
+        "dbID": 1290
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.10",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Stier, Markus",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Stier",
+        "personalnummer": 748,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 161.0,
+        "dbID": 1291
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.11",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Stier, Markus",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Stier",
+        "personalnummer": 748,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 175.0,
+        "dbID": 1292
+      },
+      {
+        "stundenbudget": 76.0,
+        "psp_element": "11828.9",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Stier, Markus",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Stier",
+        "personalnummer": 748,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 140.0,
+        "dbID": 1293
+      },
+      {
+        "stundenbudget": 296.0,
+        "psp_element": "11828.12",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Scharov, Denis",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Scharov",
+        "personalnummer": 755,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 140.0,
+        "dbID": 1294
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.13",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Scharov, Denis",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Scharov",
+        "personalnummer": 755,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 161.0,
+        "dbID": 1295
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.14",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Scharov, Denis",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Scharov",
+        "personalnummer": 755,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 175.0,
+        "dbID": 1296
+      },
+      {
+        "stundenbudget": 150.0,
+        "psp_element": "11828.27",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Sanden, Moritz",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Sanden",
+        "personalnummer": 768,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1297
+      },
+      {
+        "stundenbudget": 36.0,
+        "psp_element": "11828.1",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Fedjakin, Denis",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Fedjakin",
+        "personalnummer": 775,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1298
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.2",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Fedjakin, Denis",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Fedjakin",
+        "personalnummer": 775,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 132.25,
+        "dbID": 1299
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.3",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Fedjakin, Denis",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Fedjakin",
+        "personalnummer": 775,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 143.75,
+        "dbID": 1300
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.8",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Ali, Mahmoud",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Ali",
+        "personalnummer": 836,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1301
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.18",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Pedrozo, Gabriel",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Pedrozo",
+        "personalnummer": 857,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1302
+      },
+      {
+        "stundenbudget": 190.0,
+        "psp_element": "11828.21",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Frerix, Stefan",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Frerix",
+        "personalnummer": 867,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 140.0,
+        "dbID": 1303
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.20",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Karaca, Burhan",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Karaca",
+        "personalnummer": 886,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1304
+      },
+      {
+        "stundenbudget": 296.0,
+        "psp_element": "11828.22",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Eqbal, Ramin",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Eqbal",
+        "personalnummer": 946,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1305
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.23",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Eqbal, Ramin",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Eqbal",
+        "personalnummer": 946,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 132.25,
+        "dbID": 1306
+      },
+      {
+        "stundenbudget": 2.0,
+        "psp_element": "11828.24",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Eqbal, Ramin",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Eqbal",
+        "personalnummer": 946,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 143.75,
+        "dbID": 1307
+      },
+      {
+        "stundenbudget": 30.0,
+        "psp_element": "11828.28",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Gabel, Sven David",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Gabel",
+        "personalnummer": 974,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1308
+      },
+      {
+        "stundenbudget": 3.0,
+        "psp_element": "11828.15",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Golak, Jan",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Golak",
+        "personalnummer": 988,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1309
+      },
+      {
+        "stundenbudget": 1.0,
+        "psp_element": "11828.16",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Golak, Jan",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Golak",
+        "personalnummer": 988,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 132.25,
+        "dbID": 1310
+      },
+      {
+        "stundenbudget": 1.0,
+        "psp_element": "11828.17",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Golak, Jan",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Golak",
+        "personalnummer": 988,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 143.75,
+        "dbID": 1311
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.4",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Du, Tai Linh",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Du",
+        "personalnummer": 1006,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 90.0,
+        "dbID": 1312
+      },
+      {
+        "stundenbudget": 300.0,
+        "psp_element": "11828.6",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Trinh, Xuan Thuy",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Trinh",
+        "personalnummer": 1023,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 90.0,
+        "dbID": 1313
+      },
+      {
+        "stundenbudget": 120.0,
+        "psp_element": "11828.26",
+        "laufzeit_bis": "2024-03-31 00:00:00",
+        "name": "Haubrich, Robert",
+        "psp_bezeichnung": "Shelf Tag Management (STM) Q1 2024 - PStd. Haubrich",
+        "personalnummer": 1114,
+        "laufzeit_von": "2024-01-01 00:00:00",
+        "stundensatz": 115.0,
+        "dbID": 1314
+      }
+    ],
+    "packages": [
+      {
+        "volume": 4.0,
+        "package_name": "Paket 2",
+        "psp": "11828",
+        "package_identifier": "46mCO6iWGY0445CUht8j3Ztp5g5CRz",
+        "package_description": "sdasd",
+        "tickets_identifier": [
+          "168829"
+        ]
+      }
+    ],
+    "psp": "11828",
+    "laufzeit_von": "01.01.2024",
+    "dbID": 47,
+    "uploaddatum": "15.02.2024",
+    "archiviert": false
+  },
+  "umsaetze": [
+    {
+      "umsatz": 166836.7,
+      "monat": "1.2024"
+    },
+    {
+      "umsatz": 54421.25,
+      "monat": "2.2024"
+    }
+  ],
+  "spent": 221257.95,
+  "restbudget": 217542.05
+}

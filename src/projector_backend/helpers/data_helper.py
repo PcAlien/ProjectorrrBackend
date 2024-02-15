@@ -13,6 +13,8 @@ def serialize(obj):
             return obj.strftime('%d.%m.%Y')
         elif isinstance(obj, set):
             return list(obj)
+        elif isinstance(obj, list):
+            return list(obj)
         return obj.__dict__
     except:
         raise TypeError("Object not serializable")

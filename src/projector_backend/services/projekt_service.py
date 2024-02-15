@@ -154,6 +154,8 @@ class ProjektService:
                 # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
 
+
+
             for p in projekte:
                 projektDTOs.append(ProjektDTO.create_from_db(p))
 
@@ -246,23 +248,38 @@ class ProjektService:
         projekt_dto.psp_packages.append(dto)
         return self.save_update_project(projekt_dto, True)
 
+    def delete_psp_package(self,dto:PspPackageDTO):
+        projekt_dto: ProjektDTO
+        projekt_dto = self.get_project_by_psp(dto.psp, False)
+
+        p: PspPackageDTO
+        for p in projekt_dto.psp_packages:
+            if p.package_identifier == dto.package_identifier:
+                projekt_dto.psp_packages.remove(p)
+                break
+
+
+        return self.save_update_project(projekt_dto, True)
+
+
 
 
     def get_psp_package(self, identifier: str, json_format: bool):
         Session = sessionmaker(bind=self.engine)
-
         with Session() as session:
-
             package = (
                 session.query(PspPackage).where(PspPackage.package_identifier == identifier).first()
-
-
             )
-
-
         dto = PspPackageDTO.create_from_db(package)
 
         if (json_format):
             return json.dumps(dto, default=data_helper.serialize)
         else:
             return dto
+
+    # def get_psp_package_summary(self, identifier: str, json_format: bool):
+    #     pspp_dto = self.get_psp_package(identifier,False)
+    #     project_dto: ProjektDTO
+    #     project_dto = self.get_project_by_psp(pspp_dto.psp,False)
+    #     # TODO
+

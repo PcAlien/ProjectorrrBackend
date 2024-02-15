@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO
 from src.projector_backend.entities.PspPackage import PspPackage
 from src.projector_backend.entities.projekt import Projekt, ProjektMitarbeiter
 
@@ -90,3 +90,4 @@ class ProjektDTO:
         return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
                    projektmitarbeiter, pspPackages, projekt.id, uploaddatum=projekt.uploadDatum,
                    archiviert=projekt.archiviert)
+

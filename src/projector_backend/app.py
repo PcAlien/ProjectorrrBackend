@@ -8,7 +8,7 @@ from flask_cors import CORS
 from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
-from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
@@ -103,6 +103,7 @@ def get_project():  # put application's code here
 def get_project_summary():  # put application's code here
     psp = request.args.get('psp')
     back = bservice.get_project_summary(psp, True)
+    back2 = bservice.get_project_summary(psp, False)
     return back
 
 
@@ -134,7 +135,7 @@ def projektupload():  # put application's code here
 
     file = request.files['file']
     json_projektdaten = json.loads(request.form['basis'])
-    print(json_projektdaten)
+
 
     # Überprüfe, ob eine Datei ausgewählt wurde
     if file.filename == '':
@@ -227,6 +228,37 @@ def update_psp_package():  # put application's code here
         return {'status': "Success", 'project': project_json}
     else:
         return {'status': "Error", 'error': dbResult.message}
+
+@app.route('/deletePspPackage', methods=["POST"])
+def delete_psp_package():  # put application's code here
+
+    json_projektdaten = json.loads(request.form['package'])
+    dto = PspPackageDTO(**json_projektdaten)
+
+    neuesDTO, dbResult = pservice.delete_psp_package(dto)
+
+    if dbResult.complete:
+        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
+        return {'status': "Success", 'project': project_json}
+    else:
+        return {'status': "Error", 'error': dbResult.message}
+
+
+@app.route('/getPackageSummary', methods=["GET"])
+def get_package_summary():  # put application's code here
+    identifier = request.args.get('identifier')
+    back: PspPackageSummaryDTO = bservice.get_package_summary(identifier, True)
+
+    return back
+
+@app.route('/getPackageSummaries', methods=["GET"])
+def get_package_summaries():  # put application's code here
+    psp = request.args.get('psp')
+    back: [PspPackageSummaryDTO] = bservice.get_package_summaries(psp, True)
+    return back
+
+
+
 
 
 def _lade_demoprojekte():

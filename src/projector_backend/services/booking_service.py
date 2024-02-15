@@ -8,22 +8,22 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO, PspPackageUmsatzDTO
 from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.calendar_data import CalenderData
 from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO
-from src.projector_backend.dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO, MaDurchschnittsarbeitszeitDTO
+from src.projector_backend.dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO, \
+    MaDurchschnittsarbeitszeitDTO
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSummaryDTO, MonatsaufteilungDTO
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.returners import DbResult
 from src.projector_backend.entities.booking import Booking
-from src.projector_backend.entities.projekt import Projekt
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.helpers import data_helper, date_helper
 from src.projector_backend.services.calender_service import CalendarService
-from src.projector_backend.services.db_service import DBService
 from src.projector_backend.services.projekt_service import ProjektService
 from src.projector_backend.services.tempclasses import Ma_Zwischenspeicher
 
@@ -257,8 +257,7 @@ class BookingService:
         else:
             return madtos_compressed
 
-
-    def get_bookings_for_psp_by_month(self,psp:str, json_format:bool) -> [MonatsaufteilungDTO] or str:
+    def get_bookings_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungDTO] or str:
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
 
         monatsaufteilung_dtos: [MonatsaufteilungDTO] = []
@@ -266,7 +265,8 @@ class BookingService:
         dto: BookingDTO
         for dto in booking_dtos:
             monat_jahr_str = f"{dto.datum.month}.{dto.datum.year}"
-            gesuchtes_dto = next((element for element in monatsaufteilung_dtos if element.monat == monat_jahr_str), None)
+            gesuchtes_dto = next((element for element in monatsaufteilung_dtos if element.monat == monat_jahr_str),
+                                 None)
             if gesuchtes_dto == None:
                 gesuchtes_dto = MonatsaufteilungDTO(monat_jahr_str, [])
                 monatsaufteilung_dtos.append(gesuchtes_dto)
@@ -361,7 +361,7 @@ class BookingService:
         else:
             return ps_dto
 
-    def get_project_summaries(self, json_format: bool, archiviert = False) -> [ProjectSummaryDTO]:
+    def get_project_summaries(self, json_format: bool, archiviert=False) -> [ProjectSummaryDTO]:
         if archiviert:
             projekte = ProjektService.getInstance().get_archived_projects(False)
         else:
@@ -374,9 +374,6 @@ class BookingService:
             return json.dumps(ps_dtos, default=data_helper.serialize)
         else:
             return ps_dtos
-
-
-
 
     def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str], DbResult]:
         bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename)
@@ -627,3 +624,70 @@ class BookingService:
             return json.dumps(nachweise, default=data_helper.serialize)
         else:
             return nachweise
+
+    def get_package_summary(self, identifier: str, json_format: bool) -> PspPackageSummaryDTO or str:
+        pspp_dto: PspPackageDTO = ProjektService.getInstance().get_psp_package(identifier, False)
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(pspp_dto.psp, False)
+
+        sum_hours = 0
+        sum_umsatz = 0
+
+        # Monate rausfinden
+        monate = []
+        for b in booking_dtos:
+            divider = f"{b.datum.month}.{b.datum.year}"
+            if divider not in monate:
+                monate.append(divider)
+
+        # UmsatzDTOs vorbereiten
+        umsatz_dtos: [PspPackageUmsatzDTO] = []
+        for mon in monate:
+            umsatz_dtos.append(PspPackageUmsatzDTO(mon,0,0))
+
+
+        b: BookingDTO
+        for b in booking_dtos:
+            for ti in pspp_dto.tickets_identifier:
+                if ti in b.text:
+                    sum_umsatz += b.umsatz
+                    sum_hours += b.stunden
+
+                    # Jetzt in das entsprechende UmsatzDTO schieben
+                    divider = f"{b.datum.month}.{b.datum.year}"
+                    dto: PspPackageUmsatzDTO
+                    for dto in umsatz_dtos:
+                        if dto.monat == divider:
+                            dto.umsatz += b.umsatz
+                            dto.stunden += b.stunden
+                            dto.bookings.append(b)
+                            break
+
+        summary_dto : PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_hours / 8.0, umsatz_dtos)
+
+        if json_format:
+            return json.dumps(summary_dto, default=data_helper.serialize)
+        else:
+            return summary_dto
+
+
+    def get_package_summaries(self, psp: str, json_format: bool) -> [PspPackageSummaryDTO] or str:
+
+        projekt_dto : ProjektDTO
+        projekt_dto = ProjektService.getInstance().get_project_by_psp(psp, False)
+
+        summaries: [PspPackageSummaryDTO] = []
+
+        pack: PspPackageDTO
+        for pack in projekt_dto.psp_packages:
+            identifier = pack.package_identifier
+            dto = self.get_package_summary(identifier, False)
+            summaries.append(dto)
+
+
+
+        if json_format:
+            return json.dumps(summaries, default=data_helper.serialize)
+        else:
+            return summaries
+
+
