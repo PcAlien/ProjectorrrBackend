@@ -347,6 +347,37 @@ def bookings_upload():
             'missingPSPs': mpsp_str,
             }
 
+@app.route('/abwesenheitsUpload', methods=["POST"])
+def abwesenheits_upload():
+    # Überprüfe, ob die POST-Anfrage eine Datei enthält
+    if 'abwesenheits_file' not in request.files:
+        return 'No file part', 400
+
+    file = request.files['abwesenheits_file']
+
+    # json_buchungsdaten = json.loads(request.form['base_data_booking'])
+
+    # Überprüfe, ob eine Datei ausgewählt wurde
+    if file.filename == '':
+        return 'No selected file', 400
+
+    # Sichere den Dateinamen, um böswillige Dateinamen zu verhindern
+    filename = secure_filename(file.filename)
+
+    # Speichere die Datei im Upload-Ordner
+    file.save("./uploads/" + filename)
+
+
+    dbResult = cservice.prozeed_upload_abwesenheiten(filename)
+
+    if (not dbResult.complete):
+        return {'status': "Failed",
+                'error': dbResult.message
+                }
+
+    return {'status': "Success",
+            }
+
 
 @app.route('/abwesenheiten', methods=["GET"])
 def get_abwesenheiten():
