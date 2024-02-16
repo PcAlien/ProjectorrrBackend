@@ -9,9 +9,10 @@ from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO
-from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
+from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
+from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.entities.Base import Base
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.excel.eh_projektmeldung import EhProjektmeldung
@@ -31,11 +32,18 @@ Base.metadata.create_all(engine)
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-pservice = ProjektService(engine)
-bservice = BookingService(engine)
+ProjektService(engine)
+BookingService(engine)
+
+pservice = ProjektService.getInstance()
+bservice = BookingService.getInstance()
+
+pservice.set_booking_service(bservice)
+bservice.set_project_service(pservice)
+
 cservice = CalendarService(engine)
 dbservice = DBService(engine)
-eh =  EhBuchungen()
+eh = EhBuchungen()
 
 
 def convert_json_file(file_path):
@@ -86,11 +94,11 @@ def get_projects():  # put application's code here
     return back
 
 
-
 @app.route('/archivedProjects', methods=['GET'])
 def get_archived_projects():  # put application's code here
     back = pservice.get_archived_projects(True)
     return back
+
 
 @app.route('/project', methods=['GET'])
 def get_project():  # put application's code here
@@ -113,18 +121,19 @@ def get_project_summaries():  # put application's code here
     back = bservice.get_project_summaries(True)
     return back
 
+
 @app.route('/archived_project_summaries', methods=['GET'])
 def get_archived_project_summaries():  # put application's code here
     # psp = request.args.get('psp')
     back = bservice.get_project_summaries(True, archiviert=True)
     return back
 
+
 @app.route('/toggle_archived', methods=['GET'])
 def toggle_archived():  # put application's code here
     psp = request.args.get('psp')
     back = pservice.toogle_archive_project(psp)
     return back
-
 
 
 @app.route('/projektupload', methods=["POST"])
@@ -135,7 +144,6 @@ def projektupload():  # put application's code here
 
     file = request.files['file']
     json_projektdaten = json.loads(request.form['basis'])
-
 
     # Überprüfe, ob eine Datei ausgewählt wurde
     if file.filename == '':
@@ -183,8 +191,6 @@ def edit_project():  # put application's code here
             pmas = eh.create_pms_from_export("./uploads/" + filename)
             dto.projektmitarbeiter = pmas
 
-
-
     neuesDTO, dbResult = pservice.save_update_project(dto, True)
 
     if dbResult.complete:
@@ -212,8 +218,9 @@ def add_psp_package():  # put application's code here
 @app.route('/loadPspPackage', methods=["GET"])
 def load_psp_package():  # put application's code here
     identifier = request.args.get('identifier')
-    back = pservice.get_psp_package(identifier,True)
+    back = pservice.get_psp_package(identifier, True)
     return back
+
 
 @app.route('/updatePspPackage', methods=["POST"])
 def update_psp_package():  # put application's code here
@@ -228,6 +235,7 @@ def update_psp_package():  # put application's code here
         return {'status': "Success", 'project': project_json}
     else:
         return {'status': "Error", 'error': dbResult.message}
+
 
 @app.route('/deletePspPackage', methods=["POST"])
 def delete_psp_package():  # put application's code here
@@ -251,14 +259,12 @@ def get_package_summary():  # put application's code here
 
     return back
 
+
 @app.route('/getPackageSummaries', methods=["GET"])
 def get_package_summaries():  # put application's code here
     psp = request.args.get('psp')
     back: [PspPackageSummaryDTO] = bservice.get_package_summaries(psp, True)
     return back
-
-
-
 
 
 def _lade_demoprojekte():
@@ -329,7 +335,6 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-
     missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename)
 
     mpsp_str = ""
@@ -346,6 +351,7 @@ def bookings_upload():
     return {'status': "Success",
             'missingPSPs': mpsp_str,
             }
+
 
 @app.route('/abwesenheitsUpload', methods=["POST"])
 def abwesenheits_upload():
@@ -366,7 +372,6 @@ def abwesenheits_upload():
 
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
-
 
     dbResult = cservice.prozeed_upload_abwesenheiten(filename)
 
@@ -424,20 +429,24 @@ def get_nachweise():
     back = bservice.getInstance().erstelle_erfassungsauswertung(psp, True)
     return back
 
+
 @app.route('/exportBuchungen', methods=["GET"])
 def create_buchungen_export():
     psp = request.args.get('psp')
-    filename_buchungen = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False), bservice.get_bookings_for_psp_by_month(psp, False))
+    filename_buchungen = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False),
+                                             bservice.get_bookings_for_psp_by_month(psp, False))
     file_path_buchungen = os.path.join(os.getcwd(), 'exports', filename_buchungen)
     return send_file(file_path_buchungen, as_attachment=True)
+
 
 @app.route('/exportUmsaetze', methods=["GET"])
 def create_umsaetze_export():
     psp = request.args.get('psp')
-    filename_umsaetze = eh.export_umsaetze(psp, bservice.get_ma_bookings_summary_for_psp(psp,False), bservice.get_bookings_summary_for_psp_by_month(psp,False), pservice.get_project_by_psp(psp,False).volumen)
+    filename_umsaetze = eh.export_umsaetze(psp, bservice.get_ma_bookings_summary_for_psp(psp, False),
+                                           bservice.get_bookings_summary_for_psp_by_month(psp, False),
+                                           pservice.get_project_by_psp(psp, False).volumen)
     file_path_umsaetze = os.path.join(os.getcwd(), 'exports', filename_umsaetze)
     return send_file(file_path_umsaetze, as_attachment=True)
-
 
 
 def create_init_data():
@@ -445,6 +454,33 @@ def create_init_data():
     # _lade_demoprojekte()
     # _lade_demobuchungen()
     _lade_demoabwesenheiten()
+
+
+@app.route('/createBundle', methods=["POST"])
+def create_bundle():
+    bundle = request.form.get("bundle")
+    json_daten = json.loads(bundle)
+    bundle_dto = ProjectBundleCreateDTO(**json_daten)
+    back = pservice.create_project_bundle(bundle_dto)
+    if (not back.complete):
+        return {'status': "Failed",
+                'error': back.message
+                }
+
+    return {'status': "Success",
+            }
+
+
+@app.route('/getAllBundles', methods=["GET"])
+def get_all_bundles():
+    back = pservice.get_project_bundles(True)
+    return back
+
+@app.route('/getBundle', methods=["GET"])
+def get_bundle():
+    identifier = request.args.get('identifier')
+    back = pservice.get_project_bundle(identifier,True)
+    return back
 
 
 if __name__ == '__main__':

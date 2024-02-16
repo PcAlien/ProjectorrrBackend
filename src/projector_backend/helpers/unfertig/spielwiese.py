@@ -3,12 +3,7 @@ import logging
 
 from sqlalchemy import create_engine
 
-from dto.forecast_dto import PspForecastDTO
-from entities.Base import Base
-from src.projector_backend.services.booking_service import BookingService
-from services.calender_service import CalendarService
-from services.db_service import DBService
-from services.projekt_service import ProjektService
+from src.projector_backend.entities.Base import Base
 
 #
 # abds: [AbwesenheitDetailsDTO] = []
@@ -26,11 +21,11 @@ Base.metadata.create_all(engine)
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-pservice = ProjektService(engine)
-bservice = BookingService(engine)
-cservice = CalendarService(engine)
-dbservice = DBService(engine)
+# pservice = ProjektService(engine)
+# bservice = BookingService(engine)
+# cservice = CalendarService(engine)
+# dbservice = DBService(engine)
 
-dto: PspForecastDTO= bservice.mach_forecast(11828, True)
-print(dto)
+# dto: PspForecastDTO= bservice.mach_forecast(11828, True)
+# print(dto)
 
