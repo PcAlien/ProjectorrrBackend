@@ -1,1358 +1,350 @@
-{
-  "bundle_name": "EIn Bundle",
-  "bundle_descripton": "",
-  "project_summaries": [
-    {
-      "project": {
-        "volumen": 60720,
-        "projekt_name": "STM Umsetzung: BEAT",
-        "laufzeit_bis": "31.12.2024",
-        "projektmitarbeiter": [
-          {
-            "stundenbudget": 42.0,
-            "psp_element": "11499.5",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Wedekind, Dr. Peter",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Wedekind",
-            "personalnummer": 175,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 143
-          },
-          {
-            "stundenbudget": 32.0,
-            "psp_element": "11499.6",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Panneck, Marius",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Panneck",
-            "personalnummer": 531,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 144
-          },
-          {
-            "stundenbudget": 30.0,
-            "psp_element": "11499.7",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Buschhaus, Lara",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Buschhaus",
-            "personalnummer": 653,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 145
-          },
-          {
-            "stundenbudget": 29.6,
-            "psp_element": "11499.8",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Kemena, Devon",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Kemena",
-            "personalnummer": 729,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 146
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.10",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Stier, Markus",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Stier",
-            "personalnummer": 748,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 161.0,
-            "dbID": 147
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.11",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Stier, Markus",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Stier",
-            "personalnummer": 748,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 175.0,
-            "dbID": 148
-          },
-          {
-            "stundenbudget": 27.0,
-            "psp_element": "11499.9",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Stier, Markus",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Stier",
-            "personalnummer": 748,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 149
-          },
-          {
-            "stundenbudget": 32.0,
-            "psp_element": "11499.12",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Scharov, Denis",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Scharov",
-            "personalnummer": 755,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 150
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.13",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Scharov, Denis",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Scharov",
-            "personalnummer": 755,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 161.0,
-            "dbID": 151
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.14",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Scharov, Denis",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Scharov",
-            "personalnummer": 755,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 175.0,
-            "dbID": 152
-          },
-          {
-            "stundenbudget": 42.0,
-            "psp_element": "11499.15",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Fedjakin, Denis",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Fedjakin",
-            "personalnummer": 775,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 153
-          },
-          {
-            "stundenbudget": 25.0,
-            "psp_element": "11499.16",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Ali, Mahmoud",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Ali",
-            "personalnummer": 836,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 154
-          },
-          {
-            "stundenbudget": 37.0,
-            "psp_element": "11499.17",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Pedrozo, Gabriel",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Pedrozo",
-            "personalnummer": 857,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 155
-          },
-          {
-            "stundenbudget": 32.0,
-            "psp_element": "11499.18",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Frerix, Stefan",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Frerix",
-            "personalnummer": 867,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 156
-          },
-          {
-            "stundenbudget": 26.4,
-            "psp_element": "11499.19",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Karaca, Burhan",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Karaca",
-            "personalnummer": 886,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 157
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.20",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Eqbal, Ramin",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Eqbal",
-            "personalnummer": 946,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 158
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.21",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Eqbal, Ramin",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Eqbal",
-            "personalnummer": 946,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 132.25,
-            "dbID": 159
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.22",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Eqbal, Ramin",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Eqbal",
-            "personalnummer": 946,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 143.75,
-            "dbID": 160
-          },
-          {
-            "stundenbudget": 12.4,
-            "psp_element": "11499.23",
-            "laufzeit_bis": "2023-12-31 00:00:00",
-            "name": "Gabel, Sven David",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Gabel",
-            "personalnummer": 974,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 161
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.24",
-            "laufzeit_bis": "2023-12-31 00:00:00",
-            "name": "Gabel, Sven David",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Gabel",
-            "personalnummer": 974,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 132.25,
-            "dbID": 162
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.25",
-            "laufzeit_bis": "2023-12-31 00:00:00",
-            "name": "Gabel, Sven David",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Gabel",
-            "personalnummer": 974,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 143.75,
-            "dbID": 163
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.26",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Golak, Jan",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Golak",
-            "personalnummer": 988,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 164
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.27",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Golak, Jan",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Golak",
-            "personalnummer": 988,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 132.25,
-            "dbID": 165
-          },
-          {
-            "stundenbudget": 0.0,
-            "psp_element": "11499.28",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Golak, Jan",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Golak",
-            "personalnummer": 988,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 143.75,
-            "dbID": 166
-          },
-          {
-            "stundenbudget": 29.6,
-            "psp_element": "11499.1",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Du, Tai Linh",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Du",
-            "personalnummer": 1006,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 167
-          },
-          {
-            "stundenbudget": 33.6,
-            "psp_element": "11499.2",
-            "laufzeit_bis": "2024-12-31 00:00:00",
-            "name": "Trinh, Xuan Thuy",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Trinh",
-            "personalnummer": 1023,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 168
-          },
-          {
-            "stundenbudget": 21.6,
-            "psp_element": "11499.3",
-            "laufzeit_bis": "2023-12-31 00:00:00",
-            "name": "Beifus, Alexander",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Beifus",
-            "personalnummer": 1048,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 169
-          },
-          {
-            "stundenbudget": 42.0,
-            "psp_element": "11499.4",
-            "laufzeit_bis": "2023-12-31 00:00:00",
-            "name": "Imhof, Ren\u00e9",
-            "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Imhof",
-            "personalnummer": 1077,
-            "laufzeit_von": "2023-07-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 170
-          }
-        ],
-        "psp_packages": [
-          {
-            "volume": 4.0,
-            "package_name": "Test",
-            "psp": "11499",
-            "package_identifier": "TuOIHTK3BEQhRsmdwkdrrycz7JzeCj",
-            "package_description": "Testbeschreibung",
-            "tickets_identifier": [
-              "test"
-            ]
-          }
-        ],
-        "psp": "11499",
-        "laufzeit_von": "01.01.2024",
-        "dbID": 8,
-        "uploaddatum": "16.02.2024",
-        "archiviert": false
-      },
-      "umsaetze": [
-        {
-          "umsatz": 15929.55,
-          "monat": "1.2024"
-        },
-        {
-          "umsatz": 17125.0,
-          "monat": "2.2024"
-        }
-      ],
-      "spent": 33054.55,
-      "restbudget": 27665.449999999997
-    },
-    {
-      "project": {
-        "volumen": 238150,
-        "projekt_name": "ESL Q1 2024",
-        "laufzeit_bis": "31.03.2024",
-        "projektmitarbeiter": [
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.5",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Wedekind, Dr. Peter",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Wedekind",
-            "personalnummer": 175,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 36
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.19",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Panneck, Marius",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Panneck",
-            "personalnummer": 531,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 37
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.25",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Buschhaus, Lara",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Buschhaus",
-            "personalnummer": 653,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 38
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.7",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Kemena, Devon",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Kemena",
-            "personalnummer": 729,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 39
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.10",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Stier, Markus",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Stier",
-            "personalnummer": 748,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 161.0,
-            "dbID": 42
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.11",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Stier, Markus",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Stier",
-            "personalnummer": 748,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 175.0,
-            "dbID": 40
-          },
-          {
-            "stundenbudget": 39.0,
-            "psp_element": "11829.9",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Stier, Markus",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Stier",
-            "personalnummer": 748,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 41
-          },
-          {
-            "stundenbudget": 156.0,
-            "psp_element": "11829.12",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Scharov, Denis",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Scharov",
-            "personalnummer": 755,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 45
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.13",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Scharov, Denis",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Scharov",
-            "personalnummer": 755,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 161.0,
-            "dbID": 43
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.14",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Scharov, Denis",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Scharov",
-            "personalnummer": 755,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 175.0,
-            "dbID": 44
-          },
-          {
-            "stundenbudget": 86.0,
-            "psp_element": "11829.27",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Sanden, Moritz",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Sanden",
-            "personalnummer": 768,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 46
-          },
-          {
-            "stundenbudget": 16.0,
-            "psp_element": "11829.1",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Fedjakin, Denis",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Fedjakin",
-            "personalnummer": 775,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 47
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.2",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Fedjakin, Denis",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Fedjakin",
-            "personalnummer": 775,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 132.25,
-            "dbID": 48
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.3",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Fedjakin, Denis",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Fedjakin",
-            "personalnummer": 775,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 143.75,
-            "dbID": 49
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.8",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Ali, Mahmoud",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Ali",
-            "personalnummer": 836,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 50
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.18",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Pedrozo, Gabriel",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Pedrozo",
-            "personalnummer": 857,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 51
-          },
-          {
-            "stundenbudget": 103.0,
-            "psp_element": "11829.21",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Frerix, Stefan",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Frerix",
-            "personalnummer": 867,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 140.0,
-            "dbID": 52
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.20",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Karaca, Burhan",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Karaca",
-            "personalnummer": 886,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 53
-          },
-          {
-            "stundenbudget": 156.0,
-            "psp_element": "11829.22",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Eqbal, Ramin",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Eqbal",
-            "personalnummer": 946,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 55
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.23",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Eqbal, Ramin",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Eqbal",
-            "personalnummer": 946,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 132.25,
-            "dbID": 54
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.24",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Eqbal, Ramin",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Eqbal",
-            "personalnummer": 946,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 143.75,
-            "dbID": 56
-          },
-          {
-            "stundenbudget": 2.0,
-            "psp_element": "11829.15",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Golak, Jan",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Golak",
-            "personalnummer": 988,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 59
-          },
-          {
-            "stundenbudget": 0.5,
-            "psp_element": "11829.16",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Golak, Jan",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Golak",
-            "personalnummer": 988,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 132.25,
-            "dbID": 58
-          },
-          {
-            "stundenbudget": 0.5,
-            "psp_element": "11829.17",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Golak, Jan",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Golak",
-            "personalnummer": 988,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 143.75,
-            "dbID": 57
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.4",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Du, Tai Linh",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Du",
-            "personalnummer": 1006,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 60
-          },
-          {
-            "stundenbudget": 160.0,
-            "psp_element": "11829.6",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Trinh, Xuan Thuy",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Trinh",
-            "personalnummer": 1023,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 90.0,
-            "dbID": 61
-          },
-          {
-            "stundenbudget": 65.0,
-            "psp_element": "11829.26",
-            "laufzeit_bis": "2024-03-31 00:00:00",
-            "name": "Haubrich, Robert",
-            "psp_bezeichnung": "ESL Q1 2024 - PStd. Haubrich",
-            "personalnummer": 1114,
-            "laufzeit_von": "2024-01-01 00:00:00",
-            "stundensatz": 115.0,
-            "dbID": 62
-          }
-        ],
-        "psp_packages": [],
-        "psp": "11829",
-        "laufzeit_von": "01.01.2024",
-        "dbID": 2,
-        "uploaddatum": "15.02.2024",
-        "archiviert": false
-      },
-      "umsaetze": [
-        {
-          "umsatz": 35988.75,
-          "monat": "1.2024"
-        },
-        {
-          "umsatz": 4105.0,
-          "monat": "2.2024"
-        }
-      ],
-      "spent": 40093.75,
-      "restbudget": 198056.25
-    }
-  ],
-  "bundle_summary": {
-    "project_summaries": [
-      {
-        "project": {
-          "volumen": 60720,
-          "projekt_name": "STM Umsetzung: BEAT",
-          "laufzeit_bis": "31.12.2024",
-          "projektmitarbeiter": [
-            {
-              "stundenbudget": 42.0,
-              "psp_element": "11499.5",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Wedekind, Dr. Peter",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Wedekind",
-              "personalnummer": 175,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 143
-            },
-            {
-              "stundenbudget": 32.0,
-              "psp_element": "11499.6",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Panneck, Marius",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Panneck",
-              "personalnummer": 531,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 144
-            },
-            {
-              "stundenbudget": 30.0,
-              "psp_element": "11499.7",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Buschhaus, Lara",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Buschhaus",
-              "personalnummer": 653,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 145
-            },
-            {
-              "stundenbudget": 29.6,
-              "psp_element": "11499.8",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Kemena, Devon",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Kemena",
-              "personalnummer": 729,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 146
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.10",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Stier, Markus",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Stier",
-              "personalnummer": 748,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 161.0,
-              "dbID": 147
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.11",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Stier, Markus",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Stier",
-              "personalnummer": 748,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 175.0,
-              "dbID": 148
-            },
-            {
-              "stundenbudget": 27.0,
-              "psp_element": "11499.9",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Stier, Markus",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Stier",
-              "personalnummer": 748,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 149
-            },
-            {
-              "stundenbudget": 32.0,
-              "psp_element": "11499.12",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Scharov, Denis",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Scharov",
-              "personalnummer": 755,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 150
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.13",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Scharov, Denis",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Scharov",
-              "personalnummer": 755,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 161.0,
-              "dbID": 151
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.14",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Scharov, Denis",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Scharov",
-              "personalnummer": 755,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 175.0,
-              "dbID": 152
-            },
-            {
-              "stundenbudget": 42.0,
-              "psp_element": "11499.15",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Fedjakin, Denis",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Fedjakin",
-              "personalnummer": 775,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 153
-            },
-            {
-              "stundenbudget": 25.0,
-              "psp_element": "11499.16",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Ali, Mahmoud",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Ali",
-              "personalnummer": 836,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 154
-            },
-            {
-              "stundenbudget": 37.0,
-              "psp_element": "11499.17",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Pedrozo, Gabriel",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Pedrozo",
-              "personalnummer": 857,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 155
-            },
-            {
-              "stundenbudget": 32.0,
-              "psp_element": "11499.18",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Frerix, Stefan",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Frerix",
-              "personalnummer": 867,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 156
-            },
-            {
-              "stundenbudget": 26.4,
-              "psp_element": "11499.19",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Karaca, Burhan",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Karaca",
-              "personalnummer": 886,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 157
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.20",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Eqbal, Ramin",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Eqbal",
-              "personalnummer": 946,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 158
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.21",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Eqbal, Ramin",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Eqbal",
-              "personalnummer": 946,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 132.25,
-              "dbID": 159
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.22",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Eqbal, Ramin",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Eqbal",
-              "personalnummer": 946,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 143.75,
-              "dbID": 160
-            },
-            {
-              "stundenbudget": 12.4,
-              "psp_element": "11499.23",
-              "laufzeit_bis": "2023-12-31 00:00:00",
-              "name": "Gabel, Sven David",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Gabel",
-              "personalnummer": 974,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 161
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.24",
-              "laufzeit_bis": "2023-12-31 00:00:00",
-              "name": "Gabel, Sven David",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Gabel",
-              "personalnummer": 974,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 132.25,
-              "dbID": 162
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.25",
-              "laufzeit_bis": "2023-12-31 00:00:00",
-              "name": "Gabel, Sven David",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Gabel",
-              "personalnummer": 974,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 143.75,
-              "dbID": 163
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.26",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Golak, Jan",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Golak",
-              "personalnummer": 988,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 164
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.27",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Golak, Jan",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Golak",
-              "personalnummer": 988,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 132.25,
-              "dbID": 165
-            },
-            {
-              "stundenbudget": 0.0,
-              "psp_element": "11499.28",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Golak, Jan",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Golak",
-              "personalnummer": 988,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 143.75,
-              "dbID": 166
-            },
-            {
-              "stundenbudget": 29.6,
-              "psp_element": "11499.1",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Du, Tai Linh",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Du",
-              "personalnummer": 1006,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 167
-            },
-            {
-              "stundenbudget": 33.6,
-              "psp_element": "11499.2",
-              "laufzeit_bis": "2024-12-31 00:00:00",
-              "name": "Trinh, Xuan Thuy",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Trinh",
-              "personalnummer": 1023,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 168
-            },
-            {
-              "stundenbudget": 21.6,
-              "psp_element": "11499.3",
-              "laufzeit_bis": "2023-12-31 00:00:00",
-              "name": "Beifus, Alexander",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Beifus",
-              "personalnummer": 1048,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 169
-            },
-            {
-              "stundenbudget": 42.0,
-              "psp_element": "11499.4",
-              "laufzeit_bis": "2023-12-31 00:00:00",
-              "name": "Imhof, Ren\u00e9",
-              "psp_bezeichnung": "STM Umsetzung: BEAT - PStd. Imhof",
-              "personalnummer": 1077,
-              "laufzeit_von": "2023-07-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 170
-            }
-          ],
-          "psp_packages": [
-            {
-              "volume": 4.0,
-              "package_name": "Test",
-              "psp": "11499",
-              "package_identifier": "TuOIHTK3BEQhRsmdwkdrrycz7JzeCj",
-              "package_description": "Testbeschreibung",
-              "tickets_identifier": [
-                "test"
-              ]
-            }
-          ],
-          "psp": "11499",
-          "laufzeit_von": "01.01.2024",
-          "dbID": 8,
-          "uploaddatum": "16.02.2024",
-          "archiviert": false
-        },
-        "umsaetze": [
-          {
-            "umsatz": 15929.55,
-            "monat": "1.2024"
-          },
-          {
-            "umsatz": 17125.0,
-            "monat": "2.2024"
-          }
-        ],
-        "spent": 33054.55,
-        "restbudget": 27665.449999999997
-      },
-      {
-        "project": {
-          "volumen": 238150,
-          "projekt_name": "ESL Q1 2024",
-          "laufzeit_bis": "31.03.2024",
-          "projektmitarbeiter": [
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.5",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Wedekind, Dr. Peter",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Wedekind",
-              "personalnummer": 175,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 36
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.19",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Panneck, Marius",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Panneck",
-              "personalnummer": 531,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 37
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.25",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Buschhaus, Lara",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Buschhaus",
-              "personalnummer": 653,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 38
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.7",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Kemena, Devon",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Kemena",
-              "personalnummer": 729,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 39
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.10",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Stier, Markus",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Stier",
-              "personalnummer": 748,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 161.0,
-              "dbID": 42
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.11",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Stier, Markus",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Stier",
-              "personalnummer": 748,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 175.0,
-              "dbID": 40
-            },
-            {
-              "stundenbudget": 39.0,
-              "psp_element": "11829.9",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Stier, Markus",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Stier",
-              "personalnummer": 748,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 41
-            },
-            {
-              "stundenbudget": 156.0,
-              "psp_element": "11829.12",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Scharov, Denis",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Scharov",
-              "personalnummer": 755,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 45
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.13",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Scharov, Denis",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Scharov",
-              "personalnummer": 755,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 161.0,
-              "dbID": 43
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.14",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Scharov, Denis",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Scharov",
-              "personalnummer": 755,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 175.0,
-              "dbID": 44
-            },
-            {
-              "stundenbudget": 86.0,
-              "psp_element": "11829.27",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Sanden, Moritz",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Sanden",
-              "personalnummer": 768,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 46
-            },
-            {
-              "stundenbudget": 16.0,
-              "psp_element": "11829.1",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Fedjakin, Denis",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Fedjakin",
-              "personalnummer": 775,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 47
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.2",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Fedjakin, Denis",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Fedjakin",
-              "personalnummer": 775,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 132.25,
-              "dbID": 48
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.3",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Fedjakin, Denis",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Fedjakin",
-              "personalnummer": 775,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 143.75,
-              "dbID": 49
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.8",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Ali, Mahmoud",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Ali",
-              "personalnummer": 836,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 50
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.18",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Pedrozo, Gabriel",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Pedrozo",
-              "personalnummer": 857,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 51
-            },
-            {
-              "stundenbudget": 103.0,
-              "psp_element": "11829.21",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Frerix, Stefan",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Frerix",
-              "personalnummer": 867,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 140.0,
-              "dbID": 52
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.20",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Karaca, Burhan",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Karaca",
-              "personalnummer": 886,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 53
-            },
-            {
-              "stundenbudget": 156.0,
-              "psp_element": "11829.22",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Eqbal, Ramin",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Eqbal",
-              "personalnummer": 946,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 55
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.23",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Eqbal, Ramin",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Eqbal",
-              "personalnummer": 946,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 132.25,
-              "dbID": 54
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.24",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Eqbal, Ramin",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Eqbal",
-              "personalnummer": 946,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 143.75,
-              "dbID": 56
-            },
-            {
-              "stundenbudget": 2.0,
-              "psp_element": "11829.15",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Golak, Jan",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Golak",
-              "personalnummer": 988,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 59
-            },
-            {
-              "stundenbudget": 0.5,
-              "psp_element": "11829.16",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Golak, Jan",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Golak",
-              "personalnummer": 988,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 132.25,
-              "dbID": 58
-            },
-            {
-              "stundenbudget": 0.5,
-              "psp_element": "11829.17",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Golak, Jan",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Golak",
-              "personalnummer": 988,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 143.75,
-              "dbID": 57
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.4",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Du, Tai Linh",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Du",
-              "personalnummer": 1006,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 60
-            },
-            {
-              "stundenbudget": 160.0,
-              "psp_element": "11829.6",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Trinh, Xuan Thuy",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Trinh",
-              "personalnummer": 1023,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 90.0,
-              "dbID": 61
-            },
-            {
-              "stundenbudget": 65.0,
-              "psp_element": "11829.26",
-              "laufzeit_bis": "2024-03-31 00:00:00",
-              "name": "Haubrich, Robert",
-              "psp_bezeichnung": "ESL Q1 2024 - PStd. Haubrich",
-              "personalnummer": 1114,
-              "laufzeit_von": "2024-01-01 00:00:00",
-              "stundensatz": 115.0,
-              "dbID": 62
-            }
-          ],
-          "psp_packages": [],
-          "psp": "11829",
-          "laufzeit_von": "01.01.2024",
-          "dbID": 2,
-          "uploaddatum": "15.02.2024",
-          "archiviert": false
-        },
-        "umsaetze": [
-          {
-            "umsatz": 35988.75,
-            "monat": "1.2024"
-          },
-          {
-            "umsatz": 4105.0,
-            "monat": "2.2024"
-          }
-        ],
-        "spent": 40093.75,
-        "restbudget": 198056.25
-      }
+[
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      "u",
+      "u",
+      0.0,
+      "a",
+      0.0
     ],
-    "monat_zu_umsatz": {
-      "1.2024": 51918.3,
-      "2.2024": 21230.0
-    }
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Wedekind, Dr. Peter",
+    "personalnummer": 175
   },
-  "identifier": "PggcYK2vVq9oituErqRNvbYO2PmJJO",
-  "budget": 298870,
-  "umsatz": 73148.3,
-  "restbudget": 225721.7
-}
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Panneck, Marius",
+    "personalnummer": 531
+  },
+  {
+    "stunden": [
+      "u",
+      "u",
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Buschhaus, Lara",
+    "personalnummer": 653
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Kemena, Devon",
+    "personalnummer": 729
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Stier, Markus",
+    "personalnummer": 748
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Scharov, Denis",
+    "personalnummer": 755
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Sanden, Moritz",
+    "personalnummer": 768
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Fedjakin, Denis",
+    "personalnummer": 775
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Ali, Mahmoud",
+    "personalnummer": 836
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Pedrozo, Gabriel",
+    "personalnummer": 857
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Frerix, Stefan",
+    "personalnummer": 867
+  },
+  {
+    "stunden": [
+      0.75,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Karaca, Burhan",
+    "personalnummer": 886
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      "u",
+      0.0,
+      "a",
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Eqbal, Ramin",
+    "personalnummer": 946
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Golak, Jan",
+    "personalnummer": 988
+  },
+  {
+    "stunden": [
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u",
+      "u"
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Du, Tai Linh",
+    "personalnummer": 1006
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      "a",
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Trinh, Xuan Thuy",
+    "personalnummer": 1023
+  },
+  {
+    "stunden": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "tage": [
+      "09.02.2024",
+      "12.02.2024",
+      "13.02.2024",
+      "14.02.2024",
+      "15.02.2024",
+      "16.02.2024"
+    ],
+    "name": "Haubrich, Robert",
+    "personalnummer": 1114
+  }
+]

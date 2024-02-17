@@ -45,19 +45,31 @@ class CalendarService:
         else:
             return cd
 
-    def get_abwesenheiten_for_psnr(self, personalnummer: int, json_format: bool = True) -> [AbwesenheitDTO]:
+    def get_abwesenheiten_for_psnr(self, personalnummer: int, json_format: bool = True) -> AbwesenheitDTO or str:
         Session = sessionmaker(bind=self.engine)
-        abwesenheitenDTOs: [AbwesenheitDTO] = []
+
         with Session() as session:
-            abwesenheiten = session.query(Abwesenheit).where(Abwesenheit.personalnummer == personalnummer).all()
+            subquery = (
+                session.query(func.max(Abwesenheit.uploadDatum))
+                .filter(Abwesenheit.personalnummer == personalnummer)
+                .subquery()
+            )
 
-            for a in abwesenheiten:
-                abwesenheitenDTOs.append(AbwesenheitDTO.create_from_db(a))
+            abwesenheit = (
+                session.query(Abwesenheit)
+                .filter(Abwesenheit.personalnummer == personalnummer)
+                .filter(Abwesenheit.uploadDatum.in_(subquery)).first()
+            )
 
-        if (json_format):
-            return json.dumps(abwesenheitenDTOs, default=data_helper.serialize)
-        else:
-            return abwesenheitenDTOs
+            if abwesenheit is None:
+                abwesenheit_dto = None
+            else :
+                abwesenheit_dto = AbwesenheitDTO.create_from_db(abwesenheit)
+
+            if (json_format):
+                return json.dumps(abwesenheit_dto, default=data_helper.serialize)
+            else:
+                return abwesenheit_dto
 
     def add_abwesenheit(self, abwesenheit: AbwesenheitDTO or str):
 

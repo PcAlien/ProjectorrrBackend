@@ -12,14 +12,15 @@ from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSum
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
+from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.entities.Base import Base
+from src.projector_backend.entities.bundles import ProjectBundle
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.excel.eh_projektmeldung import EhProjektmeldung
 from src.projector_backend.helpers import data_helper
 from src.projector_backend.helpers.unfertig import demo_calender_data_importer
 from src.projector_backend.helpers.unfertig.employee_summary import EmployeeSummary
-from src.projector_backend.services.booking_service import BookingService
 from src.projector_backend.services.calender_service import CalendarService
 from src.projector_backend.services.db_service import DBService
 from src.projector_backend.services.projekt_service import ProjektService
@@ -30,19 +31,14 @@ CORS(app)
 engine = create_engine("sqlite:///db/datenbank.db", echo=True)
 Base.metadata.create_all(engine)
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
 
+dbservice = DBService(engine)
 ProjektService(engine)
-BookingService(engine)
+
 
 pservice = ProjektService.getInstance()
-bservice = BookingService.getInstance()
-
-pservice.set_booking_service(bservice)
-bservice.set_project_service(pservice)
-
 cservice = CalendarService(engine)
-dbservice = DBService(engine)
 eh = EhBuchungen()
 
 
@@ -57,7 +53,7 @@ def convert_json_file(file_path):
 def init_app():  # put application's code here
 
     create_init_data()
-    # bservice.get_latest_bookings_for_psp("11828", True)
+    # pservice.get_latest_bookings_for_psp("11828", True)
 
     return "OK"
 
@@ -70,21 +66,21 @@ def hello_world():  # put application's code here
 @app.route('/buchungen', methods=['GET'])
 def gib_buchungen():  # put application's code here
     psp = request.args.get('psp')
-    back = bservice.get_bookings_for_psp(psp, True)
+    back = pservice.get_bookings_for_psp(psp, True)
     return back
 
 
 @app.route('/monatsbuchungen', methods=['GET'])
 def gib_monatsbuchungen():  # put application's code here
     psp = request.args.get('psp')
-    back = bservice.get_bookings_summary_for_psp_by_month(psp, True)
+    back = pservice.get_bookings_summary_for_psp_by_month(psp, True)
     return back
 
 
 @app.route('/maBookingsSummary', methods=['GET'])
 def get_ma_bookings_summary():  # put application's code here
     psp = request.args.get('psp')
-    back = bservice.get_ma_bookings_summary_for_psp(psp, True)
+    back = pservice.get_ma_bookings_summary_for_psp(psp, True)
     return back
 
 
@@ -110,22 +106,22 @@ def get_project():  # put application's code here
 @app.route('/project_summary', methods=['GET'])
 def get_project_summary():  # put application's code here
     psp = request.args.get('psp')
-    back = bservice.get_project_summary(psp, True)
-    back2 = bservice.get_project_summary(psp, False)
+    back = pservice.get_project_summary(psp, True)
+    back2 = pservice.get_project_summary(psp, False)
     return back
 
 
 @app.route('/project_summaries', methods=['GET'])
 def get_project_summaries():  # put application's code here
     # psp = request.args.get('psp')
-    back = bservice.get_project_summaries(True)
+    back = pservice.get_project_summaries(True)
     return back
 
 
 @app.route('/archived_project_summaries', methods=['GET'])
 def get_archived_project_summaries():  # put application's code here
     # psp = request.args.get('psp')
-    back = bservice.get_project_summaries(True, archiviert=True)
+    back = pservice.get_project_summaries(True, archiviert=True)
     return back
 
 
@@ -255,7 +251,7 @@ def delete_psp_package():  # put application's code here
 @app.route('/getPackageSummary', methods=["GET"])
 def get_package_summary():  # put application's code here
     identifier = request.args.get('identifier')
-    back: PspPackageSummaryDTO = bservice.get_package_summary(identifier, True)
+    back: PspPackageSummaryDTO = pservice.get_package_summary(identifier, True)
 
     return back
 
@@ -263,7 +259,7 @@ def get_package_summary():  # put application's code here
 @app.route('/getPackageSummaries', methods=["GET"])
 def get_package_summaries():  # put application's code here
     psp = request.args.get('psp')
-    back: [PspPackageSummaryDTO] = bservice.get_package_summaries(psp, True)
+    back: [PspPackageSummaryDTO] = pservice.get_package_summaries(psp, True)
     return back
 
 
@@ -308,7 +304,7 @@ def _lade_demobuchungen() -> str:
                          booking["erstelltAm"],
                          booking["letzteAenderung"],
                          uploaddatum=uploadDatum)
-        bservice.create_new_from_dto_and_save(dto)
+        pservice.create_new_from_dto_and_save(dto)
 
 
 def _lade_demoabwesenheiten() -> str:
@@ -335,7 +331,7 @@ def bookings_upload():
     # Speichere die Datei im Upload-Ordner
     file.save("./uploads/" + filename)
 
-    missing_psps, dbResult = bservice.convert_bookings_from_excel_export(filename)
+    missing_psps, dbResult = pservice.convert_bookings_from_excel_export(filename)
 
     mpsp_str = ""
     if len(missing_psps) > 0:
@@ -401,14 +397,14 @@ def add_abwesenheit():
 @app.route('/pspForecast', methods=["POST"])
 def get_psp_forecast():
     psp = request.form.get("psp")
-    back = bservice.getInstance().mach_forecast(psp, True)
+    back = pservice.getInstance().mach_forecast(psp, True)
     return back
 
 
 @app.route('/pspForecastTest', methods=["GET"])
 def get_psp_forecast_test():
     psp = "11828"
-    back: PspForecastDTO = bservice.getInstance().mach_forecast(psp, False)
+    back: PspForecastDTO = pservice.getInstance().mach_forecast(psp, False)
 
     durchschnitt = 0.0
     s: MaDurchschnittsarbeitszeitDTO
@@ -426,15 +422,15 @@ def get_psp_forecast_test():
 @app.route('/nachweise', methods=["GET"])
 def get_nachweise():
     psp = request.args.get('psp')
-    back = bservice.getInstance().erstelle_erfassungsauswertung(psp, True)
+    back = pservice.getInstance().erstelle_erfassungsauswertung(psp, True)
     return back
 
 
 @app.route('/exportBuchungen', methods=["GET"])
 def create_buchungen_export():
     psp = request.args.get('psp')
-    filename_buchungen = eh.export_buchungen(psp, bservice.get_bookings_for_psp(psp, False),
-                                             bservice.get_bookings_for_psp_by_month(psp, False))
+    filename_buchungen = eh.export_buchungen(psp, pservice.get_bookings_for_psp(psp, False),
+                                             pservice.get_bookings_for_psp_by_month(psp, False))
     file_path_buchungen = os.path.join(os.getcwd(), 'exports', filename_buchungen)
     return send_file(file_path_buchungen, as_attachment=True)
 
@@ -442,15 +438,15 @@ def create_buchungen_export():
 @app.route('/exportUmsaetze', methods=["GET"])
 def create_umsaetze_export():
     psp = request.args.get('psp')
-    filename_umsaetze = eh.export_umsaetze(psp, bservice.get_ma_bookings_summary_for_psp(psp, False),
-                                           bservice.get_bookings_summary_for_psp_by_month(psp, False),
+    filename_umsaetze = eh.export_umsaetze(psp, pservice.get_ma_bookings_summary_for_psp(psp, False),
+                                           pservice.get_bookings_summary_for_psp_by_month(psp, False),
                                            pservice.get_project_by_psp(psp, False).volumen)
     file_path_umsaetze = os.path.join(os.getcwd(), 'exports', filename_umsaetze)
     return send_file(file_path_umsaetze, as_attachment=True)
 
 
 def create_init_data():
-    dbservice.create_import_settings()
+    dpservice.create_import_settings()
     # _lade_demoprojekte()
     # _lade_demobuchungen()
     _lade_demoabwesenheiten()

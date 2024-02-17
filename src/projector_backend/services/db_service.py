@@ -1,10 +1,10 @@
 from typing import Type
 
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 
 from src.projector_backend.entities.ImportFileColumns import ImportFileColumns
 from src.projector_backend.helpers import data_helper as dh
-
 
 
 class DBService:
@@ -38,7 +38,7 @@ class DBService:
                 print(os.getcwd())
 
                 json_data = dh.read_json_file("./src/projector_backend/helpers/json_templates/importFileColoums.json")
-                #ifcs = IFC_Holder(**json_data)
+                # ifcs = IFC_Holder(**json_data)
                 for i in json_data:
                     ifc = ImportFileColumns(**i)
                     session.add(ifc)
@@ -57,3 +57,20 @@ class DBService:
         with Session() as session:
             session.add(item)
             session.commit()
+
+    def get_latest_of_any(self, table, filter_by, value):
+        Session = sessionmaker(bind=self.engine)
+        with Session() as session:
+            subquery = (
+                session.query(func.max(table.uploadDatum))
+                .filter(getattr(table, filter_by) == value)
+                .subquery()
+            )
+
+            latest_entry = (
+                session.query(table)
+                .filter(getattr(table, filter_by) == value)
+                .filter(table.uploadDatum.in_(subquery)).first()
+            )
+
+            return latest_entry

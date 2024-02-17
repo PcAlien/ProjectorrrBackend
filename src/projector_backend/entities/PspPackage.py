@@ -26,7 +26,7 @@ class PspPackage(Base):
     projekt_id = Column(Integer, ForeignKey("projekte.id"))
     projekt = relationship("Projekt", back_populates="psp_packages", lazy=False)
 
-    def __init__(self, psp: str, package_name: str, package_description: str,volumen: int,  tickets_identifier: str or [str],
+    def __init__(self, psp: str, package_name: str, package_description: str,volumen: float,  tickets_identifier: str or [str],
                  ) -> None:
         self.psp = psp
         self.package_name = package_name
