@@ -160,6 +160,7 @@ def projektupload():  # put application's code here
 
     neuesDTO, dbResult = pservice.save_update_project(dto)
 
+    os.remove("./uploads/" + filename)
     if dbResult.complete:
         project_json = json.dumps(neuesDTO, default=data_helper.serialize)
         return {'status': "Success", 'project': project_json}
@@ -188,7 +189,7 @@ def edit_project():  # put application's code here
             dto.projektmitarbeiter = pmas
 
     neuesDTO, dbResult = pservice.save_update_project(dto, True)
-
+    os.remove("./uploads/" + filename)
     if dbResult.complete:
         project_json = json.dumps(neuesDTO, default=data_helper.serialize)
         return {'status': "Success", 'project': project_json}
@@ -338,6 +339,7 @@ def bookings_upload():
         mpsp_str = missing_psps.__str__()
         print("Folgende PSPs fehlen:", mpsp_str)
 
+    os.remove("./uploads/" + filename)
     if (not dbResult.complete):
         return {'status': "Failed",
                 'missingPSPs': mpsp_str,
@@ -370,7 +372,7 @@ def abwesenheits_upload():
     file.save("./uploads/" + filename)
 
     dbResult = cservice.prozeed_upload_abwesenheiten(filename)
-
+    os.remove("./uploads/" + filename)
     if (not dbResult.complete):
         return {'status': "Failed",
                 'error': dbResult.message
