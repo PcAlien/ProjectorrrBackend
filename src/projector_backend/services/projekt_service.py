@@ -847,7 +847,7 @@ class ProjektService:
         else:
             return pfcdto
 
-    def erstelle_erfassungsauswertung(self, psp, json_format: bool) -> ErfassungsnachweisDTO or str:
+    def erstelle_erfassungsauswertung(self, psp, json_format: bool) -> [ErfassungsnachweisDTO] or str:
 
         projekt_dto: ProjektDTO = self.get_project_by_psp(psp, False)
 
@@ -898,16 +898,21 @@ class ProjektService:
 
         for pnummer, name in pmas.items():
             stunden: [float or str] = []
+            tage_zu_stunden: {str: float} = dict()
+            tage_zu_abwesenheiten: {str: str} = dict()
+            tage:[str] =[]
 
             abwesenheit: AbwesenheitDTO = CalendarService.getInstance().get_abwesenheiten_for_psnr(pnummer, False)
             for gesuchtesDatum in suchtage:
                 found = False
-
+                gesuchtes_datum_string = date_helper.from_date_to_string(gesuchtesDatum)
+                tage.append(gesuchtes_datum_string)
                 if abwesenheit is not None:
                     for x in abwesenheit.abwesenheitDetails:
-                        d = date_helper.from_date_to_string(gesuchtesDatum)
-                        if x.datum == d:
+
+                        if x.datum == gesuchtes_datum_string:
                             stunden.append(x.typ)
+                            tage_zu_abwesenheiten[gesuchtes_datum_string] = x.typ
                             found = True
                             break
 
@@ -917,8 +922,10 @@ class ProjektService:
                         if b.personalnummer == pnummer and b.datum == gesuchtesDatum:
                             gesammelte_stunden += b.stunden
                     stunden.append(gesammelte_stunden)
+                    tage_zu_stunden[gesuchtes_datum_string] = gesammelte_stunden
 
-            edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
+            #edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
+            edto = ErfassungsnachweisDTO(name, pnummer,tage, tage_zu_stunden, tage_zu_abwesenheiten)
             nachweise.append(edto)
 
         # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
@@ -1002,3 +1009,23 @@ class ProjektService:
             return json.dumps(summaries, default=data_helper.serialize)
         else:
             return summaries
+
+    def get_bundle_nachweise(self, identifier: str, json_format: bool):
+
+        pro_bundles_dto: ProjectBundleDTO = self.get_project_bundle(identifier, False)
+
+        alle_erfassung_dtos:[ErfassungsnachweisDTO] = []
+        ps_dto: ProjectSummaryDTO
+        for ps_dto in pro_bundles_dto.project_summaries:
+            psp = ps_dto.project.psp
+            erfassung_dtos: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(psp, False)
+            alle_erfassung_dtos.extend(erfassung_dtos)
+
+        # An dieser Stelle wurde aus jedem PSP die ErfassungsNachweisDTOs geholt und in alle_erfassung_dtos gesammelt
+        # Jetzt müssen die Werte kombiniert werden.
+
+        # Ein DTO
+
+
+
+

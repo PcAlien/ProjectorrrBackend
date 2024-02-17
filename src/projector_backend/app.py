@@ -448,7 +448,7 @@ def create_umsaetze_export():
 
 
 def create_init_data():
-    dpservice.create_import_settings()
+    pservice.create_import_settings()
     # _lade_demoprojekte()
     # _lade_demobuchungen()
     _lade_demoabwesenheiten()
