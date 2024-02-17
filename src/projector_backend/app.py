@@ -31,7 +31,7 @@ CORS(app)
 engine = create_engine("sqlite:///db/datenbank.db", echo=True)
 Base.metadata.create_all(engine)
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
 dbservice = DBService(engine)
 ProjektService(engine)
@@ -473,6 +473,7 @@ def create_bundle():
 def get_all_bundles():
     back = pservice.get_project_bundles(True)
     return back
+
 
 @app.route('/getBundle', methods=["GET"])
 def get_bundle():

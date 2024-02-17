@@ -1,3 +1,4 @@
+from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO
@@ -37,14 +38,15 @@ class ProjectBundleDTO:
     project_summaries:[ProjectSummaryDTO]
     monthly_umsaetze: [MaBookingsSummaryDTO]
 
-    # TODO: Erfassungsnachweise
+    nachweise:[ErfassungsnachweisDTO]
 
-    def __init__(self, bundle_name:str,  bundle_descripton: str,project_summaries: [ProjectSummaryDTO] , identifier,  monthly_umsaetze: [MaBookingsSummaryDTO]) -> None:
+    def __init__(self, bundle_name:str,  bundle_descripton: str,project_summaries: [ProjectSummaryDTO] , identifier,  monthly_umsaetze: [MaBookingsSummaryDTO],nachweise:[ErfassungsnachweisDTO]) -> None:
         self.bundle_name = bundle_name
         self.bundle_descripton: str =  bundle_descripton
         self.bundle_summary = BundleSummary(project_summaries)
         self.identifier = identifier
         self.monthly_umsaetze = monthly_umsaetze
+        self.nachweise = nachweise
 
 
         pro: ProjectSummaryDTO

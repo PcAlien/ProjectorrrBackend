@@ -4,8 +4,8 @@ class ErfassungsnachweisDTO:
     # tage: [datetime]
     # stunden: [float]
     tage: [str]
-    tage_zu_stunden: {str: float}
-    tage_zu_abwesenheiten: {str: str}
+    tage_zu_stunden: {str: float} = dict()
+    tage_zu_abwesenheiten: {str: str} = dict()
 
     # def __init__(self, name: str, personalnummer: int, tage: [datetime], stunden: [float], ) -> None:
     #     self.stunden = stunden

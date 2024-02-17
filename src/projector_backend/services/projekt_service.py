@@ -348,8 +348,10 @@ class ProjektService:
                         el.psp, False)
                     psp_booking_summaries_dto.append(psp_bookings_summary)
 
+                #bundle_nachweise = self.get_bundle_nachweise(project_summary_dtos, False)
+
                 dto = ProjectBundleDTO(pb.name, pb.description, project_summary_dtos, identifier=pb.identifier,
-                                       monthly_umsaetze=psp_booking_summaries_dto)
+                                       monthly_umsaetze=psp_booking_summaries_dto, nachweise=None)
 
                 pb_dtos.append(dto)
 
@@ -382,8 +384,10 @@ class ProjektService:
                 psp_bookings_summary: MaBookingsSummaryDTO = self.get_ma_bookings_summary_for_psp(el.psp, False)
                 psp_booking_summaries_dto.append(psp_bookings_summary)
 
+            bundle_nachweise = self.get_bundle_nachweise(project_summary_dtos,False)
+
             pb_dto = ProjectBundleDTO(project_bundle.name, project_bundle.description, project_summary_dtos,
-                                      project_bundle.identifier, psp_booking_summaries_dto)
+                                      project_bundle.identifier, psp_booking_summaries_dto, bundle_nachweise)
 
             if (json_format):
                 return json.dumps(pb_dto, default=data_helper.serialize)
@@ -900,7 +904,7 @@ class ProjektService:
             stunden: [float or str] = []
             tage_zu_stunden: {str: float} = dict()
             tage_zu_abwesenheiten: {str: str} = dict()
-            tage:[str] =[]
+            tage: [str] = []
 
             abwesenheit: AbwesenheitDTO = CalendarService.getInstance().get_abwesenheiten_for_psnr(pnummer, False)
             for gesuchtesDatum in suchtage:
@@ -924,8 +928,8 @@ class ProjektService:
                     stunden.append(gesammelte_stunden)
                     tage_zu_stunden[gesuchtes_datum_string] = gesammelte_stunden
 
-            #edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
-            edto = ErfassungsnachweisDTO(name, pnummer,tage, tage_zu_stunden, tage_zu_abwesenheiten)
+            # edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
+            edto = ErfassungsnachweisDTO(name, pnummer, tage, tage_zu_stunden, tage_zu_abwesenheiten)
             nachweise.append(edto)
 
         # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
@@ -1010,13 +1014,13 @@ class ProjektService:
         else:
             return summaries
 
-    def get_bundle_nachweise(self, identifier: str, json_format: bool):
+    def get_bundle_nachweise(self,  project_summaries:[ProjectSummaryDTO], json_format: bool):
 
-        pro_bundles_dto: ProjectBundleDTO = self.get_project_bundle(identifier, False)
 
-        alle_erfassung_dtos:[ErfassungsnachweisDTO] = []
+
+        alle_erfassung_dtos: [ErfassungsnachweisDTO] = []
         ps_dto: ProjectSummaryDTO
-        for ps_dto in pro_bundles_dto.project_summaries:
+        for ps_dto in project_summaries:
             psp = ps_dto.project.psp
             erfassung_dtos: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(psp, False)
             alle_erfassung_dtos.extend(erfassung_dtos)
@@ -1024,8 +1028,40 @@ class ProjektService:
         # An dieser Stelle wurde aus jedem PSP die ErfassungsNachweisDTOs geholt und in alle_erfassung_dtos gesammelt
         # Jetzt müssen die Werte kombiniert werden.
 
-        # Ein DTO
+        # {psnr: [Erfassungsnachweis]}
+        psnr_to_erfassungsnachweise: {str: [ErfassungsnachweisDTO]} = dict()
 
+        ef_dto: ErfassungsnachweisDTO
+        for ef_dto in alle_erfassung_dtos:
+            if ef_dto.personalnummer not in psnr_to_erfassungsnachweise.keys():
+                psnr_to_erfassungsnachweise[ef_dto.personalnummer] = []
 
+            psnr_to_erfassungsnachweise[ef_dto.personalnummer].append(ef_dto)
 
+        neue_erfassungsnachwei_dtos: [ErfassungsnachweisDTO] = []
 
+        for psnr, efdtos in psnr_to_erfassungsnachweise.items():
+
+            tage_zu_stunden = {}
+            tage_zu_abwesenheit = {}
+            dto: ErfassungsnachweisDTO
+            for dto in efdtos:
+                for tag in dto.tage:
+                    if tag in dto.tage_zu_stunden.keys():
+                        if tag not in tage_zu_stunden.keys():
+                            tage_zu_stunden[tag] = 0
+                        tage_zu_stunden[tag] += dto.tage_zu_stunden[tag]
+
+                    elif tag in dto.tage_zu_abwesenheiten.keys():
+                        if tag not in tage_zu_abwesenheit.keys():
+                            tage_zu_abwesenheit[tag] = 0
+                        tage_zu_abwesenheit[tag] = dto.tage_zu_abwesenheiten[tag]
+
+            sumup = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, efdtos[0].tage, tage_zu_stunden,
+                                          tage_zu_abwesenheit)
+            neue_erfassungsnachwei_dtos.append(sumup)
+
+        if json_format:
+            return json.dumps(neue_erfassungsnachwei_dtos, default=data_helper.serialize)
+        else:
+            return neue_erfassungsnachwei_dtos
