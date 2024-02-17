@@ -468,6 +468,34 @@ def create_bundle():
     return {'status': "Success",
             }
 
+@app.route('/editBundle', methods=["POST"])
+def edit_bundle():
+    bundle = request.form.get("bundle")
+    json_daten = json.loads(bundle)
+    bundle_dto = ProjectBundleCreateDTO(**json_daten)
+    back = pservice.edit_project_bundle(bundle_dto)
+    if (not back.complete):
+        return {'status': "Failed",
+                'error': back.message
+                }
+
+    return {'status': "Success",
+            }
+
+
+@app.route('/deleteBundle', methods=["POST"])
+def delete_Bundle():  # put application's code here
+
+    identifier = json.loads(request.form['bundle'])
+
+
+    dbResult = pservice.delete_bundle(identifier)
+
+    if dbResult.complete:
+
+        return {'status': "Success"}
+    else:
+        return {'status': "Error", 'error': dbResult.message}
 
 @app.route('/getAllBundles', methods=["GET"])
 def get_all_bundles():

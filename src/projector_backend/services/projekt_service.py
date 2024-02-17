@@ -301,7 +301,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps)
+        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, None)
 
         Session = sessionmaker(bind=self.engine)
         with Session() as session:
@@ -319,6 +319,50 @@ class ProjektService:
                 return result
 
         return DbResult(True, "Bundle has been created")
+
+    def edit_project_bundle(self, dto: ProjectBundleCreateDTO):
+        psps = []
+
+        for psp in dto.psp_list:
+            psps.append(ProjectBundlePSPElement(psp["psp"]))
+
+        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, dto.identifier)
+
+        Session = sessionmaker(bind=self.engine)
+        with Session() as session:
+            try:
+                session.add(bundle)
+                session.commit()
+
+
+
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                result = DbResult(False, e)
+                return result
+
+        return DbResult(True, "Bundle has been updated.")
+
+    def delete_bundle(self, identifier:str) -> DbResult:
+        Session = sessionmaker(bind=self.engine)
+        with Session() as session:
+            try:
+                obj: [ProjectBundle] = session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
+                for o in obj:
+                    for psp in o.bundled_psps:
+                        session.delete(psp)
+                    session.delete(o)
+                session.commit()
+
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                result = DbResult(False, e)
+                return result
+            return DbResult(True, "Hat geklappt.")
 
     def get_project_bundles(self, json_format: bool = True) -> [ProjectBundleDTO] or str:
         pb_dtos: [ProjectBundleDTO] = []

@@ -37,12 +37,15 @@ class ProjectBundle(Base):
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
 
-    def __init__(self, bundle_name: str,description: str, bundled_psps:[ProjectBundlePSPElement]) -> None:
+    def __init__(self, bundle_name: str,description: str, bundled_psps:[ProjectBundlePSPElement], identifier:str = str or None) -> None:
         self.name = bundle_name
         self.description = description
 
         self.bundled_psps = bundled_psps
-        self.identifier = self.create_identifier()
+        if identifier is None:
+            self.identifier = self.create_identifier()
+        else:
+            self.identifier = identifier
         self.uploadDatum = datetime.now()
 
 
