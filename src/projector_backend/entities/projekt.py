@@ -54,19 +54,18 @@ class Projekt(Base):
     laufzeit_von: Mapped[str] = mapped_column("laufzeit_von", String(30))
     laufzeit_bis: Mapped[str] = mapped_column("laufzeit_bis", String(30))
 
-    psp_packages = relationship("PspPackage", back_populates="projekt", lazy=False)
+#    psp_packages = relationship("PspPackage", back_populates="projekt", lazy=False)
 
     projektmitarbeiter = relationship("ProjektMitarbeiter", back_populates="projekt", lazy=False)
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
     archiviert: Mapped[bool] = mapped_column("archiviert")
 
     def __init__(self, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str, laufzeit_von: str,
-                 projektmitarbeiter: [ProjektMitarbeiter], psp_packages:[PspPackage]) -> None:
+                 projektmitarbeiter: [ProjektMitarbeiter], ) -> None:
         self.volumen = volumen
         self.projekt_name = projekt_name
         self.laufzeit_bis = laufzeit_bis
         self.projektmitarbeiter = projektmitarbeiter
-        self.psp_packages = psp_packages
         self.psp = psp
         self.laufzeit_von = laufzeit_von
         self.uploadDatum = datetime.now()

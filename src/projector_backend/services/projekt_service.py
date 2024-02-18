@@ -64,17 +64,9 @@ class ProjektService:
                                           pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
             projektmitarbeiter.append(neuerPMA)
 
-        pspPs: [PspPackage] = []
-        pspp_dto: PspPackageDTO
-        for pspp_dto in projektDTO.psp_packages:
-            dto = PspPackage(pspp_dto.psp, pspp_dto.package_name, pspp_dto.package_description, pspp_dto.volume,
-                             pspp_dto.tickets_identifier)
-            pspPs.append(dto)
-
         projekt = Projekt(projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis, projektDTO.psp,
-                          projektDTO.laufzeit_von, projektmitarbeiter, pspPs)
+                          projektDTO.laufzeit_von, projektmitarbeiter, )
 
-        
         with self.Session() as session:
             try:
 
@@ -103,7 +95,7 @@ class ProjektService:
             return ProjektDTO.create_from_db(projekt), DbResult(True, "A new project has been created")
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
-        
+
         with self.Session() as session:
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
@@ -117,14 +109,16 @@ class ProjektService:
                 .filter(Projekt.uploadDatum.in_(subquery)).first()
             )
 
-        dto = ProjektDTO.create_from_db(pro)
+            dtos = self.get_psp_packages(psp, False)
+
+        dto = ProjektDTO.create_from_db(pro, dtos)
         if json_format:
             return json.dumps(dto, default=data_helper.serialize)
         else:
             return dto
 
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
-        
+
         with self.Session() as session:
             pma = session.query(ProjektMitarbeiter).filter(ProjektMitarbeiter.psp_element == psp_element).first()
             if type(pma) == NoneType:
@@ -133,7 +127,7 @@ class ProjektService:
             return ProjektmitarbeiterDTO.create_from_db(pma)
 
     def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
-        
+
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
@@ -158,7 +152,7 @@ class ProjektService:
             return projektDTOs
 
     def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
-        
+
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
@@ -175,7 +169,8 @@ class ProjektService:
             )
 
             for p in projekte:
-                projektDTOs.append(ProjektDTO.create_from_db(p))
+                dtos = self.get_psp_packages(p.psp, False)
+                projektDTOs.append(ProjektDTO.create_from_db(p, dtos))
 
         if (json_format):
             return json.dumps(projektDTOs, default=data_helper.serialize)
@@ -183,7 +178,7 @@ class ProjektService:
             return projektDTOs
 
     def get_archived_projects(self, json_format: bool) -> [ProjektDTO] or str:
-        
+
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
@@ -200,7 +195,8 @@ class ProjektService:
             )
 
             for p in projekte:
-                projektDTOs.append(ProjektDTO.create_from_db(p))
+                dtos = self.get_psp_packages(p.psp, False)
+                projektDTOs.append(ProjektDTO.create_from_db(p, dtos))
 
         if (json_format):
             return json.dumps(projektDTOs, default=data_helper.serialize)
@@ -208,7 +204,7 @@ class ProjektService:
             return projektDTOs
 
     def toogle_archive_project(self, psp):
-        
+
         with self.Session() as session:
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
@@ -243,43 +239,96 @@ class ProjektService:
         return missing_psps
 
     def add_psp_package(self, dto: PspPackageDTO):
-        projekt_dto: ProjektDTO
-        projekt_dto = self.get_project_by_psp(dto.psp, False)
+        with self.Session() as session:
+            try:
+                package = PspPackage(dto.psp, dto.package_name,dto.package_description,dto.volume, dto.tickets_identifier)
+                session.add(package)
+                session.commit()
 
-        # pdto = ProjektDTO("bla","jlj",2434,"n", "m", None, [] )
-        # pdto.psp_packages.append(dto)
 
-        projekt_dto.psp_packages.append(dto)
 
-        return self.save_update_project(projekt_dto, True)
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                result = DbResult(False, e)
+                return None, result
+
+
+            return package.package_identifier, DbResult(True, "A new package has been created")
+
+
 
     def update_psp_package(self, dto: PspPackageDTO):
-        projekt_dto: ProjektDTO
-        projekt_dto = self.get_project_by_psp(dto.psp, False)
+        with self.Session() as session:
+            try:
+            #package:PspPackage
 
-        p: PspPackageDTO
-        for p in projekt_dto.psp_packages:
-            if p.package_identifier == dto.package_identifier:
-                projekt_dto.psp_packages.remove(p)
-                break
+                package = (
+                    session.query(PspPackage)
+                    .where(PspPackage.package_identifier == dto.package_identifier).first()
+                )
 
-        projekt_dto.psp_packages.append(dto)
-        return self.save_update_project(projekt_dto, True)
+                package.package_name = dto.package_name
+                package.package_description = dto.package_description
+                package.tickets_identifier = json.dumps(dto.tickets_identifier, default=data_helper.serialize)
+                package.volumen = dto.volume
+
+                session.commit()
+
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                result = DbResult(False, e)
+                return None, result
+
+
+            return package.package_identifier, DbResult(True, "Package has been updated")
+
+
 
     def delete_psp_package(self, dto: PspPackageDTO):
-        projekt_dto: ProjektDTO
-        projekt_dto = self.get_project_by_psp(dto.psp, False)
 
-        p: PspPackageDTO
-        for p in projekt_dto.psp_packages:
-            if p.package_identifier == dto.package_identifier:
-                projekt_dto.psp_packages.remove(p)
-                break
+        with self.Session() as session:
+            try:
+                # package:PspPackage
 
-        return self.save_update_project(projekt_dto, True)
+                package = (
+                    session.query(PspPackage)
+                    .where(PspPackage.package_identifier == dto.package_identifier).first()
+                )
+
+                session.delete(package)
+                session.commit()
+
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                result = DbResult(False, e)
+                return result
+
+            return DbResult(True, "Package has been updated")
+
+    def get_psp_packages(self, psp: str, json_format: bool):
+
+        with self.Session() as session:
+            packages = (
+                session.query(PspPackage).where(PspPackage.psp == psp)
+            )
+            package_dtos = []
+            for p in packages:
+                dto = PspPackageDTO.create_from_db(p)
+                package_dtos.append(dto)
+
+        if (json_format):
+            return json.dumps(package_dtos, default=data_helper.serialize)
+        else:
+            return package_dtos
 
     def get_psp_package(self, identifier: str, json_format: bool):
-        
+
         with self.Session() as session:
             package = (
                 session.query(PspPackage).where(PspPackage.package_identifier == identifier).first()
@@ -305,7 +354,6 @@ class ProjektService:
 
         bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, None)
 
-        
         with self.Session() as session:
             try:
                 session.add(bundle)
@@ -330,7 +378,6 @@ class ProjektService:
 
         bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, dto.identifier)
 
-        
         with self.Session() as session:
             try:
                 session.add(bundle)
@@ -347,8 +394,8 @@ class ProjektService:
 
         return DbResult(True, "Bundle has been updated.")
 
-    def delete_bundle(self, identifier:str) -> DbResult:
-        
+    def delete_bundle(self, identifier: str) -> DbResult:
+
         with self.Session() as session:
             try:
                 obj: [ProjectBundle] = session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
@@ -368,7 +415,7 @@ class ProjektService:
 
     def get_project_bundles(self, json_format: bool = True) -> [ProjectBundleDTO] or str:
         pb_dtos: [ProjectBundleDTO] = []
-        
+
         with self.Session() as session:
             subquery = (
                 session.query(func.max(ProjectBundle.uploadDatum))
@@ -394,7 +441,7 @@ class ProjektService:
                         el.psp, False)
                     psp_booking_summaries_dto.append(psp_bookings_summary)
 
-                #bundle_nachweise = self.get_bundle_nachweise(project_summary_dtos, False)
+                # bundle_nachweise = self.get_bundle_nachweise(project_summary_dtos, False)
 
                 dto = ProjectBundleDTO(pb.name, pb.description, project_summary_dtos, identifier=pb.identifier,
                                        monthly_umsaetze=psp_booking_summaries_dto, nachweise=None)
@@ -407,7 +454,7 @@ class ProjektService:
             return dto
 
     def get_project_bundle(self, identifier: str, json_format: bool = True) -> ProjectBundleDTO or str:
-        
+
         with self.Session() as session:
             subquery = (
                 session.query(func.max(ProjectBundle.uploadDatum))
@@ -430,7 +477,7 @@ class ProjektService:
                 psp_bookings_summary: MaBookingsSummaryDTO = self.get_ma_bookings_summary_for_psp(el.psp, False)
                 psp_booking_summaries_dto.append(psp_bookings_summary)
 
-            bundle_nachweise = self.get_bundle_nachweise(project_summary_dtos,False)
+            bundle_nachweise = self.get_bundle_nachweise(project_summary_dtos, False)
 
             pb_dto = ProjectBundleDTO(project_bundle.name, project_bundle.description, project_summary_dtos,
                                       project_bundle.identifier, psp_booking_summaries_dto, bundle_nachweise)
@@ -585,8 +632,6 @@ class ProjektService:
                               bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
             buchungen.append(buchung)
 
-        
-
         with self.Session() as session:
             try:
                 # Füge alle Buchungen hinzu
@@ -632,8 +677,6 @@ class ProjektService:
                           bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm, bookingDTO.letzteAenderung,
                           bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
 
-        
-
         with self.Session() as session:
             session.add(buchung)
             session.commit()
@@ -646,8 +689,6 @@ class ProjektService:
         :param json_format: True, wenn der Ergebnis im JSON Format zurückgegeben werden soll, ansonsten [BookingDTO]
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/bookings.json".
         """
-
-        
 
         with self.Session() as session:
             subquery = (
@@ -703,8 +744,6 @@ class ProjektService:
         :param json_format: True, wenn das Ergebnis im JSON Format zurückgegeben werden soll.
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/mitarbeiteruebersicht.json".
         """
-
-        
 
         with self.Session() as session:
 
@@ -1020,7 +1059,7 @@ class ProjektService:
         b: BookingDTO
         multi_bookings_to_identifiers: {BookingDTO: [str]} = dict()
         for b in booking_dtos:
-            local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b:[]}
+            local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b: []}
             found_tis = 0
             for ti in pspp_dto.tickets_identifier:
                 if ti in b.text:
@@ -1048,7 +1087,7 @@ class ProjektService:
         for booking, identifiers in multi_bookings_to_identifiers.items():
             piissues.append(Package_Identifier_Issues(booking, identifiers))
 
-        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_hours / 8.0, umsatz_dtos,  piissues)
+        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_hours / 8.0, umsatz_dtos, piissues)
 
         if json_format:
             return json.dumps(summary_dto, default=data_helper.serialize)
@@ -1074,9 +1113,7 @@ class ProjektService:
         else:
             return summaries
 
-    def get_bundle_nachweise(self,  project_summaries:[ProjectSummaryDTO], json_format: bool):
-
-
+    def get_bundle_nachweise(self, project_summaries: [ProjectSummaryDTO], json_format: bool):
 
         alle_erfassung_dtos: [ErfassungsnachweisDTO] = []
         ps_dto: ProjectSummaryDTO

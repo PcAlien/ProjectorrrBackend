@@ -203,11 +203,11 @@ def add_psp_package():  # put application's code here
     json_projektdaten = json.loads(request.form['package'])
     dto = PspPackageDTO(**json_projektdaten)
 
-    neuesDTO, dbResult = pservice.add_psp_package(dto)
+    identifier, dbResult = pservice.add_psp_package(dto)
 
     if dbResult.complete:
-        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
-        return {'status': "Success", 'project': project_json}
+        identifier_json = json.dumps(identifier, default=data_helper.serialize)
+        return {'status': "Success", 'identifier': identifier_json}
     else:
         return {'status': "Error", 'error': dbResult.message}
 
@@ -225,11 +225,11 @@ def update_psp_package():  # put application's code here
     json_projektdaten = json.loads(request.form['package'])
     dto = PspPackageDTO(**json_projektdaten)
 
-    neuesDTO, dbResult = pservice.update_psp_package(dto)
+    identifier, dbResult = pservice.update_psp_package(dto)
 
     if dbResult.complete:
-        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
-        return {'status': "Success", 'project': project_json}
+        identifier_json = json.dumps(identifier, default=data_helper.serialize)
+        return {'status': "Success", 'identifier': identifier_json}
     else:
         return {'status': "Error", 'error': dbResult.message}
 
@@ -240,11 +240,11 @@ def delete_psp_package():  # put application's code here
     json_projektdaten = json.loads(request.form['package'])
     dto = PspPackageDTO(**json_projektdaten)
 
-    neuesDTO, dbResult = pservice.delete_psp_package(dto)
+    dbResult = pservice.delete_psp_package(dto)
 
     if dbResult.complete:
-        project_json = json.dumps(neuesDTO, default=data_helper.serialize)
-        return {'status': "Success", 'project': project_json}
+
+        return {'status': "Success"}
     else:
         return {'status': "Error", 'error': dbResult.message}
 

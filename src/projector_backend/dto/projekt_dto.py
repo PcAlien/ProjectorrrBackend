@@ -71,7 +71,7 @@ class ProjektDTO:
         self.archiviert = archiviert
 
     @classmethod
-    def create_from_db(cls, projekt: Projekt):
+    def create_from_db(cls, projekt: Projekt,psp_packages: [PspPackageDTO] ):
         projektmitarbeiter: [ProjektmitarbeiterDTO] = []
         pma: ProjektMitarbeiter
         for pma in projekt.projektmitarbeiter:
@@ -79,15 +79,9 @@ class ProjektDTO:
                 ProjektmitarbeiterDTO(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
 
-        pspPackages: [PspPackageDTO] = []
-        pspp: PspPackage
-        for pspp in projekt.psp_packages:
-            pspPackages.append(
-                PspPackageDTO.create_from_db(pspp)
 
-            )
 
         return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
-                   projektmitarbeiter, pspPackages, projekt.id, uploaddatum=projekt.uploadDatum,
+                   projektmitarbeiter, psp_packages, projekt.id, uploaddatum=projekt.uploadDatum,
                    archiviert=projekt.archiviert)
 

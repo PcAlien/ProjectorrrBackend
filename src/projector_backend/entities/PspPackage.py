@@ -23,8 +23,8 @@ class PspPackage(Base):
 
     volumen: Mapped[float] = mapped_column("volumen")
 
-    projekt_id = Column(Integer, ForeignKey("projekte.id"))
-    projekt = relationship("Projekt", back_populates="psp_packages", lazy=False)
+    # projekt_id = Column(Integer, ForeignKey("projekte.id"))
+    # projekt = relationship("Projekt", back_populates="psp_packages", lazy=False)
 
     def __init__(self, psp: str, package_name: str, package_description: str,volumen: float,  tickets_identifier: str or [str],
                  ) -> None:
@@ -44,3 +44,4 @@ class PspPackage(Base):
         # Wählen Sie zufällige Zeichen aus der Zeichenfolge aus, um den Code zu generieren
         random_code = ''.join(random.choice(characters) for _ in range(30))
         return random_code
+
