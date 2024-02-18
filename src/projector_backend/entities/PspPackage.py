@@ -1,10 +1,9 @@
 import json
-import string
-from datetime import datetime
 import random
+import string
 
-from sqlalchemy import String, Column, Integer, ForeignKey
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 from src.projector_backend.entities.Base import Base
@@ -23,10 +22,8 @@ class PspPackage(Base):
 
     volumen: Mapped[float] = mapped_column("volumen")
 
-    # projekt_id = Column(Integer, ForeignKey("projekte.id"))
-    # projekt = relationship("Projekt", back_populates="psp_packages", lazy=False)
-
-    def __init__(self, psp: str, package_name: str, package_description: str,volumen: float,  tickets_identifier: str or [str],
+    def __init__(self, psp: str, package_name: str, package_description: str, volumen: float,
+                 tickets_identifier: str or [str],
                  ) -> None:
         self.psp = psp
         self.package_name = package_name
@@ -44,4 +41,3 @@ class PspPackage(Base):
         # Wählen Sie zufällige Zeichen aus der Zeichenfolge aus, um den Code zu generieren
         random_code = ''.join(random.choice(characters) for _ in range(30))
         return random_code
-

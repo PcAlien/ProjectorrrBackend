@@ -241,7 +241,8 @@ class ProjektService:
     def add_psp_package(self, dto: PspPackageDTO):
         with self.Session() as session:
             try:
-                package = PspPackage(dto.psp, dto.package_name,dto.package_description,dto.volume, dto.tickets_identifier)
+                package = PspPackage(dto.psp, dto.package_name, dto.package_description, dto.volume,
+                                     dto.tickets_identifier)
                 session.add(package)
                 session.commit()
 
@@ -254,15 +255,12 @@ class ProjektService:
                 result = DbResult(False, e)
                 return None, result
 
-
             return package.package_identifier, DbResult(True, "A new package has been created")
-
-
 
     def update_psp_package(self, dto: PspPackageDTO):
         with self.Session() as session:
             try:
-            #package:PspPackage
+                # package:PspPackage
 
                 package = (
                     session.query(PspPackage)
@@ -283,10 +281,7 @@ class ProjektService:
                 result = DbResult(False, e)
                 return None, result
 
-
             return package.package_identifier, DbResult(True, "Package has been updated")
-
-
 
     def delete_psp_package(self, dto: PspPackageDTO):
 

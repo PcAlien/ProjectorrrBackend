@@ -6,7 +6,6 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
 from src.projector_backend.entities.Base import Base
-from src.projector_backend.entities.PspPackage import PspPackage
 
 
 class ProjektMitarbeiter(Base):
@@ -23,7 +22,6 @@ class ProjektMitarbeiter(Base):
 
     projekt_id = Column(Integer, ForeignKey("projekte.id"))
     projekt = relationship("Projekt", back_populates="projektmitarbeiter", lazy=False)
-
 
     def __init__(self,
                  personalnummer: int,
@@ -44,7 +42,6 @@ class ProjektMitarbeiter(Base):
         self.stundensatz = stundensatz
 
 
-
 class Projekt(Base):
     __tablename__ = "projekte"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -54,7 +51,7 @@ class Projekt(Base):
     laufzeit_von: Mapped[str] = mapped_column("laufzeit_von", String(30))
     laufzeit_bis: Mapped[str] = mapped_column("laufzeit_bis", String(30))
 
-#    psp_packages = relationship("PspPackage", back_populates="projekt", lazy=False)
+    #    psp_packages = relationship("PspPackage", back_populates="projekt", lazy=False)
 
     projektmitarbeiter = relationship("ProjektMitarbeiter", back_populates="projekt", lazy=False)
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
@@ -70,8 +67,6 @@ class Projekt(Base):
         self.laufzeit_von = laufzeit_von
         self.uploadDatum = datetime.now()
         self.archiviert = False
-
-
 
     # @classmethod
     # def create_from_dto(cls,dto: ProjektDTO):

@@ -1,4 +1,3 @@
-import json
 import logging
 
 from sqlalchemy import create_engine
@@ -28,4 +27,3 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 # dto: PspForecastDTO= bservice.mach_forecast(11828, True)
 # print(dto)
-

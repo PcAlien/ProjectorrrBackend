@@ -12,5 +12,6 @@ def from_string_to_date_without_time(date: str) -> datetime:
 
     return datum_objekt.date()
 
-def from_date_to_string(date: datetime) ->str:
+
+def from_date_to_string(date: datetime) -> str:
     return date.strftime("%d.%m.%Y")

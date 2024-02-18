@@ -38,16 +38,12 @@ class PspPackageUmsatzDTO:
     pt: float
     bookings: [BookingDTO]
 
-
-
     def __init__(self, monat: str, umsatz: float, stunden: float) -> None:
         self.umsatz = umsatz
         self.monat = monat
         self._stunden = stunden
         self.pt = self._stunden / 8.0
         self.bookings = []
-
-
 
     @property
     def stunden(self):
@@ -63,11 +59,10 @@ class PspPackageUmsatzDTO:
 
 
 class Package_Identifier_Issues:
-
     booking_dto: BookingDTO
     identifier: [str]
 
-    def __init__(self,   booking_dto: BookingDTO,  identifier: [str]) -> None:
+    def __init__(self, booking_dto: BookingDTO, identifier: [str]) -> None:
         self.booking_dto = booking_dto
         self.identifier = identifier
 
@@ -80,7 +75,8 @@ class PspPackageSummaryDTO:
     umsaetze: [PspPackageUmsatzDTO]
     multi_identifier_issues: [Package_Identifier_Issues]
 
-    def __init__(self, package: PspPackageDTO, spent: float, umsaetze: [PspPackageUmsatzDTO], multi_identifier_issues: [Package_Identifier_Issues]) -> None:
+    def __init__(self, package: PspPackageDTO, spent: float, umsaetze: [PspPackageUmsatzDTO],
+                 multi_identifier_issues: [Package_Identifier_Issues]) -> None:
         self.package = package
         self.spent = spent
         self.rest = self.package.volume - self.spent

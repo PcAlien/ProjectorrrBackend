@@ -10,7 +10,7 @@ class MaDurchschnittsarbeitszeitDTO:
     durchschnitts_tages_az: float
     durchschnitts_tages_umsatz: float
 
-    def __init__(self, name, personalnummer, psp_element, durchschnitts_tages_az,durchschnitts_tagesumsatz) -> None:
+    def __init__(self, name, personalnummer, psp_element, durchschnitts_tages_az, durchschnitts_tagesumsatz) -> None:
         self.name = name
         self.personalnummer = personalnummer
         self.psp_element = psp_element
@@ -70,7 +70,8 @@ class PspForecastDTO:
     fc_enddate_umsatz: float
     fc_enddate_restbudget: float
 
-    def __init__(self, projekt: ProjektDTO, tage: [ForecastDayView], missing: [ProjektmitarbeiterDTO],  avg_tagesumsaetze: [MaDurchschnittsarbeitszeitDTO]) -> None:
+    def __init__(self, projekt: ProjektDTO, tage: [ForecastDayView], missing: [ProjektmitarbeiterDTO],
+                 avg_tagesumsaetze: [MaDurchschnittsarbeitszeitDTO]) -> None:
         self.projekt = projekt
 
         self.missing = missing

@@ -12,10 +12,8 @@ from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSum
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
-from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.entities.Base import Base
-from src.projector_backend.entities.bundles import ProjectBundle
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.excel.eh_projektmeldung import EhProjektmeldung
 from src.projector_backend.helpers import data_helper
@@ -35,7 +33,6 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
 dbservice = DBService(engine)
 ProjektService(engine)
-
 
 pservice = ProjektService.getInstance()
 cservice = CalendarService(engine)
@@ -286,7 +283,7 @@ def _lade_demoprojekte():
         pservice.save_update_project(p)
 
 
-def _lade_demobuchungen() -> str:
+def _lade_demobuchungen():
     # Schritt 1:
     json_data = data_helper.read_json_file("src/projector_backend/helpers/json_templates/examples/bookings.json")
     uploadDatum = datetime.now()
@@ -308,7 +305,7 @@ def _lade_demobuchungen() -> str:
         pservice.create_new_from_dto_and_save(dto)
 
 
-def _lade_demoabwesenheiten() -> str:
+def _lade_demoabwesenheiten():
     demo_calender_data_importer.run()
 
 
@@ -468,6 +465,7 @@ def create_bundle():
     return {'status': "Success",
             }
 
+
 @app.route('/editBundle', methods=["POST"])
 def edit_bundle():
     bundle = request.form.get("bundle")
@@ -488,7 +486,6 @@ def delete_Bundle():  # put application's code here
 
     identifier = json.loads(request.form['bundle'])
 
-
     dbResult = pservice.delete_bundle(identifier)
 
     if dbResult.complete:
@@ -496,6 +493,7 @@ def delete_Bundle():  # put application's code here
         return {'status': "Success"}
     else:
         return {'status': "Error", 'error': dbResult.message}
+
 
 @app.route('/getAllBundles', methods=["GET"])
 def get_all_bundles():
@@ -506,7 +504,7 @@ def get_all_bundles():
 @app.route('/getBundle', methods=["GET"])
 def get_bundle():
     identifier = request.args.get('identifier')
-    back = pservice.get_project_bundle(identifier,True)
+    back = pservice.get_project_bundle(identifier, True)
     return back
 
 

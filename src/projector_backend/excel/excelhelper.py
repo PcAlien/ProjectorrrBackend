@@ -1,32 +1,29 @@
 from openpyxl import *
 from openpyxl.cell import Cell
 from openpyxl.styles import *
-from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.utils import get_column_letter
 from openpyxl.styles import numbers
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.worksheet import Worksheet
+
 
 class ExcelHelper:
-
-
 
     def __init__(self) -> None:
         super().__init__()
         self.numbers = numbers
 
-    def load_workbook(self,source):
+    def load_workbook(self, source):
         return load_workbook(source)
 
-    def get_worksheet(self,source: str, sheetNumber: int) -> Worksheet:
+    def get_worksheet(self, source: str, sheetNumber: int) -> Worksheet:
         wb = load_workbook(source)
         wb.active = sheetNumber
         return wb.active
 
-
-    def get_worksheet_by_name(self,source: str, sheet_name: str) -> Worksheet:
+    def get_worksheet_by_name(self, source: str, sheet_name: str) -> Worksheet:
         wb = load_workbook(source)
         wb.active = wb[sheet_name]
         return wb.active
-
 
     def create_workbook(self, destination: str, firstSheetName: str) -> Workbook:
         wb = Workbook()
@@ -38,7 +35,7 @@ class ExcelHelper:
         for row in sourceSheet.iter_rows(values_only=True):
             targetSheet.append(row)
 
-    def activate_filter_in_sheet(self,workbook: Workbook, sheets: list = (), allSheets=False):
+    def activate_filter_in_sheet(self, workbook: Workbook, sheets: list = (), allSheets=False):
         if (allSheets):
             for ws in workbook._sheets:
                 ws.auto_filter.ref = ws.dimensions
@@ -48,7 +45,7 @@ class ExcelHelper:
                     if (counter == i):
                         ws.auto_filter.ref = ws.dimensions
 
-    def format_column(self,sheet: Worksheet, columnNumber: int, format: str = "dd.mm.YYYY"):
+    def format_column(self, sheet: Worksheet, columnNumber: int, format: str = "dd.mm.YYYY"):
         for x in sheet.iter_cols(min_col=columnNumber + 1, max_col=columnNumber + 1, values_only=False):
             cell: Cell
             for cell in x:
@@ -70,6 +67,6 @@ class ExcelHelper:
         liste = list(each for each in range(0, len(wb.worksheets)))
         self.activate_filter_in_sheet(workbook=wb, sheets=liste)
 
-    def autosize_current_only_way(self,activeSheet: Worksheet):
+    def autosize_current_only_way(self, activeSheet: Worksheet):
         for idx, col in enumerate(activeSheet.columns, 1):
             activeSheet.column_dimensions[get_column_letter(idx)].bestFit = True

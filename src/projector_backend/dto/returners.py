@@ -5,4 +5,3 @@ class DbResult:
     def __init__(self, complete: bool, message: str) -> None:
         self.message = message
         self.complete = complete
-

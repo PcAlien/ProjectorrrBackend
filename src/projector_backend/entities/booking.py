@@ -28,7 +28,6 @@ class Booking(Base):
     umsatz: Mapped[float] = mapped_column("umsatz")
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
-
     def __init__(self, name: str,
                  personalnummer: int,
                  datum: datetime,

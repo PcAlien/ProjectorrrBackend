@@ -6,9 +6,6 @@ from src.projector_backend.entities.projekt import ProjektMitarbeiter
 from src.projector_backend.excel.excelhelper import ExcelHelper
 
 
-
-
-
 class EhProjektmeldung(ExcelHelper):
 
     def create_pms_from_export(self, source) -> [ProjektmitarbeiterDTO]:
@@ -17,24 +14,23 @@ class EhProjektmeldung(ExcelHelper):
 
         wb: Workbook = self.load_workbook(source)
 
-        ws : Worksheet = wb.active
-        pmas :[ProjektMitarbeiter] = []
+        ws: Worksheet = wb.active
+        pmas: [ProjektMitarbeiter] = []
 
         for row in ws.iter_rows(values_only=True, min_row=2):
             if row[1] != None:
-               mitarbeiter_und_id = row[0]
-               id = int(mitarbeiter_und_id[:5])
-               name = mitarbeiter_und_id[8:]
-               stundensatz = row[1]
-               stundenbudet = row[3]
-               psp_element = row[4]
-               bezeichnung = row[5]
-               laufzeit_von = row[6]
-               laufzeit_bis = row[7]
+                mitarbeiter_und_id = row[0]
+                id = int(mitarbeiter_und_id[:5])
+                name = mitarbeiter_und_id[8:]
+                stundensatz = row[1]
+                stundenbudet = row[3]
+                psp_element = row[4]
+                bezeichnung = row[5]
+                laufzeit_von = row[6]
+                laufzeit_bis = row[7]
 
-               pma = ProjektmitarbeiterDTO(id,name,bezeichnung,psp_element,stundensatz,stundenbudet,laufzeit_von,laufzeit_bis)
-               pmas.append(pma)
+                pma = ProjektmitarbeiterDTO(id, name, bezeichnung, psp_element, stundensatz, stundenbudet, laufzeit_von,
+                                            laufzeit_bis)
+                pmas.append(pma)
 
         return pmas
-
-

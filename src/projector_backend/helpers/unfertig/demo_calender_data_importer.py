@@ -28,9 +28,7 @@ def run():
             abd = AbwesenheitDetails(a, "U", uploadDatum)
             abwesenheitenDetailsList.append(abd)
 
-        ab: Abwesenheit = Abwesenheit(maName, personalnummer,"", abwesenheitenDetailsList, uploadDatum)
+        ab: Abwesenheit = Abwesenheit(maName, personalnummer, "", abwesenheitenDetailsList, uploadDatum)
         abs.append(ab)
 
     CalendarService.getInstance().proceed_demodaten(abs)
-
-

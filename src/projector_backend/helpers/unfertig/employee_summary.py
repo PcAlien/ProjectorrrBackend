@@ -10,7 +10,9 @@ class BookingSummary:
     hourlyRate: int
     psp: int
 
-    def __init__(self, restDays2PspEnd: int, workloadHoursPerDay: int, project: str, restTurnover: float, employeeId: int, pspEndDate: str, turnover2PspEnd: float, finalBudgetEndDate: str, hourlyRate: int, psp: int) -> None:
+    def __init__(self, restDays2PspEnd: int, workloadHoursPerDay: int, project: str, restTurnover: float,
+                 employeeId: int, pspEndDate: str, turnover2PspEnd: float, finalBudgetEndDate: str, hourlyRate: int,
+                 psp: int) -> None:
         self.restDays2PspEnd = restDays2PspEnd
         self.workloadHoursPerDay = workloadHoursPerDay
         self.project = project
@@ -30,7 +32,8 @@ class EmployeeSummaryElement:
     turnoverSum: float
     id: int
 
-    def __init__(self, name: str, bookingSummaries: [BookingSummary], workloadSum: int, turnoverSum: float, id: int) -> None:
+    def __init__(self, name: str, bookingSummaries: [BookingSummary], workloadSum: int, turnoverSum: float,
+                 id: int) -> None:
         self.name = name
         self.bookingSummaries = bookingSummaries
         self.workloadSum = workloadSum

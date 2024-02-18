@@ -1,8 +1,3 @@
-from datetime import datetime
-
-from src.projector_backend.dto.forecast_dto import PspElementDayForecast
-
-
 # 0. temporäre Hilfsklassen definieren.
 class Ma_Zwischenspeicher():
     name: str
@@ -19,4 +14,3 @@ class Ma_Zwischenspeicher():
         self.stundensatz = stundensatz
         self.stunden = 0
         self.tage = 0
-

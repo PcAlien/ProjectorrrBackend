@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO
-from src.projector_backend.entities.PspPackage import PspPackage
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
 from src.projector_backend.entities.projekt import Projekt, ProjektMitarbeiter
 
 
@@ -71,7 +70,7 @@ class ProjektDTO:
         self.archiviert = archiviert
 
     @classmethod
-    def create_from_db(cls, projekt: Projekt,psp_packages: [PspPackageDTO] ):
+    def create_from_db(cls, projekt: Projekt, psp_packages: [PspPackageDTO]):
         projektmitarbeiter: [ProjektmitarbeiterDTO] = []
         pma: ProjektMitarbeiter
         for pma in projekt.projektmitarbeiter:
@@ -79,9 +78,6 @@ class ProjektDTO:
                 ProjektmitarbeiterDTO(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
 
-
-
         return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
                    projektmitarbeiter, psp_packages, projekt.id, uploaddatum=projekt.uploadDatum,
                    archiviert=projekt.archiviert)
-

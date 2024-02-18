@@ -39,13 +39,13 @@ class SpecialDays:
             self.feiertage.append(Feiertag(formatted_date, name, ""))
 
         current_year = datetime.now().year
-        for m in range(1,13):
-            daycounter = calendar.monthrange(current_year,m)[1]
-            self.monatstage.append(Monatstage(m,daycounter))
+        for m in range(1, 13):
+            daycounter = calendar.monthrange(current_year, m)[1]
+            self.monatstage.append(Monatstage(m, daycounter))
 
         # Wochenendtage
-        start_date =  datetime(current_year, 1, 1)
-        end_date =  datetime(current_year, 12, 31)
+        start_date = datetime(current_year, 1, 1)
+        end_date = datetime(current_year, 12, 31)
 
         current_date = start_date
 
@@ -53,5 +53,3 @@ class SpecialDays:
             if current_date.weekday() == 5 or current_date.weekday() == 6:
                 self.wochenendtage.append(current_date.strftime("%d.%m.%Y"))
             current_date += timedelta(days=1)
-
-

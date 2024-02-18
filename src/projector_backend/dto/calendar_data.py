@@ -9,4 +9,3 @@ class CalenderData:
     def __init__(self, abwesenheiten) -> None:
         self.abwesenheiten = abwesenheiten
         self.specialDays = SpecialDays()
-

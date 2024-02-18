@@ -7,6 +7,7 @@ def read_json_file(file_path):
         json_data = json.load(file)
         return json_data
 
+
 def serialize(obj):
     try:
         if isinstance(obj, date):

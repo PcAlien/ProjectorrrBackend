@@ -1,5 +1,4 @@
 import datetime
-import sys
 from types import NoneType
 
 from openpyxl.cell import Cell
@@ -44,10 +43,10 @@ class EhBuchungen(ExcelHelper):
                     ws: Worksheet = wb[sheetName]
                     bookingDTOs = self._process_excel_reading(uploadDatum, ws, ifc, bookingDTOs)
 
-
         return bookingDTOs
 
-    def _process_excel_reading(self, uploadDatum: datetime, ws: Worksheet, ifc: ImportFileColumns, bookingDTOs: [BookingDTO]):
+    def _process_excel_reading(self, uploadDatum: datetime, ws: Worksheet, ifc: ImportFileColumns,
+                               bookingDTOs: [BookingDTO]):
         if ifc.delete_empty_lines:
             self._delete_summary_rows(ws)
 
@@ -72,8 +71,6 @@ class EhBuchungen(ExcelHelper):
             bookingDTOs.append(dto)
 
         return bookingDTOs
-
-
 
     def _delete_summary_rows(self, sheet: Worksheet):
         toDelete = []
@@ -148,8 +145,6 @@ class EhBuchungen(ExcelHelper):
         active_sheet.append(["Restbudget", budget - mab_summary_dto.sum])
         self.format_column(active_sheet, 1, '#,##0.00 €')
         self.autosize_current_only_way(active_sheet)
-
-
 
         self.format_first_line_of_every_sheet(booking_xlsx)
         booking_xlsx.save(export_file_folder + export_file_name)

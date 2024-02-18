@@ -10,11 +10,11 @@ class MonatsaufteilungSummaryDTO:
         self.monat = monat
         self.maBookingsSummary = maBookingsSummary
 
+
 class MonatsaufteilungDTO:
     monat: str
-    bookings : [BookingDTO]
+    bookings: [BookingDTO]
 
     def __init__(self, monat, bookings) -> None:
         self.monat = monat
         self.bookings = bookings
-

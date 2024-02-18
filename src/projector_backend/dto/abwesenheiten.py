@@ -17,7 +17,7 @@ class AbwesenheitDTO:
     abwesenheitDetails: [AbwesenheitDetailsDTO]
 
     def __init__(self, name: str, personalnummer: int, rolle: str, abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
-        self.abwesenheitDetails : [AbwesenheitDetailsDTO]= abwesenheitDetails
+        self.abwesenheitDetails: [AbwesenheitDetailsDTO] = abwesenheitDetails
         self.name = name
         self.personalnummer = personalnummer
         self.rolle = rolle

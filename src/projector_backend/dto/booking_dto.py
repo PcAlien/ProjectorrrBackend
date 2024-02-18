@@ -1,8 +1,7 @@
 from datetime import datetime
 
-
-from src.projector_backend.helpers import date_helper as dh
 from src.projector_backend.entities.booking import Booking
+from src.projector_backend.helpers import date_helper as dh
 
 
 class BookingDTO:
@@ -33,14 +32,14 @@ class BookingDTO:
                  stunden: float,
                  text: str,
                  erstelltAm: str | datetime,
-                 letzteAenderung: str |datetime,
+                 letzteAenderung: str | datetime,
                  id=0,
-                 stundensatz = 0,
-                 umsatz = 0,
-                 uploaddatum = datetime.today()
+                 stundensatz=0,
+                 umsatz=0,
+                 uploaddatum=datetime.today()
                  ) -> None:
 
-        if( type(datum) == str ):
+        if (type(datum) == str):
             self.datum = dh.from_string_to_date_without_time(datum)
         else:
             self.datum = datum
@@ -68,10 +67,9 @@ class BookingDTO:
         self.stundensatz = stundensatz
         self.uploaddatum = uploaddatum
 
-
-
     @classmethod
     def create_from_db(cls, buchung: Booking):
         return cls(buchung.name, buchung.personalnummer, buchung.datum, buchung.berechnungsmotiv,
                    buchung.bearbeitungsstatus, buchung.bezeichnung, buchung.psp, buchung.pspElement, buchung.stunden,
-                   buchung.text, buchung.erstelltAm, buchung.letzteAenderung, buchung.id, umsatz=buchung.umsatz, stundensatz=buchung.stundensatz)
+                   buchung.text, buchung.erstelltAm, buchung.letzteAenderung, buchung.id, umsatz=buchung.umsatz,
+                   stundensatz=buchung.stundensatz)

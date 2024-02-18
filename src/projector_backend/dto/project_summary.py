@@ -21,7 +21,6 @@ class ProjectSummaryDTO:
         self.umsaetze = umsaetze
         self._calculate_spent_and_rest()
 
-
     def _calculate_spent_and_rest(self):
         umsatz: UmsatzDTO
         for umsatz in self.umsaetze:

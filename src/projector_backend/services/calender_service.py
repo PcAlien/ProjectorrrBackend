@@ -21,8 +21,6 @@ from src.projector_backend.helpers import data_helper, date_helper
 class CalendarService:
     _instance = None
 
-
-
     def __new__(cls, engine):
         if cls._instance is None:
             cls._instance = super(CalendarService, cls).__new__(cls)
@@ -63,7 +61,7 @@ class CalendarService:
 
             if abwesenheit is None:
                 abwesenheit_dto = None
-            else :
+            else:
                 abwesenheit_dto = AbwesenheitDTO.create_from_db(abwesenheit)
 
             if (json_format):
@@ -143,8 +141,7 @@ class CalendarService:
                 # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
 
-
-            #abwesenheiten = session.query(Abwesenheit).all()
+            # abwesenheiten = session.query(Abwesenheit).all()
 
             for a in abwesenheiten:
                 abwesenheitenDTOs.append(AbwesenheitDTO.create_from_db(a))
@@ -230,11 +227,11 @@ class CalendarService:
                 if type(cell.value) == str:
 
                     cv = cell.value.strip().lower()
-                    if cv == "x" or cv == "u" or cv == "k" or cv == "a" :
-                        tag_zahl = liste_spaltennummern[column+1]
+                    if cv == "x" or cv == "u" or cv == "k" or cv == "a":
+                        tag_zahl = liste_spaltennummern[column + 1]
 
                         passender_monat: Monatsabstufung = next(
-                            (monat for monat in liste_monate if monat.spalte_beginn <= column+1 <= monat.spalte_ende),
+                            (monat for monat in liste_monate if monat.spalte_beginn <= column + 1 <= monat.spalte_ende),
                             None)
 
                         if passender_monat is not None:
