@@ -15,6 +15,8 @@ def serialize(obj):
             return list(obj)
         elif isinstance(obj, list):
             return list(obj)
+        elif isinstance(obj, dict):
+            return {key: serialize(value) for key, value in obj.items()}
         return obj.__dict__
     except:
         raise TypeError("Object not serializable")

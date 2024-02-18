@@ -62,14 +62,25 @@ class PspPackageUmsatzDTO:
         self.pt = self.stunden / 8.0
 
 
+class Package_Identifier_Issues:
+
+    booking_dto: BookingDTO
+    identifier: [str]
+
+    def __init__(self,   booking_dto: BookingDTO,  identifier: [str]) -> None:
+        self.booking_dto = booking_dto
+        self.identifier = identifier
+
+
 class PspPackageSummaryDTO:
     package: PspPackageDTO
     spent: float
     rest: float
     sum_umsatz: float
     umsaetze: [PspPackageUmsatzDTO]
+    multi_identifier_issues: [Package_Identifier_Issues]
 
-    def __init__(self, package: PspPackageDTO, spent: float, umsaetze: [PspPackageUmsatzDTO]) -> None:
+    def __init__(self, package: PspPackageDTO, spent: float, umsaetze: [PspPackageUmsatzDTO], multi_identifier_issues: [Package_Identifier_Issues]) -> None:
         self.package = package
         self.spent = spent
         self.rest = self.package.volume - self.spent
@@ -79,3 +90,4 @@ class PspPackageSummaryDTO:
         for u in umsaetze:
             sum += u.umsatz
         self.sum_umsatz = sum
+        self.multi_identifier_issues = multi_identifier_issues

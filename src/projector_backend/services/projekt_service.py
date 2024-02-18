@@ -9,7 +9,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.util import NoneType
 
-from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO, PspPackageUmsatzDTO
+from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO, PspPackageUmsatzDTO, \
+    Package_Identifier_Issues
 from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO, ProjectBundleDTO
@@ -40,6 +41,7 @@ class ProjektService:
             cls._instance = super(ProjektService, cls).__new__(cls)
             cls._instance.engine = engine
             cls._instance.helper = EhBuchungen()
+            cls._instance.Session = sessionmaker(bind=cls._instance.engine)
         return cls._instance
 
     @classmethod
@@ -72,8 +74,8 @@ class ProjektService:
         projekt = Projekt(projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis, projektDTO.psp,
                           projektDTO.laufzeit_von, projektmitarbeiter, pspPs)
 
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             try:
 
                 if not update:
@@ -101,8 +103,8 @@ class ProjektService:
             return ProjektDTO.create_from_db(projekt), DbResult(True, "A new project has been created")
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
                 .filter(Projekt.psp == psp)
@@ -122,8 +124,8 @@ class ProjektService:
             return dto
 
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             pma = session.query(ProjektMitarbeiter).filter(ProjektMitarbeiter.psp_element == psp_element).first()
             if type(pma) == NoneType:
                 print(psp_element)
@@ -131,9 +133,9 @@ class ProjektService:
             return ProjektmitarbeiterDTO.create_from_db(pma)
 
     def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
-        Session = sessionmaker(bind=self.engine)
+        
         projektDTOs: [ProjektDTO] = []
-        with Session() as session:
+        with self.Session() as session:
 
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
@@ -156,9 +158,9 @@ class ProjektService:
             return projektDTOs
 
     def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
-        Session = sessionmaker(bind=self.engine)
+        
         projektDTOs: [ProjektDTO] = []
-        with Session() as session:
+        with self.Session() as session:
 
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
@@ -181,9 +183,9 @@ class ProjektService:
             return projektDTOs
 
     def get_archived_projects(self, json_format: bool) -> [ProjektDTO] or str:
-        Session = sessionmaker(bind=self.engine)
+        
         projektDTOs: [ProjektDTO] = []
-        with Session() as session:
+        with self.Session() as session:
 
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
@@ -206,8 +208,8 @@ class ProjektService:
             return projektDTOs
 
     def toogle_archive_project(self, psp):
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
                 .filter(Projekt.psp == psp)
@@ -277,8 +279,8 @@ class ProjektService:
         return self.save_update_project(projekt_dto, True)
 
     def get_psp_package(self, identifier: str, json_format: bool):
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             package = (
                 session.query(PspPackage).where(PspPackage.package_identifier == identifier).first()
             )
@@ -303,8 +305,8 @@ class ProjektService:
 
         bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, None)
 
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             try:
                 session.add(bundle)
                 session.commit()
@@ -328,8 +330,8 @@ class ProjektService:
 
         bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, dto.identifier)
 
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             try:
                 session.add(bundle)
                 session.commit()
@@ -346,8 +348,8 @@ class ProjektService:
         return DbResult(True, "Bundle has been updated.")
 
     def delete_bundle(self, identifier:str) -> DbResult:
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             try:
                 obj: [ProjectBundle] = session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
                 for o in obj:
@@ -366,8 +368,8 @@ class ProjektService:
 
     def get_project_bundles(self, json_format: bool = True) -> [ProjectBundleDTO] or str:
         pb_dtos: [ProjectBundleDTO] = []
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             subquery = (
                 session.query(func.max(ProjectBundle.uploadDatum))
                 .group_by(ProjectBundle.identifier)
@@ -405,8 +407,8 @@ class ProjektService:
             return dto
 
     def get_project_bundle(self, identifier: str, json_format: bool = True) -> ProjectBundleDTO or str:
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        
+        with self.Session() as session:
             subquery = (
                 session.query(func.max(ProjectBundle.uploadDatum))
                 .group_by(ProjectBundle.identifier)
@@ -583,9 +585,9 @@ class ProjektService:
                               bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
             buchungen.append(buchung)
 
-        session = sessionmaker(bind=self.engine)
+        
 
-        with session() as session:
+        with self.Session() as session:
             try:
                 # Füge alle Buchungen hinzu
                 session.add_all(buchungen)
@@ -630,9 +632,9 @@ class ProjektService:
                           bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm, bookingDTO.letzteAenderung,
                           bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
 
-        session = sessionmaker(bind=self.engine)
+        
 
-        with session() as session:
+        with self.Session() as session:
             session.add(buchung)
             session.commit()
             session.refresh(buchung)
@@ -645,9 +647,9 @@ class ProjektService:
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/bookings.json".
         """
 
-        session = sessionmaker(bind=self.engine)
+        
 
-        with session() as session:
+        with self.Session() as session:
             subquery = (
                 session.query(func.max(Booking.uploadDatum))
                 .filter(Booking.psp == psp)
@@ -702,9 +704,9 @@ class ProjektService:
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/mitarbeiteruebersicht.json".
         """
 
-        session = sessionmaker(bind=self.engine)
+        
 
-        with session() as session:
+        with self.Session() as session:
 
             latest_upload_subquery = (
                 session.query(
@@ -1016,9 +1018,15 @@ class ProjektService:
             umsatz_dtos.append(PspPackageUmsatzDTO(mon, 0, 0))
 
         b: BookingDTO
+        multi_bookings_to_identifiers: {BookingDTO: [str]} = dict()
         for b in booking_dtos:
+            local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b:[]}
+            found_tis = 0
             for ti in pspp_dto.tickets_identifier:
                 if ti in b.text:
+                    found_tis += 1
+
+                    local_multi_bookings_to_identifiers[b].append(ti)
                     sum_umsatz += b.umsatz
                     sum_hours += b.stunden
 
@@ -1031,8 +1039,16 @@ class ProjektService:
                             dto.stunden += b.stunden
                             dto.bookings.append(b)
                             break
+            if found_tis > 1:
+                multi_bookings_to_identifiers.update(local_multi_bookings_to_identifiers)
 
-        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_hours / 8.0, umsatz_dtos)
+        # [Package_Identifier_issues]
+        piissues = []
+
+        for booking, identifiers in multi_bookings_to_identifiers.items():
+            piissues.append(Package_Identifier_Issues(booking, identifiers))
+
+        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_hours / 8.0, umsatz_dtos,  piissues)
 
         if json_format:
             return json.dumps(summary_dto, default=data_helper.serialize)
