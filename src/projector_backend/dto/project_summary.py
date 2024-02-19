@@ -1,3 +1,6 @@
+from src.projector_backend.dto.PspPackageDTO import PspPackageSummaryDTO
+from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO
+from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSummaryDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO
 
 
@@ -16,10 +19,17 @@ class ProjectSummaryDTO:
     restbudget: float = 0
     umsaetze: [UmsatzDTO]
 
-    def __init__(self, project: ProjektDTO, umsaetze: [UmsatzDTO]) -> None:
+    monatsaufteilungen: [MonatsaufteilungSummaryDTO] =  []
+    erfassungsnachweise: [ErfassungsnachweisDTO] =  []
+    package_summaries : [PspPackageSummaryDTO] = ()
+
+    def __init__(self, project: ProjektDTO, umsaetze: [UmsatzDTO],  monatsaufteilungen: [MonatsaufteilungSummaryDTO],erfassungsnachweise: [ErfassungsnachweisDTO],   package_summaries : [PspPackageSummaryDTO] ) -> None:
         self.project = project
         self.umsaetze = umsaetze
         self._calculate_spent_and_rest()
+        self.monatsaufteilungen = monatsaufteilungen
+        self.erfassungsnachweise = erfassungsnachweise
+        self.package_summaries = package_summaries
 
     def _calculate_spent_and_rest(self):
         umsatz: UmsatzDTO

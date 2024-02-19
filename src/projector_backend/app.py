@@ -67,13 +67,6 @@ def gib_buchungen():  # put application's code here
     return back
 
 
-@app.route('/monatsbuchungen', methods=['GET'])
-def gib_monatsbuchungen():  # put application's code here
-    psp = request.args.get('psp')
-    back = pservice.get_bookings_summary_for_psp_by_month(psp, True)
-    return back
-
-
 @app.route('/maBookingsSummary', methods=['GET'])
 def get_ma_bookings_summary():  # put application's code here
     psp = request.args.get('psp')
@@ -104,7 +97,6 @@ def get_project():  # put application's code here
 def get_project_summary():  # put application's code here
     psp = request.args.get('psp')
     back = pservice.get_project_summary(psp, True)
-    back2 = pservice.get_project_summary(psp, False)
     return back
 
 
@@ -212,7 +204,7 @@ def add_psp_package():  # put application's code here
 @app.route('/loadPspPackage', methods=["GET"])
 def load_psp_package():  # put application's code here
     identifier = request.args.get('identifier')
-    back = pservice.get_psp_package(identifier, True)
+    back = pservice.get_package(identifier, True)
     return back
 
 
@@ -418,11 +410,11 @@ def get_psp_forecast_test():
     return back
 
 
-@app.route('/nachweise', methods=["GET"])
-def get_nachweise():
-    psp = request.args.get('psp')
-    back = pservice.getInstance().erstelle_erfassungsauswertung(psp, True)
-    return back
+# @app.route('/nachweise', methods=["GET"])
+# def get_nachweise():
+#     psp = request.args.get('psp')
+#     back = pservice.getInstance().erstelle_erfassungsauswertung(psp, True)
+#     return back
 
 
 @app.route('/exportBuchungen', methods=["GET"])

@@ -322,7 +322,7 @@ class ProjektService:
         else:
             return package_dtos
 
-    def get_psp_package(self, identifier: str, json_format: bool):
+    def get_package(self, identifier: str, json_format: bool):
 
         with self.Session() as session:
             package = (
@@ -483,10 +483,15 @@ class ProjektService:
                 return pb_dto
 
     def get_project_summary(self, psp: str, json_format: bool) -> ProjectSummaryDTO or str:
-        monatsaufteilung_dtos: [MonatsaufteilungSummaryDTO] = self.get_bookings_summary_for_psp_by_month(psp, False)
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+        monatsaufteilung_dtos: [MonatsaufteilungSummaryDTO] = self.get_bookings_summary_for_psp_by_month(booking_dtos,
+                                                                                                         False)
         # restbudget
 
         project_dto: ProjektDTO = self.get_project_by_psp(psp, False)
+        erfassungs_nachweise: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(project_dto, booking_dtos,
+                                                                                           False)
+        package_summaries = self.get_package_summaries(project_dto, booking_dtos,False)
 
         umsaetze_dtos: [UmsatzDTO] = []
 
@@ -496,7 +501,8 @@ class ProjektService:
             umsaetze_dtos.append(UmsatzDTO(ma_dto.monat, ma_dto.maBookingsSummary.sum))
             sum_verbraucht += ma_dto.maBookingsSummary.sum
 
-        ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos)
+        ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos, monatsaufteilung_dtos,
+                                                      erfassungs_nachweise, package_summaries)
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)
@@ -518,14 +524,15 @@ class ProjektService:
         else:
             return ps_dtos
 
-    def get_bookings_summary_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungSummaryDTO] or str:
+    def get_bookings_summary_for_psp_by_month(self, booking_dtos: [BookingDTO], json_format: bool) -> [
+                                                                                                          MonatsaufteilungSummaryDTO] or str:
         """
         Liefert alle Buchungen zu einem PSP und teilt diese in Monate auf.
         :param psp: Das PSP, für das die Buchungen ausgegeben werden sollen.
         :param json_format: True, wenn das Ergebnis im JSON Format zurückgegeben werden soll
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/monatsaufteilung.json".
         """
-        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+        # booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
         monatsaufteilung_dto: [MonatsaufteilungSummaryDTO] = []
 
         dto: BookingDTO
@@ -931,14 +938,15 @@ class ProjektService:
         else:
             return pfcdto
 
-    def erstelle_erfassungsauswertung(self, psp, json_format: bool) -> [ErfassungsnachweisDTO] or str:
+    def erstelle_erfassungsauswertung(self, projekt_dto: ProjektDTO, booking_dtos: [BookingDTO], json_format: bool) -> [
+                                                                                                                           ErfassungsnachweisDTO] or str:
 
-        projekt_dto: ProjektDTO = self.get_project_by_psp(psp, False)
+        # projekt_dto: ProjektDTO = self.get_project_by_psp(psp, False)
 
         laufzeit_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_von)
         anzahl_tage_seit_projektstart = (datetime.now().date() - laufzeit_date).days
 
-        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+        #  booking_dtos: [BookingDTO] = self.get_bookings_for_psp(projekt_dto.psp, False)
 
         # vorfiltern --> Datum
         jetzt = datetime.now()
@@ -1031,10 +1039,11 @@ class ProjektService:
         else:
             return nachweise
 
-    def get_package_summary(self, identifier: str, json_format: bool) -> PspPackageSummaryDTO or str:
+    def get_package_summary(self, identifier: str, json_format: bool,   booking_dtos: [BookingDTO] = None) -> PspPackageSummaryDTO or str:
 
-        pspp_dto: PspPackageDTO = self.get_psp_package(identifier, False)
-        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(pspp_dto.psp, False)
+        pspp_dto: PspPackageDTO = self.get_package(identifier, False)
+        if booking_dtos is None:
+            booking_dtos: [BookingDTO] = self.get_bookings_for_psp(pspp_dto.psp, False)
 
         sum_hours = 0
         sum_umsatz = 0
@@ -1089,18 +1098,13 @@ class ProjektService:
         else:
             return summary_dto
 
-    def get_package_summaries(self, psp: str, json_format: bool) -> [PspPackageSummaryDTO] or str:
-
-        projekt_dto: ProjektDTO
-
-        projekt_dto = self.get_project_by_psp(psp, False)
-
+    def get_package_summaries(self, projekt_dto: ProjektDTO, booking_dtos: [BookingDTO], json_format: bool) -> [PspPackageSummaryDTO] or str:
         summaries: [PspPackageSummaryDTO] = []
 
         pack: PspPackageDTO
         for pack in projekt_dto.psp_packages:
             identifier = pack.package_identifier
-            dto = self.get_package_summary(identifier, False)
+            dto = self.get_package_summary(identifier, False, booking_dtos=booking_dtos)
             summaries.append(dto)
 
         if json_format:
@@ -1108,52 +1112,55 @@ class ProjektService:
         else:
             return summaries
 
-    def get_bundle_nachweise(self, project_summaries: [ProjectSummaryDTO], json_format: bool):
 
-        alle_erfassung_dtos: [ErfassungsnachweisDTO] = []
-        ps_dto: ProjectSummaryDTO
-        for ps_dto in project_summaries:
-            psp = ps_dto.project.psp
-            erfassung_dtos: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(psp, False)
-            alle_erfassung_dtos.extend(erfassung_dtos)
+def get_bundle_nachweise(self, project_summaries: [ProjectSummaryDTO], json_format: bool):
+    alle_erfassung_dtos: [ErfassungsnachweisDTO] = []
+    ps_dto: ProjectSummaryDTO
+    for ps_dto in project_summaries:
+        psp = ps_dto.project.psp
+        # TODO: bookingDTOs übergeben oder prüfen, ob None auch OK wäre.
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+        erfassung_dtos: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(ps_dto.project, booking_dtos,
+                                                                                     False)
+        alle_erfassung_dtos.extend(erfassung_dtos)
 
-        # An dieser Stelle wurde aus jedem PSP die ErfassungsNachweisDTOs geholt und in alle_erfassung_dtos gesammelt
-        # Jetzt müssen die Werte kombiniert werden.
+    # An dieser Stelle wurde aus jedem PSP die ErfassungsNachweisDTOs geholt und in alle_erfassung_dtos gesammelt
+    # Jetzt müssen die Werte kombiniert werden.
 
-        # {psnr: [Erfassungsnachweis]}
-        psnr_to_erfassungsnachweise: {str: [ErfassungsnachweisDTO]} = dict()
+    # {psnr: [Erfassungsnachweis]}
+    psnr_to_erfassungsnachweise: {str: [ErfassungsnachweisDTO]} = dict()
 
-        ef_dto: ErfassungsnachweisDTO
-        for ef_dto in alle_erfassung_dtos:
-            if ef_dto.personalnummer not in psnr_to_erfassungsnachweise.keys():
-                psnr_to_erfassungsnachweise[ef_dto.personalnummer] = []
+    ef_dto: ErfassungsnachweisDTO
+    for ef_dto in alle_erfassung_dtos:
+        if ef_dto.personalnummer not in psnr_to_erfassungsnachweise.keys():
+            psnr_to_erfassungsnachweise[ef_dto.personalnummer] = []
 
-            psnr_to_erfassungsnachweise[ef_dto.personalnummer].append(ef_dto)
+        psnr_to_erfassungsnachweise[ef_dto.personalnummer].append(ef_dto)
 
-        neue_erfassungsnachwei_dtos: [ErfassungsnachweisDTO] = []
+    neue_erfassungsnachwei_dtos: [ErfassungsnachweisDTO] = []
 
-        for psnr, efdtos in psnr_to_erfassungsnachweise.items():
+    for psnr, efdtos in psnr_to_erfassungsnachweise.items():
 
-            tage_zu_stunden = {}
-            tage_zu_abwesenheit = {}
-            dto: ErfassungsnachweisDTO
-            for dto in efdtos:
-                for tag in dto.tage:
-                    if tag in dto.tage_zu_stunden.keys():
-                        if tag not in tage_zu_stunden.keys():
-                            tage_zu_stunden[tag] = 0
-                        tage_zu_stunden[tag] += dto.tage_zu_stunden[tag]
+        tage_zu_stunden = {}
+        tage_zu_abwesenheit = {}
+        dto: ErfassungsnachweisDTO
+        for dto in efdtos:
+            for tag in dto.tage:
+                if tag in dto.tage_zu_stunden.keys():
+                    if tag not in tage_zu_stunden.keys():
+                        tage_zu_stunden[tag] = 0
+                    tage_zu_stunden[tag] += dto.tage_zu_stunden[tag]
 
-                    elif tag in dto.tage_zu_abwesenheiten.keys():
-                        if tag not in tage_zu_abwesenheit.keys():
-                            tage_zu_abwesenheit[tag] = 0
-                        tage_zu_abwesenheit[tag] = dto.tage_zu_abwesenheiten[tag]
+                elif tag in dto.tage_zu_abwesenheiten.keys():
+                    if tag not in tage_zu_abwesenheit.keys():
+                        tage_zu_abwesenheit[tag] = 0
+                    tage_zu_abwesenheit[tag] = dto.tage_zu_abwesenheiten[tag]
 
-            sumup = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, efdtos[0].tage, tage_zu_stunden,
-                                          tage_zu_abwesenheit)
-            neue_erfassungsnachwei_dtos.append(sumup)
+        sumup = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, efdtos[0].tage, tage_zu_stunden,
+                                      tage_zu_abwesenheit)
+        neue_erfassungsnachwei_dtos.append(sumup)
 
-        if json_format:
-            return json.dumps(neue_erfassungsnachwei_dtos, default=data_helper.serialize)
-        else:
-            return neue_erfassungsnachwei_dtos
+    if json_format:
+        return json.dumps(neue_erfassungsnachwei_dtos, default=data_helper.serialize)
+    else:
+        return neue_erfassungsnachwei_dtos
