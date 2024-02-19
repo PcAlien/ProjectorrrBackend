@@ -253,7 +253,7 @@ def get_package_summary():  # put application's code here
 @app.route('/getPackageSummaries', methods=["GET"])
 def get_package_summaries():  # put application's code here
     psp = request.args.get('psp')
-    back: [PspPackageSummaryDTO] = pservice.get_package_summaries(psp, True)
+    back: [PspPackageSummaryDTO] = pservice.get_package_summaries(psp, None, True)
     return back
 
 

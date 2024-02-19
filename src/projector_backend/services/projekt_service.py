@@ -90,9 +90,11 @@ class ProjektService:
                 return None, result
 
         if update:
-            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True, "Project has been updated")
+            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True,
+                                                                                         "Project has been updated")
         else:
-            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True, "A new project has been created")
+            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True,
+                                                                                         "A new project has been created")
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
 
@@ -491,7 +493,7 @@ class ProjektService:
         project_dto: ProjektDTO = self.get_project_by_psp(psp, False)
         erfassungs_nachweise: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(project_dto, booking_dtos,
                                                                                            False)
-        package_summaries = self.get_package_summaries(project_dto, booking_dtos,False)
+        package_summaries = self.get_package_summaries(project_dto, booking_dtos, False)
 
         umsaetze_dtos: [UmsatzDTO] = []
 
@@ -1039,9 +1041,13 @@ class ProjektService:
         else:
             return nachweise
 
-    def get_package_summary(self, identifier: str, json_format: bool,   booking_dtos: [BookingDTO] = None) -> PspPackageSummaryDTO or str:
+    def get_package_summary(self, identifier: str, json_format: bool,
+                            booking_dtos: [BookingDTO] = None) -> PspPackageSummaryDTO or str:
 
         pspp_dto: PspPackageDTO = self.get_package(identifier, False)
+        pspp_dtos: [PspPackageDTO] = self.get_psp_packages(pspp_dto.psp, False)
+
+
         if booking_dtos is None:
             booking_dtos: [BookingDTO] = self.get_bookings_for_psp(pspp_dto.psp, False)
 
@@ -1060,30 +1066,33 @@ class ProjektService:
         for mon in monate:
             umsatz_dtos.append(PspPackageUmsatzDTO(mon, 0, 0))
 
+
+        ## Multi Identifizierer suchern
         b: BookingDTO
         multi_bookings_to_identifiers: {BookingDTO: [str]} = dict()
         for b in booking_dtos:
             local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b: []}
             found_tis = 0
-            for ti in pspp_dto.tickets_identifier:
-                if ti in b.text:
-                    found_tis += 1
+            for project_dto in pspp_dtos:
+                for ti in project_dto.tickets_identifier:
+                    if ti in b.text:
+                        found_tis += 1
 
-                    local_multi_bookings_to_identifiers[b].append(ti)
-                    sum_umsatz += b.umsatz
-                    sum_hours += b.stunden
+                        local_multi_bookings_to_identifiers[b].append(ti)
+                        sum_umsatz += b.umsatz
+                        sum_hours += b.stunden
 
-                    # Jetzt in das entsprechende UmsatzDTO schieben
-                    divider = f"{b.datum.month}.{b.datum.year}"
-                    dto: PspPackageUmsatzDTO
-                    for dto in umsatz_dtos:
-                        if dto.monat == divider:
-                            dto.umsatz += b.umsatz
-                            dto.stunden += b.stunden
-                            dto.bookings.append(b)
-                            break
-            if found_tis > 1:
-                multi_bookings_to_identifiers.update(local_multi_bookings_to_identifiers)
+                        # Jetzt in das entsprechende UmsatzDTO schieben
+                        divider = f"{b.datum.month}.{b.datum.year}"
+                        dto: PspPackageUmsatzDTO
+                        for dto in umsatz_dtos:
+                            if dto.monat == divider:
+                                dto.umsatz += b.umsatz
+                                dto.stunden += b.stunden
+                                dto.bookings.append(b)
+                                break
+                if found_tis > 1:
+                    multi_bookings_to_identifiers.update(local_multi_bookings_to_identifiers)
 
         # [Package_Identifier_issues]
         piissues = []
@@ -1098,7 +1107,14 @@ class ProjektService:
         else:
             return summary_dto
 
-    def get_package_summaries(self, projekt_dto: ProjektDTO, booking_dtos: [BookingDTO], json_format: bool) -> [PspPackageSummaryDTO] or str:
+    def get_package_summaries(self, projekt_dto_or_str: ProjektDTO or str, booking_dtos: [BookingDTO],
+                              json_format: bool) -> [PspPackageSummaryDTO] or str:
+
+        if type(projekt_dto_or_str) == str:
+            projekt_dto = self.get_project_by_psp(projekt_dto_or_str, False)
+        elif type(projekt_dto_or_str) == ProjektDTO:
+            projekt_dto = projekt_dto_or_str
+
         summaries: [PspPackageSummaryDTO] = []
 
         pack: PspPackageDTO
