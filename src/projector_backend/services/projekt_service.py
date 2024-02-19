@@ -90,9 +90,9 @@ class ProjektService:
                 return None, result
 
         if update:
-            return ProjektDTO.create_from_db(projekt), DbResult(True, "Project has been updated")
+            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True, "Project has been updated")
         else:
-            return ProjektDTO.create_from_db(projekt), DbResult(True, "A new project has been created")
+            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True, "A new project has been created")
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
 

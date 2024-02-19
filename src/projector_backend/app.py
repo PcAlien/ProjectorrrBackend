@@ -163,7 +163,7 @@ def edit_project():  # put application's code here
     json_projektdaten = json.loads(request.form['basis'])
 
     dto = ProjektDTO(**json_projektdaten)
-
+    file_found = False
     if 'file' in request.files:
         file = request.files['file']
         if file.filename != "":
@@ -172,13 +172,17 @@ def edit_project():  # put application's code here
 
             # Speichere die Datei im Upload-Ordner
             file.save("./uploads/" + filename)
+            file_found = True
 
             eh = EhProjektmeldung()
             pmas = eh.create_pms_from_export("./uploads/" + filename)
             dto.projektmitarbeiter = pmas
 
     neuesDTO, dbResult = pservice.save_update_project(dto, True)
-    os.remove("./uploads/" + filename)
+
+    if file_found:
+        os.remove("./uploads/" + filename)
+
     if dbResult.complete:
         project_json = json.dumps(neuesDTO, default=data_helper.serialize)
         return {'status': "Success", 'project': project_json}
