@@ -441,10 +441,10 @@ def create_umsaetze_export():
 
 
 def create_init_data():
-    pservice.create_import_settings()
+    dbservice.create_import_settings()
     # _lade_demoprojekte()
     # _lade_demobuchungen()
-    _lade_demoabwesenheiten()
+    # _lade_demoabwesenheiten()
 
 
 @app.route('/createBundle', methods=["POST"])

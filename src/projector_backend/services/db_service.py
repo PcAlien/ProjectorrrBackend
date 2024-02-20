@@ -34,11 +34,7 @@ class DBService:
             ipf = session.get(ImportFileColumns, 1)
             if (ipf == None):
                 import os
-                print("PFAD #########################")
-                print(os.getcwd())
-
                 json_data = dh.read_json_file("./src/projector_backend/helpers/json_templates/importFileColoums.json")
-                # ifcs = IFC_Holder(**json_data)
                 for i in json_data:
                     ifc = ImportFileColumns(**i)
                     session.add(ifc)
