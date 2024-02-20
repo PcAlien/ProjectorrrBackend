@@ -1054,8 +1054,8 @@ class ProjektService:
         if booking_dtos is None:
             booking_dtos: [BookingDTO] = self.get_bookings_for_psp(pspp_dto.psp, False)
 
-        sum_hours = 0
-        sum_umsatz = 0
+        sum_package_hours = 0
+        sum_package_umsatz = 0
 
         # Monate rausfinden
         monate = []
@@ -1070,40 +1070,76 @@ class ProjektService:
             umsatz_dtos.append(PspPackageUmsatzDTO(mon, 0, 0))
 
 
-        ## Multi Identifizierer suchern
-        b: BookingDTO
-        multi_bookings_to_identifiers: {BookingDTO: [str]} = dict()
+
+
+        #todo:nur ein package betrachtet
+        package_identifier_issues: [Package_Identifier_Issues] = []
         for b in booking_dtos:
-            local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b: []}
-            found_tis = 0
-            for project_dto in pspp_dtos:
-                for ti in project_dto.tickets_identifier:
-                    if ti in b.text:
-                        found_tis += 1
 
-                        local_multi_bookings_to_identifiers[b].append(ti)
-                        sum_umsatz += b.umsatz
-                        sum_hours += b.stunden
+            booking_to_identifiers = {b:[]}
+            found_ticket_indentifiers = 0
+            ticket_identifier:str
+            for ticket_identifier in pspp_dto.tickets_identifier:
+                if ticket_identifier.lower() in b.text.lower():
+                    found_ticket_indentifiers += 1
+                    booking_to_identifiers[b].append(ticket_identifier)
+                    sum_package_hours += b.stunden
+                    sum_package_umsatz += b.umsatz
 
-                        # Jetzt in das entsprechende UmsatzDTO schieben
-                        divider = f"{b.datum.month}.{b.datum.year}"
-                        dto: PspPackageUmsatzDTO
-                        for dto in umsatz_dtos:
-                            if dto.monat == divider:
-                                dto.umsatz += b.umsatz
-                                dto.stunden += b.stunden
-                                dto.bookings.append(b)
-                                break
-                if found_tis > 1:
-                    multi_bookings_to_identifiers.update(local_multi_bookings_to_identifiers)
+                    divider = f"{b.datum.month}.{b.datum.year}"
+                    dto: PspPackageUmsatzDTO
+                    for dto in umsatz_dtos:
+                        if dto.monat == divider:
+                            dto.umsatz += b.umsatz
+                            dto.stunden += b.stunden
+                            dto.bookings.append(b)
+                            break
 
-        # [Package_Identifier_issues]
-        piissues = []
+            # Was wenn mehr als ein Ticketidentifizierer innerhalb einer Buchung gefunden wurde?
+            if found_ticket_indentifiers > 1:
+                package_identifier_issues.append(Package_Identifier_Issues(b, booking_to_identifiers[b]))
 
-        for booking, identifiers in multi_bookings_to_identifiers.items():
-            piissues.append(Package_Identifier_Issues(booking, identifiers))
 
-        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_hours / 8.0, umsatz_dtos, piissues)
+
+
+
+# TODO: alt
+        ## Multi Identifizierer suchern
+        # b: BookingDTO
+        # multi_bookings_to_identifiers: {BookingDTO: [str]} = dict()
+        # for b in booking_dtos:
+        #     local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b: []}
+        #     found_ticket_indentifiers = 0
+        #     for package_dto in pspp_dtos:
+        #         for ticket_identifier in package_dto.tickets_identifier:
+        #             if ticket_identifier in b.text:
+        #                 found_ticket_indentifiers += 1
+        #                 local_multi_bookings_to_identifiers[b].append(ticket_identifier)
+        #
+        #                 if package_dto.package_identifier == pspp_dto.package_identifier:
+        #                     sum_package_umsatz += b.umsatz # TODO: wird nirgendwo ausgewertet???
+        #                     sum_package_hours += b.stunden
+        #
+        #                     # Jetzt in das entsprechende UmsatzDTO schieben
+        #                     divider = f"{b.datum.month}.{b.datum.year}"
+        #                     dto: PspPackageUmsatzDTO
+        #                     for dto in umsatz_dtos:
+        #                         if dto.monat == divider:
+        #                             dto.umsatz += b.umsatz
+        #                             dto.stunden += b.stunden
+        #                             dto.bookings.append(b)
+        #                             break
+        #
+        #         if found_ticket_indentifiers > 1:
+        #             multi_bookings_to_identifiers.update(local_multi_bookings_to_identifiers)
+        #
+        # # [Package_Identifier_issues]
+        # piissues = []
+        #
+        # for booking, identifiers in multi_bookings_to_identifiers.items():
+        #     piissues.append(Package_Identifier_Issues(booking, identifiers))
+
+        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_package_hours / 8.0, umsatz_dtos, package_identifier_issues)
 
         if json_format:
             return json.dumps(summary_dto, default=data_helper.serialize)
