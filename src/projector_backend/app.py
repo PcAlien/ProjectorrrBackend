@@ -29,7 +29,7 @@ CORS(app)
 engine = create_engine("sqlite:///db/datenbank.db", echo=True)
 Base.metadata.create_all(engine)
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
 
 dbservice = DBService(engine)
 ProjektService(engine)
