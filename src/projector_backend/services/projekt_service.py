@@ -1076,7 +1076,7 @@ class ProjektService:
 
         for b in booking_dtos:
             booking_to_identifiers[b] = []
-            #booking_to_identifiers = {b: []}
+            # booking_to_identifiers = {b: []}
             found_ticket_indentifiers = 0
             ticket_identifier: str
 
@@ -1100,59 +1100,18 @@ class ProjektService:
                             dto.bookings.append(b)
                             break
 
-            # Überprüfen: gibt es außerdem in den gefunden Identifizierern auch Identifizierer aus anderen Packages?
-            # for other_package_dto in pspp_dtos:
-            #     if other_package_dto.package_identifier != pspp_dto.package_identifier:
-            #         for ticket_identifier in other_package_dto.tickets_identifier:
-            #             if ticket_identifier.lower() in b.text.lower():
-            #                 found_ticket_indentifiers += 1
-            #                 try:
-            #                     booking_to_identifiers[b].append(ticket_identifier)
-            #                 except:
-            #                     print("OOOOOOOOOOOOOOOOGGGGGGGHHHHHHHHHHHHHH")
-            #                     #print(type(booking_to_identifiers))
-
-
+            if found_ticket_indentifiers > 0:
+                for other_package_dto in pspp_dtos:
+                    if other_package_dto.package_identifier != pspp_dto.package_identifier:
+                        for ticket_identifier in other_package_dto.tickets_identifier:
+                            if ticket_identifier.lower() in b.text.lower():
+                                found_ticket_indentifiers += 1
+                                booking_to_identifiers[b].append(ticket_identifier)
 
             # Was wenn mehr als ein Ticketidentifizierer innerhalb einer Buchung gefunden wurde?
             if found_ticket_indentifiers > 1:
                 package_identifier_issues.append(Package_Identifier_Issues(b, booking_to_identifiers[b]))
 
-        # TODO: alt
-        ## Multi Identifizierer suchern
-        # b: BookingDTO
-        # multi_bookings_to_identifiers: {BookingDTO: [str]} = dict()
-        # for b in booking_dtos:
-        #     local_multi_bookings_to_identifiers: {BookingDTO: [str]} = {b: []}
-        #     found_ticket_indentifiers = 0
-        #     for package_dto in pspp_dtos:
-        #         for ticket_identifier in package_dto.tickets_identifier:
-        #             if ticket_identifier in b.text:
-        #                 found_ticket_indentifiers += 1
-        #                 local_multi_bookings_to_identifiers[b].append(ticket_identifier)
-        #
-        #                 if package_dto.package_identifier == pspp_dto.package_identifier:
-        #                     sum_package_umsatz += b.umsatz # TODO: wird nirgendwo ausgewertet???
-        #                     sum_package_hours += b.stunden
-        #
-        #                     # Jetzt in das entsprechende UmsatzDTO schieben
-        #                     divider = f"{b.datum.month}.{b.datum.year}"
-        #                     dto: PspPackageUmsatzDTO
-        #                     for dto in umsatz_dtos:
-        #                         if dto.monat == divider:
-        #                             dto.umsatz += b.umsatz
-        #                             dto.stunden += b.stunden
-        #                             dto.bookings.append(b)
-        #                             break
-        #
-        #         if found_ticket_indentifiers > 1:
-        #             multi_bookings_to_identifiers.update(local_multi_bookings_to_identifiers)
-        #
-        # # [Package_Identifier_issues]
-        # piissues = []
-        #
-        # for booking, identifiers in multi_bookings_to_identifiers.items():
-        #     piissues.append(Package_Identifier_Issues(booking, identifiers))
 
         summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_package_hours / 8.0, umsatz_dtos,
                                                                  package_identifier_issues)
@@ -1161,7 +1120,6 @@ class ProjektService:
             return json.dumps(summary_dto, default=data_helper.serialize)
         else:
             return summary_dto
-
 
     def get_package_summaries(self, projekt_dto_or_str: ProjektDTO or str, booking_dtos: [BookingDTO],
                               json_format: bool) -> [PspPackageSummaryDTO] or str:
@@ -1182,7 +1140,6 @@ class ProjektService:
             return json.dumps(summaries, default=data_helper.serialize)
         else:
             return summaries
-
 
     def get_bundle_nachweise(self, project_summaries: [ProjectSummaryDTO], json_format: bool):
         alle_erfassung_dtos: [ErfassungsnachweisDTO] = []
