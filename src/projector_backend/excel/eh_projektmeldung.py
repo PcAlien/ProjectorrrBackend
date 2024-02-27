@@ -11,6 +11,7 @@ class EhProjektmeldung(ExcelHelper):
     def create_pms_from_export(self, source) -> [ProjektmitarbeiterDTO]:
 
         #### ACHTUNG: bezieht sich auf den Excel-Export der "PSP ELement eintragen" Ansicht!!!!
+        ### TODO: Abfangen, wenn es andere Dateien sind.
 
         wb: Workbook = self.load_workbook(source)
 

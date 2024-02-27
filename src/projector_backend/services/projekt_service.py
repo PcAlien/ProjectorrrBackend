@@ -630,6 +630,9 @@ class ProjektService:
             bookingDTO.stundensatz = pmaDTO.stundensatz
             bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
 
+            if not bookingDTO.text:
+                bookingDTO.text = ""
+
             buchung = Booking(bookingDTO.name, bookingDTO.personalnummer, bookingDTO.datum, bookingDTO.berechnungsmotiv,
                               bookingDTO.bearbeitungsstatus, bookingDTO.bezeichnung, bookingDTO.psp,
                               bookingDTO.pspElement,
