@@ -522,6 +522,9 @@ class ProjektService:
         for pro in projekte:
             ps_dtos.append(self.get_project_summary(pro.psp, False))
 
+        # Sort by project name
+        ps_dtos.sort(key=lambda x: x.project.projekt_name)
+
         if json_format:
             return json.dumps(ps_dtos, default=data_helper.serialize)
         else:
