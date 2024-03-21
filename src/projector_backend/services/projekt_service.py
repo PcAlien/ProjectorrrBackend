@@ -11,13 +11,12 @@ from sqlalchemy.util import NoneType
 
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO, PspPackageUmsatzDTO, \
     Package_Identifier_Issues
-from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
+from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO, ProjectBundleDTO
-from src.projector_backend.dto.calendar_data import CalenderData
 from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO
-from src.projector_backend.dto.forecast_dto import PspElementDayForecast, ForecastDayView, PspForecastDTO, \
-    MaDurchschnittsarbeitszeitDTO
+from src.projector_backend.dto.forecast_dto import PspForecastDTO
+
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSummaryDTO, MonatsaufteilungDTO
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
@@ -29,8 +28,8 @@ from src.projector_backend.entities.bundles import ProjectBundlePSPElement, Proj
 from src.projector_backend.entities.projekt import ProjektMitarbeiter, Projekt
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.helpers import data_helper, date_helper
+from src.projector_backend.services.ForecastService import ForecastService
 from src.projector_backend.services.calender_service import CalendarService
-from src.projector_backend.services.tempclasses import Ma_Zwischenspeicher
 
 
 class ProjektService:
@@ -821,126 +820,37 @@ class ProjektService:
 
         return missing_psps, dbResult
 
-    def mach_forecast(self, psp, json_format: bool) -> PspForecastDTO or str:
-        # -----------------------------------------------------------------------
+    def create_forecast_by_alltime_avg(self, psp, json_format: bool) -> PspForecastDTO or str:
+        """
+        Es wird für jeden Mitarbeiter errechnet, wie viel Stunden er am Tag arbeiten und welchen Umsatz er dabei macht.
+        Grundlage sind dabei alle Buchungen von Projektbeginn an.
+        Daraus wird ein PspForecastDTO erstellt, welches unter anderem angibt, wann das Budget aufgebraucht sein wird.
+        :param psp: TODO
+        :param json_format: tODO
+        :return: TODO
+        """
 
-        # 1. Alle Buchungen zu einem PSP beziehen
+        fcs = ForecastService()
+
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
-        b: BookingDTO
-
-        ma_dict: dict = {}
-        ma_tdurchschnitt_dtos: [MaDurchschnittsarbeitszeitDTO] = []
-        mas_without_entries: set = set()
-
-        # 2. Ein Dict erstellen, um alle erfassten Stunden und Tage eines MA aufzuaddieren.
-        # Dies dient als Vorbereitung zur Ermittlung des Tagesdurchschnittwerts.
-        for b in booking_dtos:
-            if b.pspElement not in ma_dict.keys():
-                ma_dict[b.pspElement] = Ma_Zwischenspeicher(b.name, b.personalnummer, b.pspElement, b.stundensatz)
-
-            ma_dict[b.pspElement].stunden = ma_dict[b.pspElement].stunden + b.stunden
-            ma_dict[b.pspElement].tage = ma_dict[b.pspElement].tage + 1
-
-        v: Ma_Zwischenspeicher
-        for k, v in ma_dict.items():
-            ma_tdurchschnitt_dtos.append(
-                MaDurchschnittsarbeitszeitDTO(v.name, v.personalnummer, k, (v.stunden / v.tage),
-                                              (v.stundensatz * (v.stunden / v.tage))))
-
-        # 3. Errechnen, was je tag verbraucht wird unter Berücksichtigung der Urlaube.
-
-        calender_data: CalenderData = CalendarService.getInstance().get_calender_data(False)
-
-        ein_tag = timedelta(days=1)
-
         projektDTO: ProjektDTO = self.get_project_by_psp(psp, False)
-        datum_format = "%d.%m.%Y"
-        # Datetime-Objekt erstellen und Uhrzeit auf Mitternacht setzen
-        # psp_enddatum = datetime.strptime(projektDTO.laufzeit_bis, datum_format).replace(hour=0, minute=0, second=0,
-        #                                                                                 microsecond=0)
 
-        forecast_day_views: [ForecastDayView] = []
+        pfcdto = fcs.create_forecast_by_alltime_avg(psp, booking_dtos, projektDTO)
 
-        # jeden Tag betrachten und dann Summe ziehen.
-        betrachteter_tag = datetime.now() + ein_tag
-        betrachteter_tag = datetime(day=betrachteter_tag.day, month=betrachteter_tag.month,
-                                    year=betrachteter_tag.year)
-        betrachteter_tag_str = betrachteter_tag.strftime(datum_format)
-        psp_to_gesamtumsatz_dict: dict = {}
-        fertig = False
-        while (not fertig):
-            psp_element_day_forecasts: [PspElementDayForecast] = []
+        if json_format:
+            return json.dumps(pfcdto, default=data_helper.serialize)
+        else:
+            return pfcdto
 
-            # für jeden Projektmitarbeiter
-            ma: ProjektmitarbeiterDTO
-            for ma in projektDTO.projektmitarbeiter:
+    def create_forecast_by_projektmeldung(self, psp, json_format: bool) -> PspForecastDTO or str:
 
-                if ma.psp_element in ma_dict.keys():
+        fcs = ForecastService()
 
-                    if ma.psp_element not in psp_to_gesamtumsatz_dict.keys():
-                        psp_to_gesamtumsatz_dict[ma.psp_element] = ma_dict[ma.psp_element].stunden * ma_dict[
-                            ma.psp_element].stundensatz
+        booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
+        projektDTO: ProjektDTO = self.get_project_by_psp(psp, False)
 
-                    durchschnitts_tagesarbeitszeit: float = ma_dict[ma.psp_element].stunden / ma_dict[
-                        ma.psp_element].tage
+        pfcdto = fcs.create_forecast_by_projektmeldung(booking_dtos, projektDTO)
 
-                    durchschnitts_tagesumsatz: float = durchschnitts_tagesarbeitszeit * ma_dict[
-                        ma.psp_element].stundensatz
-
-                    letzter_gesamtumsatz_ma: float = psp_to_gesamtumsatz_dict[ma.psp_element]
-
-                    ma_abwesenheiten: [AbwesenheitDetailsDTO] = []
-
-                    abw: AbwesenheitDTO
-                    for abw in calender_data.abwesenheiten:
-                        if abw.personalnummer == ma.personalnummer:
-                            ma_abwesenheiten = abw.abwesenheitDetails
-
-                    tagesumsatz = 0
-
-                    # Datum betrachten: wird es ein WE Tag, ein Urlaubstag, ein Abwesenheitstag sein? Falls ja, kein Umsatz.
-
-                    wochende = betrachteter_tag.weekday() >= 5
-
-                    abwesenheit_existiert = any(
-                        abwesenheitDetails.datum == betrachteter_tag_str for abwesenheitDetails in ma_abwesenheiten)
-                    feiertag_existiert = any(
-                        feiertag.datum == betrachteter_tag_str for feiertag in calender_data.specialDays.feiertage)
-
-                    if wochende or abwesenheit_existiert or feiertag_existiert:
-                        tagesumsatz = 0
-                    else:
-                        tagesumsatz = durchschnitts_tagesumsatz
-
-                    letzter_gesamtumsatz_ma += tagesumsatz
-
-                    pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
-                                                 tagesumsatz,
-                                                 letzter_gesamtumsatz_ma)
-                    psp_element_day_forecasts.append(pedf)
-                    psp_to_gesamtumsatz_dict[ma.psp_element] = letzter_gesamtumsatz_ma
-
-                else:
-                    if ma.psp_element not in psp_to_gesamtumsatz_dict.keys():
-                        psp_to_gesamtumsatz_dict[ma.psp_element] = 0
-                        mas_without_entries.add(ma)
-
-                    pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
-                                                 0,
-                                                 0)
-                    psp_element_day_forecasts.append(pedf)
-
-            # jetzt auf den gesamten Tag betrachten
-            fdv = ForecastDayView(betrachteter_tag, psp_element_day_forecasts)
-            forecast_day_views.append(fdv)
-
-            if fdv.summe >= projektDTO.volumen:
-                fertig = True
-            else:
-                betrachteter_tag = betrachteter_tag + ein_tag
-                betrachteter_tag_str = betrachteter_tag.strftime(datum_format)
-
-        pfcdto = PspForecastDTO(projektDTO, forecast_day_views, mas_without_entries, ma_tdurchschnitt_dtos)
 
         if json_format:
             return json.dumps(pfcdto, default=data_helper.serialize)
@@ -1117,7 +1027,6 @@ class ProjektService:
             # Was wenn mehr als ein Ticketidentifizierer innerhalb einer Buchung gefunden wurde?
             if found_ticket_indentifiers > 1:
                 package_identifier_issues.append(Package_Identifier_Issues(b, booking_to_identifiers[b]))
-
 
         summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_package_hours / 8.0, umsatz_dtos,
                                                                  package_identifier_issues)

@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO
-from src.projector_backend.dto.forecast_dto import PspForecastDTO, MaDurchschnittsarbeitszeitDTO
+from src.projector_backend.dto.forecast_dto import PspForecastDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.entities.Base import Base
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
@@ -392,25 +392,16 @@ def add_abwesenheit():
 @app.route('/pspForecast', methods=["POST"])
 def get_psp_forecast():
     psp = request.form.get("psp")
-    back = pservice.getInstance().mach_forecast(psp, True)
+    back = pservice.getInstance().create_forecast_by_alltime_avg(psp, True)
+    back_projektmeldung: PspForecastDTO = pservice.getInstance().create_forecast_by_projektmeldung(psp, False)
+
     return back
 
 
 @app.route('/pspForecastTest', methods=["GET"])
 def get_psp_forecast_test():
     psp = "11828"
-    back: PspForecastDTO = pservice.getInstance().mach_forecast(psp, False)
-
-    durchschnitt = 0.0
-    s: MaDurchschnittsarbeitszeitDTO
-    for s in back.avg_tagesumsaetze:
-        durchschnitt += s.durchschnitts_tagesumsatz
-
-        formatted_string = str(s.durchschnitts_tagesumsatz).replace(".", ",")
-        print(s.name, formatted_string)
-
-    print(f"AVG Tagesumsatz: {durchschnitt}")
-
+    back: PspForecastDTO = pservice.getInstance().create_forecast_by_alltime_avg(psp, False)
     return back
 
 

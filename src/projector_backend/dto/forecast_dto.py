@@ -1,43 +1,32 @@
 from datetime import datetime
 
 from src.projector_backend.dto.projekt_dto import ProjektmitarbeiterDTO, ProjektDTO
+from src.projector_backend.services.tempclasses import Ma_Identifier_DTO, MaDailyAvgDTO
 
 
-class MaDurchschnittsarbeitszeitDTO:
-    name: str
-    personalnummer: int
-    psp_element: str
-    durchschnitts_tages_az: float
-    durchschnitts_tages_umsatz: float
-
-    def __init__(self, name, personalnummer, psp_element, durchschnitts_tages_az, durchschnitts_tagesumsatz) -> None:
-        self.name = name
-        self.personalnummer = personalnummer
-        self.psp_element = psp_element
-        self.durchschnitts_tages_az = durchschnitts_tages_az
-        self.durchschnitts_tagesumsatz = durchschnitts_tagesumsatz
-
-
-class PspElementDayForecast:
+class PspElementDayForecast(Ma_Identifier_DTO):
+    """
+    Hält fest, welchen Tagesumsatz und wie welchen Gesamtumsatz eine Person zu einem Stichtag
+    vorraussichtlich erwirtschaften wird.
+    """
     tag: datetime
-    name: str
-    personalnummer: int
-    psp_element: str
     geschaetzter_tagesumsatz: float
     geschatzer_gesamtumsatz: float  # bis zum tag
 
-    def __init__(self, tag: datetime, name: str, personalnummer: int, psp_element: str,
+    def __init__(self, tag: datetime, name: str, personalnummer: str, psp_element: str,
                  geschaetzter_tagesumsatz: float,
                  geschatzer_gesamtumsatz: float) -> None:
         self.geschaetzter_tagesumsatz = geschaetzter_tagesumsatz
-        self.personalnummer = personalnummer
-        self.psp_element = psp_element
-        self.name = name
         self.tag = tag
         self.geschatzer_gesamtumsatz = geschatzer_gesamtumsatz
+        super().__init__(name, personalnummer, psp_element)
 
 
 class ForecastDayView:
+    """
+    Hält fest, wie viel Umsatz an einem bestimmten Tag vorraussichtlich gemacht wird.
+
+    """
     tag: datetime
     personen: [PspElementDayForecast]
     _summe: float
@@ -48,11 +37,10 @@ class ForecastDayView:
         self._summe = 0
         p: PspElementDayForecast
         for p in personen:
-            self._summe += p.geschatzer_gesamtumsatz
+            self._summe = self.summe + p.geschatzer_gesamtumsatz
 
     @property
     def summe(self):
-        # Hier kannst du die Logik für den Lesezugriff auf das Attribut definieren
         return self._summe
 
 
@@ -62,7 +50,7 @@ class PspForecastDTO:
     tage: [ForecastDayView]
     missing: [ProjektmitarbeiterDTO]
 
-    avg_tagesumsaetze: [MaDurchschnittsarbeitszeitDTO]
+    avg_tagesumsaetze: [MaDailyAvgDTO]
 
     fc_psp_enddate_umsatz: float
     fc_psp_enddate_restbudget: float
@@ -71,7 +59,7 @@ class PspForecastDTO:
     fc_enddate_restbudget: float
 
     def __init__(self, projekt: ProjektDTO, tage: [ForecastDayView], missing: [ProjektmitarbeiterDTO],
-                 avg_tagesumsaetze: [MaDurchschnittsarbeitszeitDTO]) -> None:
+                 avg_tagesumsaetze: [MaDailyAvgDTO] = None) -> None:
         self.projekt = projekt
 
         self.missing = missing

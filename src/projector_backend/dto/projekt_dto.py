@@ -2,30 +2,26 @@ from datetime import datetime
 
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
 from src.projector_backend.entities.projekt import Projekt, ProjektMitarbeiter
+from src.projector_backend.services.tempclasses import Ma_Identifier_DTO
 
 
-class ProjektmitarbeiterDTO:
-    personalnummer: int
-    name: str
+class ProjektmitarbeiterDTO(Ma_Identifier_DTO):
     psp_bezeichnung: str
-    psp_element: str
     stundensatz: int
     stundenbudget: int
     laufzeit_von: str
     laufzeit_bis: str
     uploaddatum: datetime
 
-    def __init__(self, personalnummer: int, name: str, psp_bezeichnung: str, psp_element: str, stundensatz: int,
+    def __init__(self, personalnummer: str, name: str, psp_bezeichnung: str, psp_element: str, stundensatz: int,
                  stundenbudget: int, laufzeit_von: str, laufzeit_bis: str, dbID=0, ) -> None:
         self.stundenbudget = stundenbudget
-        self.psp_element = psp_element
         self.laufzeit_bis = laufzeit_bis
-        self.name = name
         self.psp_bezeichnung = psp_bezeichnung
-        self.personalnummer = personalnummer
         self.laufzeit_von = laufzeit_von
         self.stundensatz = stundensatz
         self.dbID = dbID
+        super().__init__(name, personalnummer, psp_element)
 
     @classmethod
     def create_from_db(cls, pma: ProjektMitarbeiter):
