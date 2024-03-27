@@ -45,6 +45,10 @@ class ProjektMitarbeiter(Base):
 class Projekt(Base):
     __tablename__ = "projekte"
     id: Mapped[int] = mapped_column(primary_key=True)
+
+    project_master_id: Mapped[int] = mapped_column("projectMasterId")
+    predecessor_id: Mapped[int] = mapped_column("predecessorId")
+
     psp: Mapped[str] = mapped_column("psp")
     projekt_name: Mapped[str] = mapped_column("projekt_name", String(30))
     volumen: Mapped[int] = mapped_column("volumen")
@@ -55,10 +59,13 @@ class Projekt(Base):
 
     projektmitarbeiter = relationship("ProjektMitarbeiter", back_populates="projekt", lazy=False)
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
-    archiviert: Mapped[bool] = mapped_column("archiviert")
+    changed_by: Mapped[str] = mapped_column("changed_by")
 
-    def __init__(self, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str, laufzeit_von: str,
-                 projektmitarbeiter: [ProjektMitarbeiter], ) -> None:
+    def __init__(self, project_master_id: int, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str,
+                 laufzeit_von: str,
+                 projektmitarbeiter: [ProjektMitarbeiter], changed_by, predecessor_id=0) -> None:
+        self.project_master_id = project_master_id
+        self.predecessor_id = predecessor_id
         self.volumen = volumen
         self.projekt_name = projekt_name
         self.laufzeit_bis = laufzeit_bis
@@ -66,7 +73,7 @@ class Projekt(Base):
         self.psp = psp
         self.laufzeit_von = laufzeit_von
         self.uploadDatum = datetime.now()
-        self.archiviert = False
+        self.changed_by = changed_by
 
     # @classmethod
     # def create_from_dto(cls,dto: ProjektDTO):

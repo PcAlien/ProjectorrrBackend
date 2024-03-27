@@ -13,6 +13,7 @@ class ProjektmitarbeiterDTO(Ma_Identifier_DTO):
     laufzeit_bis: str
     uploaddatum: datetime
 
+
     def __init__(self, personalnummer: str, name: str, psp_bezeichnung: str, psp_element: str, stundensatz: int,
                  stundenbudget: int, laufzeit_von: str, laufzeit_bis: str, dbID=0, ) -> None:
         self.stundenbudget = stundenbudget
@@ -40,9 +41,11 @@ class ProjektDTO:
     uploaddatum: datetime
     archiviert: bool
 
+    project_master_id: int
+
     def __init__(self, projekt_name: str, psp: str, volumen: int, laufzeit_von: str, laufzeit_bis: str,
-                 projektmitarbeiter: [ProjektmitarbeiterDTO], psp_packages: [PspPackageDTO], dbID=0,
-                 uploaddatum=datetime.today(), archiviert=False) -> None:
+                 projektmitarbeiter: [ProjektmitarbeiterDTO], psp_packages: [PspPackageDTO], project_master_id: int = 0, dbID=0,
+                 uploaddatum=datetime.today(),  archiviert=False) -> None:
         self.volumen = volumen
         self.projekt_name = projekt_name
         self.laufzeit_bis = laufzeit_bis
@@ -64,6 +67,7 @@ class ProjektDTO:
         self.dbID = dbID
         self.uploaddatum = uploaddatum
         self.archiviert = archiviert
+        self.project_master_id = project_master_id
 
     @classmethod
     def create_from_db(cls, projekt: Projekt, psp_packages: [PspPackageDTO]):
@@ -75,5 +79,5 @@ class ProjektDTO:
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
 
         return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
-                   projektmitarbeiter, psp_packages, projekt.id, uploaddatum=projekt.uploadDatum,
-                   archiviert=projekt.archiviert)
+                   projektmitarbeiter, psp_packages,  projekt.project_master_id, projekt.id, uploaddatum=projekt.uploadDatum,
+                   )

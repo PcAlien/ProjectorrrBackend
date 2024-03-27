@@ -1,3 +1,4 @@
+import getpass
 import json
 from datetime import datetime, timedelta
 from itertools import groupby
@@ -9,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.util import NoneType
 
+from src.projector_backend.dto.AllProjects import AllProjectsDTO
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO, PspPackageUmsatzDTO, \
     Package_Identifier_Issues
 from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO
@@ -22,7 +24,10 @@ from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSumma
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.returners import DbResult
+from src.projector_backend.entities.ProjectMaster import ProjektMaster
+
 from src.projector_backend.entities.PspPackage import PspPackage
+from src.projector_backend.entities.UserProjects import UserProject
 from src.projector_backend.entities.booking import Booking
 from src.projector_backend.entities.bundles import ProjectBundlePSPElement, ProjectBundle
 from src.projector_backend.entities.projekt import ProjektMitarbeiter, Projekt
@@ -51,10 +56,21 @@ class ProjektService:
 
     def save_update_project(self, projektDTO: ProjektDTO, update=False) -> Tuple[ProjektDTO, DbResult]:
 
+        predecessor_id = 0
         if update:
             if not projektDTO.projektmitarbeiter:
                 project_dto: ProjektDTO = self.get_project_by_psp(projektDTO.psp, False)
                 projektDTO.projektmitarbeiter = project_dto.projektmitarbeiter
+            predecessor_id = projektDTO.dbID
+            pmaster_id = projektDTO.project_master_id
+        else:
+            # neues ProjectMaster erstellen
+            project_master = ProjektMaster(projektDTO.projekt_name, getpass.getuser())
+            with self.Session() as session:
+                session.add(project_master)
+                session.commit()
+                session.refresh(project_master)
+                pmaster_id = project_master.id
 
         projektmitarbeiter: [ProjektMitarbeiter] = []
         # pma: ProjektmitarbeiterDTO
@@ -63,8 +79,9 @@ class ProjektService:
                                           pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
             projektmitarbeiter.append(neuerPMA)
 
-        projekt = Projekt(projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis, projektDTO.psp,
-                          projektDTO.laufzeit_von, projektmitarbeiter, )
+        projekt = Projekt(pmaster_id, projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis,
+                          projektDTO.psp,
+                          projektDTO.laufzeit_von, projektmitarbeiter, getpass.getuser(), predecessor_id)
 
         with self.Session() as session:
             try:
@@ -80,6 +97,11 @@ class ProjektService:
                 session.commit()
                 session.refresh(projekt)
 
+                if not update:
+                    up = UserProject(getpass.getuser(), projekt.project_master_id)
+                    session.add(up)
+                    session.commit()
+
 
             except IntegrityError as e:
                 # Behandle den Fehler speziell für Integritätsverletzungen
@@ -88,12 +110,12 @@ class ProjektService:
                 result = DbResult(False, e)
                 return None, result
 
-        if update:
-            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True,
-                                                                                         "Project has been updated")
-        else:
-            return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True,
-                                                                                         "A new project has been created")
+            if update:
+                return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True,
+                                                                                             "Project has been updated")
+            else:
+                return ProjektDTO.create_from_db(projekt, projektDTO.psp_packages), DbResult(True,
+                                                                                             "A new project has been created")
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
 
@@ -155,6 +177,16 @@ class ProjektService:
 
     def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
 
+        # Welche Projekte sind dem User zugeordnet?
+        username = getpass.getuser()
+        pmaster_ids = []
+        with (self.Session() as session):
+            user_projects = session.query(UserProject
+                                          ).filter(UserProject.username == username
+                                                   ).filter(UserProject.archived == False)
+            for user_project in user_projects:
+                pmaster_ids.append(user_project.project_master_id)
+
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
@@ -164,9 +196,11 @@ class ProjektService:
                 .subquery()
             )
 
+            # .where(Projekt.archiviert == False)
             projekte = (
-                session.query(Projekt).where(Projekt.archiviert == False)
+                session.query(Projekt)
                 .filter(Projekt.uploadDatum.in_(subquery))
+                .filter(Projekt.project_master_id.in_(pmaster_ids))
                 # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
 
@@ -181,6 +215,16 @@ class ProjektService:
 
     def get_archived_projects(self, json_format: bool) -> [ProjektDTO] or str:
 
+        # Welche Projekte sind dem User zugeordnet?
+        username = getpass.getuser()
+        pmaster_ids = []
+        with self.Session() as session:
+            user_projects = session.query(UserProject
+                                          ).filter(UserProject.username == username
+                                                   ).filter(UserProject.archived)
+            for user_project in user_projects:
+                pmaster_ids.append(user_project.project_master_id)
+
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
@@ -189,10 +233,11 @@ class ProjektService:
                 .group_by(Projekt.psp)
                 .subquery()
             )
-
+            # where(Projekt.archiviert == True)
             projekte = (
-                session.query(Projekt).where(Projekt.archiviert == True)
+                session.query(Projekt)
                 .filter(Projekt.uploadDatum.in_(subquery))
+                .filter(Projekt.project_master_id.in_(pmaster_ids))
 
             )
 
@@ -207,6 +252,8 @@ class ProjektService:
 
     def toogle_archive_project(self, psp):
 
+        username = getpass.getuser()
+
         with self.Session() as session:
             subquery = (
                 session.query(func.max(Projekt.uploadDatum))
@@ -220,7 +267,13 @@ class ProjektService:
                 .filter(Projekt.uploadDatum.in_(subquery)).first()
             )
 
-            pro.archiviert = not pro.archiviert
+            pmaster_id = pro.project_master_id
+            # Welche Projekte sind dem User zugeordnet?
+            user_projects = session.query(UserProject
+                                          ).filter(UserProject.username == username
+                                                   ).filter(UserProject.project_master_id == pmaster_id)
+
+            user_projects[0].archived = not user_projects[0].archived
 
             session.commit()
         return {"status": "ok"}
@@ -528,6 +581,40 @@ class ProjektService:
             return json.dumps(ps_dtos, default=data_helper.serialize)
         else:
             return ps_dtos
+
+    def get_all_projects_basics(self):
+        all_projects_dtos = self.get_all_projects(False)
+        user_active_project_ids = []
+        with self.Session() as session:
+            user_projects = session.query(UserProject
+                                      ).filter(UserProject.username == getpass.getuser()
+                                               )
+            for up in user_projects:
+                user_active_project_ids.append(up.project_master_id)
+
+        back = AllProjectsDTO(all_projects_dtos,user_active_project_ids)
+        return json.dumps(back, default=data_helper.serialize)
+
+
+    def toggle_user_project(self, pmaster_id):
+        with (self.Session() as session):
+
+            user_projects = session.query(UserProject
+                                          ).filter(UserProject.username == getpass.getuser()
+                                                   ).filter(UserProject.project_master_id == pmaster_id).first()
+
+            if user_projects is None:
+                up = UserProject(getpass.getuser(), pmaster_id)
+                session.add(up)
+                session.commit()
+            else:
+                session.delete(user_projects)
+                session.commit()
+
+        return self.get_all_projects_basics()
+
+
+
 
     def get_bookings_summary_for_psp_by_month(self, booking_dtos: [BookingDTO], json_format: bool) -> [
                                                                                                           MonatsaufteilungSummaryDTO] or str:
@@ -850,7 +937,6 @@ class ProjektService:
         projektDTO: ProjektDTO = self.get_project_by_psp(psp, False)
 
         pfcdto = fcs.create_forecast_by_projektmeldung(booking_dtos, projektDTO)
-
 
         if json_format:
             return json.dumps(pfcdto, default=data_helper.serialize)

@@ -80,6 +80,16 @@ def get_projects():  # put application's code here
     back = pservice.get_active_projects(True)
     return back
 
+@app.route('/allProjects', methods=['GET'])
+def get_all_projects():  # put application's code here
+    back = pservice.get_all_projects_basics()
+    return back
+
+@app.route('/toggleUserProject', methods=['GET'])
+def toggle_user_project():  # put application's code here
+    pmaster_id = request.args.get('pmaster_id')
+    back = pservice.toggle_user_project(pmaster_id)
+    return back
 
 @app.route('/archivedProjects', methods=['GET'])
 def get_archived_projects():  # put application's code here
