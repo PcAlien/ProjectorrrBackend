@@ -16,7 +16,7 @@ from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSum
 from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO, ProjectBundleDTO
-from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO
+from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO, ErfassungsNachweisDetailDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO
 
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
@@ -587,14 +587,13 @@ class ProjektService:
         user_active_project_ids = []
         with self.Session() as session:
             user_projects = session.query(UserProject
-                                      ).filter(UserProject.username == getpass.getuser()
-                                               )
+                                          ).filter(UserProject.username == getpass.getuser()
+                                                   )
             for up in user_projects:
                 user_active_project_ids.append(up.project_master_id)
 
-        back = AllProjectsDTO(all_projects_dtos,user_active_project_ids)
+        back = AllProjectsDTO(all_projects_dtos, user_active_project_ids)
         return json.dumps(back, default=data_helper.serialize)
-
 
     def toggle_user_project(self, pmaster_id):
         with (self.Session() as session):
@@ -612,9 +611,6 @@ class ProjektService:
                 session.commit()
 
         return self.get_all_projects_basics()
-
-
-
 
     def get_bookings_summary_for_psp_by_month(self, booking_dtos: [BookingDTO], json_format: bool) -> [
                                                                                                           MonatsaufteilungSummaryDTO] or str:
@@ -946,8 +942,6 @@ class ProjektService:
     def erstelle_erfassungsauswertung(self, projekt_dto: ProjektDTO, booking_dtos: [BookingDTO], json_format: bool) -> [
                                                                                                                            ErfassungsnachweisDTO] or str:
 
-        # projekt_dto: ProjektDTO = self.get_project_by_psp(psp, False)
-
         laufzeit_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_von)
         anzahl_tage_seit_projektstart = (datetime.now().date() - laufzeit_date).days
 
@@ -964,6 +958,8 @@ class ProjektService:
         abbruchkante = 6
         if anzahl_tage_seit_projektstart < 6:
             abbruchkante = anzahl_tage_seit_projektstart
+
+        # Festlegen, welche Tage betrachtet werden (bis zu 6 Tage zurück, ausgenommen Feiertage und Wochenenden)
         done = False
         delta = timedelta(days=1)
         oneDayBack = jetzt_um_null_uhr
@@ -977,39 +973,39 @@ class ProjektService:
 
         suchtage.reverse()
 
+        # Alle Buchungseinträge identifizieren und sammeln, die innerhalb dieser 6 Tage zurück liegen
+        # TODO: evtl. bessere DB-Abfrage erstellen
         b: BookingDTO
         for b in booking_dtos:
             if b.datum >= suchtage[0]:
                 filtered_booking_dtos.append(b)
 
-        # alle Personalnummern rausholen:
-        nachweise: [ErfassungsnachweisDTO] = []
-
-        # vorher filtern
-        # pmas -> {Name:Personalnummer}
+        # alle Personalnummern rausholen und in dict speichern --> personalnummer : name
         pmas = dict()
         for pma in projekt_dto.projektmitarbeiter:
             pmas[pma.personalnummer] = pma.name
 
-        CalendarService.getInstance().get_calender_data()
+        nachweise: [ErfassungsnachweisDTO] = []
+        # CalendarService.getInstance().get_calender_data()
 
         for pnummer, name in pmas.items():
-            stunden: [float or str] = []
-            tage_zu_stunden: {str: float} = dict()
-            tage_zu_abwesenheiten: {str: str} = dict()
+
             tage: [str] = []
+            erfassungs_nachweis_details_dtos = []
 
             abwesenheit: AbwesenheitDTO = CalendarService.getInstance().get_abwesenheiten_for_psnr(pnummer, False)
             for gesuchtesDatum in suchtage:
+
+                en_stunden = 0
+                abw = ""
+
                 found = False
                 gesuchtes_datum_string = date_helper.from_date_to_string(gesuchtesDatum)
                 tage.append(gesuchtes_datum_string)
                 if abwesenheit is not None:
-                    for x in abwesenheit.abwesenheitDetails:
-
-                        if x.datum == gesuchtes_datum_string:
-                            stunden.append(x.typ)
-                            tage_zu_abwesenheiten[gesuchtes_datum_string] = x.typ
+                    for abwesenheitsDetailDTO in abwesenheit.abwesenheitDetails:
+                        if abwesenheitsDetailDTO.datum == gesuchtes_datum_string:
+                            abw = abwesenheitsDetailDTO.typ
                             found = True
                             break
 
@@ -1018,11 +1014,13 @@ class ProjektService:
                     for b in filtered_booking_dtos:
                         if b.personalnummer == pnummer and b.datum == gesuchtesDatum:
                             gesammelte_stunden += b.stunden
-                    stunden.append(gesammelte_stunden)
-                    tage_zu_stunden[gesuchtes_datum_string] = gesammelte_stunden
+                    en_stunden = gesammelte_stunden
+
+                end_dto = ErfassungsNachweisDetailDTO(gesuchtes_datum_string, en_stunden, abw)
+                erfassungs_nachweis_details_dtos.append(end_dto)
 
             # edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
-            edto = ErfassungsnachweisDTO(name, pnummer, tage, tage_zu_stunden, tage_zu_abwesenheiten)
+            edto = ErfassungsnachweisDTO(name, pnummer, erfassungs_nachweis_details_dtos)
             nachweise.append(edto)
 
         # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
@@ -1172,22 +1170,37 @@ class ProjektService:
 
             tage_zu_stunden = {}
             tage_zu_abwesenheit = {}
-            dto: ErfassungsnachweisDTO
-            for dto in efdtos:
-                for tag in dto.tage:
-                    if tag in dto.tage_zu_stunden.keys():
-                        if tag not in tage_zu_stunden.keys():
-                            tage_zu_stunden[tag] = 0
-                        tage_zu_stunden[tag] += dto.tage_zu_stunden[tag]
+            erfassungs_nachweis_dto: ErfassungsnachweisDTO
 
-                    elif tag in dto.tage_zu_abwesenheiten.keys():
-                        if tag not in tage_zu_abwesenheit.keys():
-                            tage_zu_abwesenheit[tag] = 0
-                        tage_zu_abwesenheit[tag] = dto.tage_zu_abwesenheiten[tag]
+            collected_erfassungs_nachweise_dtos: [ErfassungsNachweisDetailDTO] = []
 
-            sumup = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, efdtos[0].tage, tage_zu_stunden,
-                                          tage_zu_abwesenheit)
-            neue_erfassungsnachwei_dtos.append(sumup)
+
+            for erfassungs_nachweis_dto in efdtos:
+
+                end: ErfassungsNachweisDetailDTO
+
+                for end in erfassungs_nachweis_dto.erfassungs_nachweis_details:
+                    # Prüfen, ob es für diesen Tag schon ein detailsDTO gibt.
+                    watched_erfassungs_nachweis_dto: ErfassungsNachweisDetailDTO = None
+                    cnachweis :ErfassungsNachweisDetailDTO
+                    for cnachweis in collected_erfassungs_nachweise_dtos:
+                        if cnachweis.tag == end.tag:
+                            watched_erfassungs_nachweis_dto = cnachweis
+                            break
+
+                    if watched_erfassungs_nachweis_dto is None:
+                        watched_erfassungs_nachweis_dto = ErfassungsNachweisDetailDTO(end.tag, 0, "")
+                        collected_erfassungs_nachweise_dtos.append(watched_erfassungs_nachweis_dto)
+
+                    if end.abwesenheit == "":
+                        watched_erfassungs_nachweis_dto.stunden += end.stunden
+                    else:
+                        watched_erfassungs_nachweis_dto.abwesenheit = end.abwesenheit
+                        continue
+
+            new_endto = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, collected_erfassungs_nachweise_dtos)
+
+            neue_erfassungsnachwei_dtos.append(new_endto)
 
         if json_format:
             return json.dumps(neue_erfassungsnachwei_dtos, default=data_helper.serialize)
