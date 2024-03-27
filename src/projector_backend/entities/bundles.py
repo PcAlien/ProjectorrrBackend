@@ -32,8 +32,9 @@ class ProjectBundle(Base):
     bundled_psps = relationship("ProjectBundlePSPElement", back_populates="project_bundle", lazy=False)
 
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
+    created_by: Mapped[str] = mapped_column("created_by")
 
-    def __init__(self, bundle_name: str, description: str, bundled_psps: [ProjectBundlePSPElement],
+    def __init__(self, bundle_name: str, description: str, bundled_psps: [ProjectBundlePSPElement], created_by,
                  identifier: str = str or None) -> None:
         self.name = bundle_name
         self.description = description
@@ -44,6 +45,7 @@ class ProjectBundle(Base):
         else:
             self.identifier = identifier
         self.uploadDatum = datetime.now()
+        self.created_by = created_by
 
     def create_identifier(self):
         characters = string.ascii_letters + string.digits

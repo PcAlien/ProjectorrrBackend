@@ -402,7 +402,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, None)
+        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, getpass.getuser(),None)
 
         with self.Session() as session:
             try:
@@ -426,7 +426,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, dto.identifier)
+        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, getpass.getuser(), dto.identifier)
 
         with self.Session() as session:
             try:
@@ -476,6 +476,7 @@ class ProjektService:
             project_bundles = (
                 session.query(ProjectBundle)
                 .filter(ProjectBundle.uploadDatum.in_(subquery))
+                .filter(ProjectBundle.created_by == getpass.getuser())
             )
 
             pb: ProjectBundle
@@ -515,7 +516,8 @@ class ProjektService:
             project_bundle: ProjectBundle or None
             project_bundle = (
                 session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
-                .filter(ProjectBundle.uploadDatum.in_(subquery)).first()
+                .filter(ProjectBundle.uploadDatum.in_(subquery)).filter(ProjectBundle.created_by == getpass.getuser())
+                .first()
             )
 
             project_summary_dtos = []
