@@ -33,17 +33,16 @@ class Abwesenheit(Base):
 
     name: Mapped[str] = mapped_column("name", String(30))
     personalnummer: Mapped[int] = mapped_column("personalnummer")
-    rolle: Mapped[str] = mapped_column("rolle", String(30))
+
 
     abwesenheiten = relationship("AbwesenheitDetails", back_populates="abwesenheit", lazy=False,
                                  cascade="all, delete-orphan")
 
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
-    def __init__(self, name: str, personalnummer: int, rolle: str, abwesenheiten: [AbwesenheitDetails],
+    def __init__(self, name: str, personalnummer: int, abwesenheiten: [AbwesenheitDetails],
                  uploadDatum: datetime = datetime.now()):
         self.name = name
         self.personalnummer = personalnummer
-        self.rolle = rolle
         self.abwesenheiten = abwesenheiten
         self.uploadDatum = uploadDatum

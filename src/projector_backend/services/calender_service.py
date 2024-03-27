@@ -85,7 +85,7 @@ class CalendarService:
             else:
                 details.append(AbwesenheitDetails(detail.datum, detail.typ, uploadDatum=datum))
 
-        abw = Abwesenheit(dto.name, dto.personalnummer, dto.rolle, details, uploadDatum=datum)
+        abw = Abwesenheit(dto.name, dto.personalnummer, details, uploadDatum=datum)
         session = sessionmaker(bind=self.engine)
 
         with session() as session:
@@ -106,7 +106,7 @@ class CalendarService:
                 else:
                     details.append(AbwesenheitDetails(detail.datum, detail.typ, uploadDatum=datum))
 
-            abw = Abwesenheit(dto.name, dto.personalnummer, dto.rolle, details, uploadDatum=datum)
+            abw = Abwesenheit(dto.name, dto.personalnummer,  details, uploadDatum=datum)
             abwesenheiten.append(abw)
 
         session = sessionmaker(bind=self.engine)
@@ -164,7 +164,7 @@ class CalendarService:
 
     def prozeed_upload_abwesenheiten(self, filename: str):
 
-        dto: AbwesenheitDTO
+        #dto: AbwesenheitDTO
 
         class Monatsabstufung:
             def __init__(self, monat, spalte_start) -> None:
@@ -176,7 +176,7 @@ class CalendarService:
         wb = self.eh.load_workbook(file_path)
         wb.active: Worksheet = 0
 
-        liste_monate: Monatsabstufung = []
+        liste_monate: [Monatsabstufung] = []
         liste_spaltennummern = {}
 
         # 1. Definieren, wo ein Monat anfängt.
@@ -197,7 +197,7 @@ class CalendarService:
             liste_monate[-1].spalte_ende = column - 1
 
         # 2. Definieren, welcher Tag (Zahl) des Monats es ist
-        for row in wb.active.iter_rows(values_only=False, min_row=3, max_row=4, min_col=3):
+        for row in wb.active.iter_rows(values_only=False, min_row=2, max_row=3, min_col=3):
 
             cell: Cell
             column = 3
@@ -209,13 +209,13 @@ class CalendarService:
         abw_dtos: [AbwesenheitDTO] = []
 
         # 3. Urlaube eintragen
-        for row in wb.active.iter_rows(values_only=False, min_row=4):
+        for row in wb.active.iter_rows(values_only=False, min_row=3):
 
             cell: Cell
             column = 0
 
             ma_name = row[0].value
-            ma_nr = row[1].value
+            ma_nr = row[2].value
 
             abwdt_dtos: [AbwesenheitDetailsDTO] = []
 
@@ -248,7 +248,7 @@ class CalendarService:
 
                 column += 1
 
-            abw_dtos.append(AbwesenheitDTO(ma_name, ma_nr, "", abwdt_dtos))
+            abw_dtos.append(AbwesenheitDTO(ma_name, ma_nr, abwdt_dtos))
 
         # 4. Wochenende und Feiertage entnehmen
 

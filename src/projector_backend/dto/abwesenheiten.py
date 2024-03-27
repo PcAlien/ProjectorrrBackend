@@ -13,14 +13,12 @@ class AbwesenheitDetailsDTO:
 class AbwesenheitDTO:
     name: str
     personalnummer: int
-    rolle: str
     abwesenheitDetails: [AbwesenheitDetailsDTO]
 
-    def __init__(self, name: str, personalnummer: int, rolle: str, abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
+    def __init__(self, name: str, personalnummer: int,  abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
         self.abwesenheitDetails: [AbwesenheitDetailsDTO] = abwesenheitDetails
         self.name = name
         self.personalnummer = personalnummer
-        self.rolle = rolle
 
     @classmethod
     def create_from_db(cls, abwesenheit: Abwesenheit):
@@ -31,4 +29,4 @@ class AbwesenheitDTO:
                 AbwesenheitDetailsDTO(abd.datum, abd.typ)
             )
 
-        return cls(abwesenheit.name, abwesenheit.personalnummer, abwesenheit.rolle, abwesenheitDetailsDTOs)
+        return cls(abwesenheit.name, abwesenheit.personalnummer, abwesenheitDetailsDTOs)
