@@ -1,4 +1,3 @@
-import getpass
 import json
 from datetime import datetime, timedelta
 from itertools import groupby
@@ -32,7 +31,7 @@ from src.projector_backend.entities.booking import Booking
 from src.projector_backend.entities.bundles import ProjectBundlePSPElement, ProjectBundle
 from src.projector_backend.entities.projekt import ProjektMitarbeiter, Projekt
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
-from src.projector_backend.helpers import data_helper, date_helper
+from src.projector_backend.helpers import data_helper, date_helper, auth_helper
 from src.projector_backend.services.ForecastService import ForecastService
 from src.projector_backend.services.calender_service import CalendarService
 
@@ -65,7 +64,8 @@ class ProjektService:
             pmaster_id = projektDTO.project_master_id
         else:
             # neues ProjectMaster erstellen
-            project_master = ProjektMaster(projektDTO.projekt_name, getpass.getuser())
+            project_master = ProjektMaster(projektDTO.projekt_name, auth_helper.username)
+            #project_master = ProjektMaster(projektDTO.projekt_name, auth_helper.username)
             with self.Session() as session:
                 session.add(project_master)
                 session.commit()
@@ -81,7 +81,7 @@ class ProjektService:
 
         projekt = Projekt(pmaster_id, projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis,
                           projektDTO.psp,
-                          projektDTO.laufzeit_von, projektmitarbeiter, getpass.getuser(), predecessor_id)
+                          projektDTO.laufzeit_von, projektmitarbeiter, auth_helper.username, predecessor_id)
 
         with self.Session() as session:
             try:
@@ -98,7 +98,7 @@ class ProjektService:
                 session.refresh(projekt)
 
                 if not update:
-                    up = UserProject(getpass.getuser(), projekt.project_master_id)
+                    up = UserProject(auth_helper.username, projekt.project_master_id)
                     session.add(up)
                     session.commit()
 
@@ -178,7 +178,7 @@ class ProjektService:
     def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
 
         # Welche Projekte sind dem User zugeordnet?
-        username = getpass.getuser()
+        username = auth_helper.username
         pmaster_ids = []
         with (self.Session() as session):
             user_projects = session.query(UserProject
@@ -216,7 +216,7 @@ class ProjektService:
     def get_archived_projects(self, json_format: bool) -> [ProjektDTO] or str:
 
         # Welche Projekte sind dem User zugeordnet?
-        username = getpass.getuser()
+        username = auth_helper.username
         pmaster_ids = []
         with self.Session() as session:
             user_projects = session.query(UserProject
@@ -252,7 +252,7 @@ class ProjektService:
 
     def toogle_archive_project(self, psp):
 
-        username = getpass.getuser()
+        username = auth_helper.username
 
         with self.Session() as session:
             subquery = (
@@ -402,7 +402,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, getpass.getuser(),None)
+        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, auth_helper.username,None)
 
         with self.Session() as session:
             try:
@@ -426,7 +426,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, getpass.getuser(), dto.identifier)
+        bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps, auth_helper.username, dto.identifier)
 
         with self.Session() as session:
             try:
@@ -476,7 +476,7 @@ class ProjektService:
             project_bundles = (
                 session.query(ProjectBundle)
                 .filter(ProjectBundle.uploadDatum.in_(subquery))
-                .filter(ProjectBundle.created_by == getpass.getuser())
+                .filter(ProjectBundle.created_by == auth_helper.username)
             )
 
             pb: ProjectBundle
@@ -516,7 +516,7 @@ class ProjektService:
             project_bundle: ProjectBundle or None
             project_bundle = (
                 session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
-                .filter(ProjectBundle.uploadDatum.in_(subquery)).filter(ProjectBundle.created_by == getpass.getuser())
+                .filter(ProjectBundle.uploadDatum.in_(subquery)).filter(ProjectBundle.created_by == auth_helper.username)
                 .first()
             )
 
@@ -589,7 +589,7 @@ class ProjektService:
         user_active_project_ids = []
         with self.Session() as session:
             user_projects = session.query(UserProject
-                                          ).filter(UserProject.username == getpass.getuser()
+                                          ).filter(UserProject.username == auth_helper.username
                                                    )
             for up in user_projects:
                 user_active_project_ids.append(up.project_master_id)
@@ -601,11 +601,11 @@ class ProjektService:
         with (self.Session() as session):
 
             user_projects = session.query(UserProject
-                                          ).filter(UserProject.username == getpass.getuser()
+                                          ).filter(UserProject.username == auth_helper.username
                                                    ).filter(UserProject.project_master_id == pmaster_id).first()
 
             if user_projects is None:
-                up = UserProject(getpass.getuser(), pmaster_id)
+                up = UserProject(auth_helper.username, pmaster_id)
                 session.add(up)
                 session.commit()
             else:

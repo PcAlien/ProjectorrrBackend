@@ -8,6 +8,7 @@ RUN pip install -r requirements.txt
 
 COPY . .
 RUN rm ./db/*.*
+ENV USER="Wert"
 
 CMD ["echo", "'STARTE'"]
 CMD ["flask", "-A", "src/projector_backend/app", "run", "--host", "0.0.0.0"]
