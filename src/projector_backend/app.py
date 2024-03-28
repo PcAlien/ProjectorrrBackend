@@ -26,8 +26,8 @@ from src.projector_backend.services.projekt_service import ProjektService
 app = Flask(__name__)
 CORS(app)
 
-#engine = create_engine("sqlite:///\\\\rtgsrv1file3\\public\\PM\\Datenbank\Datenbank.db", echo=True)
-engine = create_engine("sqlite:///db/datenbank.db", echo=True)
+engine = create_engine("sqlite:///\\\\rtgsrv1file3\\public\\PM\\Datenbank\Datenbank.db", echo=True)
+#engine = create_engine("sqlite:///db/datenbank.db", echo=True)
 Base.metadata.create_all(engine)
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
