@@ -559,7 +559,7 @@ class ProjektService:
             sum_verbraucht += ma_dto.maBookingsSummary.sum
 
         ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos, monatsaufteilung_dtos,
-                                                      erfassungs_nachweise, package_summaries)
+                                                      erfassungs_nachweise, package_summaries, booking_dtos[0].uploaddatum )
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)

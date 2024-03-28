@@ -18,18 +18,20 @@ class ProjectSummaryDTO:
     spent: float = 0
     restbudget: float = 0
     umsaetze: [UmsatzDTO]
+    last_updated: str
 
     monatsaufteilungen: [MonatsaufteilungSummaryDTO] =  []
     erfassungsnachweise: [ErfassungsnachweisDTO] =  []
     package_summaries : [PspPackageSummaryDTO] = ()
 
-    def __init__(self, project: ProjektDTO, umsaetze: [UmsatzDTO],  monatsaufteilungen: [MonatsaufteilungSummaryDTO],erfassungsnachweise: [ErfassungsnachweisDTO],   package_summaries : [PspPackageSummaryDTO] ) -> None:
+    def __init__(self, project: ProjektDTO, umsaetze: [UmsatzDTO],  monatsaufteilungen: [MonatsaufteilungSummaryDTO],erfassungsnachweise: [ErfassungsnachweisDTO],   package_summaries : [PspPackageSummaryDTO], last_updated: str ) -> None:
         self.project = project
         self.umsaetze = umsaetze
         self._calculate_spent_and_rest()
         self.monatsaufteilungen = monatsaufteilungen
         self.erfassungsnachweise = erfassungsnachweise
         self.package_summaries = package_summaries
+        self.last_updated = last_updated
 
     def _calculate_spent_and_rest(self):
         umsatz: UmsatzDTO
