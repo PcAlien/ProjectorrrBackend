@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.projector_backend.entities.booking import Booking
+from src.projector_backend.entities.booking_etc import Booking
 from src.projector_backend.helpers import date_helper as dh
 
 

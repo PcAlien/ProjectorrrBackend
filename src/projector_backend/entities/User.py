@@ -6,12 +6,20 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
 from src.projector_backend.entities.Base import Base
+from src.projector_backend.entities.project_ent import Project
 
 userroles = Table(
     "user2roles",
     Base.metadata,
     Column("left_id", ForeignKey("users.id")),
     Column("right_id", ForeignKey("userroles.id")),
+)
+
+user2projects = Table(
+    "user2projects",
+    Base.metadata,
+    Column("left_id", ForeignKey("users.id")),
+    Column("right_id", ForeignKey("projects.id"))
 )
 
 class UserRole(Base):
@@ -35,6 +43,8 @@ class User(Base):
 
 
     roles:Mapped[List[UserRole]] = relationship(secondary=userroles)
+
+    projects:Mapped[List[Project]] = relationship(secondary=user2projects)
 
     def __init__(self, username: str, password: str, roles: [UserRole]) -> None:
         self.roles = roles

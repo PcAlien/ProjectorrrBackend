@@ -9,7 +9,7 @@ from src.projector_backend.entities.Base import Base
 
 
 class Booking(Base):
-    __tablename__ = "buchungen"
+    __tablename__ = "bookings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column("name", String(30))

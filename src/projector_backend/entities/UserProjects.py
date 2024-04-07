@@ -13,12 +13,12 @@ class UserProject(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     username: Mapped[str] = mapped_column("username")
-    project_master_id: Mapped[int] = mapped_column("projectMasterId")
+    project_id: Mapped[int] = mapped_column("projectId")
     archived: Mapped[bool] = mapped_column("archived")
 
 
     def __init__(self, username: str, project_master_id: int, archived: bool = False) -> None:
         self.username = username
-        self.project_master_id = project_master_id
+        self.project_id = project_master_id
         self.archived = archived
 

@@ -2,7 +2,7 @@ from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 from src.projector_backend.dto.projekt_dto import ProjektmitarbeiterDTO
-from src.projector_backend.entities.projekt import ProjektMitarbeiter
+from src.projector_backend.entities.project_ent import ProjectEmployee
 from src.projector_backend.excel.excelhelper import ExcelHelper
 
 
@@ -16,7 +16,7 @@ class EhProjektmeldung(ExcelHelper):
         wb: Workbook = self.load_workbook(source)
 
         ws: Worksheet = wb.active
-        pmas: [ProjektMitarbeiter] = []
+        pmas: [ProjectEmployee] = []
 
         for row in ws.iter_rows(values_only=True, min_row=2):
             if row[1] != None:

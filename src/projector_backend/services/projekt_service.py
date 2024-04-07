@@ -23,13 +23,14 @@ from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSumma
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.returners import DbResult
-from src.projector_backend.entities.ProjectMaster import ProjektMaster
+
 
 from src.projector_backend.entities.PspPackage import PspPackage
 from src.projector_backend.entities.UserProjects import UserProject
-from src.projector_backend.entities.booking import Booking
+from src.projector_backend.entities.booking_etc import Booking
+
 from src.projector_backend.entities.bundles import ProjectBundlePSPElement, ProjectBundle
-from src.projector_backend.entities.projekt import ProjektMitarbeiter, Projekt
+from src.projector_backend.entities.project_ent import ProjectEmployee, ProjectData, Project
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.helpers import data_helper, date_helper, auth_helper
 from src.projector_backend.services.ForecastService import ForecastService
@@ -63,8 +64,8 @@ class ProjektService:
             predecessor_id = projektDTO.dbID
             pmaster_id = projektDTO.project_master_id
         else:
-            # neues ProjectMaster erstellen
-            project_master = ProjektMaster(projektDTO.projekt_name, auth_helper.username)
+            # neues Projekt erstellen
+            project_master = Project(projektDTO.projekt_name, auth_helper.username)
             #project_master = ProjektMaster(projektDTO.projekt_name, auth_helper.username)
             with self.Session() as session:
                 session.add(project_master)
@@ -72,22 +73,22 @@ class ProjektService:
                 session.refresh(project_master)
                 pmaster_id = project_master.id
 
-        projektmitarbeiter: [ProjektMitarbeiter] = []
+        projektmitarbeiter: [ProjectEmployee] = []
         # pma: ProjektmitarbeiterDTO
         for pma in projektDTO.projektmitarbeiter:
-            neuerPMA = ProjektMitarbeiter(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
-                                          pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
+            neuerPMA = ProjectEmployee(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
+                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
             projektmitarbeiter.append(neuerPMA)
 
-        projekt = Projekt(pmaster_id, projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis,
-                          projektDTO.psp,
-                          projektDTO.laufzeit_von, projektmitarbeiter, auth_helper.username, predecessor_id)
+        projekt = ProjectData(pmaster_id, projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis,
+                              projektDTO.psp,
+                              projektDTO.laufzeit_von, projektmitarbeiter, auth_helper.username, predecessor_id)
 
         with self.Session() as session:
             try:
 
                 if not update:
-                    pro = session.query(Projekt).filter(Projekt.psp == projekt.psp).first()
+                    pro = session.query(ProjectData).filter(ProjectData.psp == projekt.psp).first()
                     if pro:
                         result = DbResult(False,
                                           "Ein Projekt mit der gleichen PSP Nummer ist bereits in der Datenbank vorhanden.")
@@ -98,7 +99,7 @@ class ProjektService:
                 session.refresh(projekt)
 
                 if not update:
-                    up = UserProject(auth_helper.username, projekt.project_master_id)
+                    up = UserProject(auth_helper.username, projekt.project_id)
                     session.add(up)
                     session.commit()
 
@@ -121,15 +122,15 @@ class ProjektService:
 
         with self.Session() as session:
             subquery = (
-                session.query(func.max(Projekt.uploadDatum))
-                .filter(Projekt.psp == psp)
+                session.query(func.max(ProjectData.uploadDatum))
+                .filter(ProjectData.psp == psp)
                 .subquery()
             )
 
             pro = (
-                session.query(Projekt)
-                .filter(Projekt.psp == psp)
-                .filter(Projekt.uploadDatum.in_(subquery)).first()
+                session.query(ProjectData)
+                .filter(ProjectData.psp == psp)
+                .filter(ProjectData.uploadDatum.in_(subquery)).first()
             )
 
             dtos = self.get_psp_packages(psp, False)
@@ -143,7 +144,7 @@ class ProjektService:
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
 
         with self.Session() as session:
-            pma = session.query(ProjektMitarbeiter).filter(ProjektMitarbeiter.psp_element == psp_element).first()
+            pma = session.query(ProjectEmployee).filter(ProjectEmployee.psp_element == psp_element).first()
             if type(pma) == NoneType:
                 print(psp_element)
 
@@ -155,14 +156,14 @@ class ProjektService:
         with self.Session() as session:
 
             subquery = (
-                session.query(func.max(Projekt.uploadDatum))
-                .group_by(Projekt.psp)
+                session.query(func.max(ProjectData.uploadDatum))
+                .group_by(ProjectData.psp)
                 .subquery()
             )
 
             projekte = (
-                session.query(Projekt)
-                .filter(Projekt.uploadDatum.in_(subquery))
+                session.query(ProjectData)
+                .filter(ProjectData.uploadDatum.in_(subquery))
                 # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
 
@@ -185,22 +186,22 @@ class ProjektService:
                                           ).filter(UserProject.username == username
                                                    ).filter(UserProject.archived == False)
             for user_project in user_projects:
-                pmaster_ids.append(user_project.project_master_id)
+                pmaster_ids.append(user_project.project_id)
 
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
             subquery = (
-                session.query(func.max(Projekt.uploadDatum))
-                .group_by(Projekt.psp)
+                session.query(func.max(ProjectData.uploadDatum))
+                .group_by(ProjectData.psp)
                 .subquery()
             )
 
             # .where(Projekt.archiviert == False)
             projekte = (
-                session.query(Projekt)
-                .filter(Projekt.uploadDatum.in_(subquery))
-                .filter(Projekt.project_master_id.in_(pmaster_ids))
+                session.query(ProjectData)
+                .filter(ProjectData.uploadDatum.in_(subquery))
+                .filter(ProjectData.project_id.in_(pmaster_ids))
                 # .join(subquery, Projekt.uploadDatum == subquery.c.uploadDatum)
             )
 
@@ -223,21 +224,21 @@ class ProjektService:
                                           ).filter(UserProject.username == username
                                                    ).filter(UserProject.archived)
             for user_project in user_projects:
-                pmaster_ids.append(user_project.project_master_id)
+                pmaster_ids.append(user_project.project_id)
 
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
             subquery = (
-                session.query(func.max(Projekt.uploadDatum))
-                .group_by(Projekt.psp)
+                session.query(func.max(ProjectData.uploadDatum))
+                .group_by(ProjectData.psp)
                 .subquery()
             )
             # where(Projekt.archiviert == True)
             projekte = (
-                session.query(Projekt)
-                .filter(Projekt.uploadDatum.in_(subquery))
-                .filter(Projekt.project_master_id.in_(pmaster_ids))
+                session.query(ProjectData)
+                .filter(ProjectData.uploadDatum.in_(subquery))
+                .filter(ProjectData.project_id.in_(pmaster_ids))
 
             )
 
@@ -256,22 +257,22 @@ class ProjektService:
 
         with self.Session() as session:
             subquery = (
-                session.query(func.max(Projekt.uploadDatum))
-                .filter(Projekt.psp == psp)
+                session.query(func.max(ProjectData.uploadDatum))
+                .filter(ProjectData.psp == psp)
                 .subquery()
             )
 
             pro = (
-                session.query(Projekt)
-                .filter(Projekt.psp == psp)
-                .filter(Projekt.uploadDatum.in_(subquery)).first()
+                session.query(ProjectData)
+                .filter(ProjectData.psp == psp)
+                .filter(ProjectData.uploadDatum.in_(subquery)).first()
             )
 
-            pmaster_id = pro.project_master_id
+            pmaster_id = pro.project_id
             # Welche Projekte sind dem User zugeordnet?
             user_projects = session.query(UserProject
                                           ).filter(UserProject.username == username
-                                                   ).filter(UserProject.project_master_id == pmaster_id)
+                                                   ).filter(UserProject.project_id == pmaster_id)
 
             user_projects[0].archived = not user_projects[0].archived
 
@@ -279,10 +280,10 @@ class ProjektService:
         return {"status": "ok"}
 
     def get_missing_project_psp_for_bookings(self, bookings: [BookingDTO]) -> {}:
-        projekte: [Projekt] = self.get_all_projects(False)
+        projekte: [ProjectData] = self.get_all_projects(False)
         missing_psps: {str} = set()
         psps: [str] = []
-        pro: Projekt
+        pro: ProjectData
         for pro in projekte:
             psps.append(pro.psp)
 
@@ -592,7 +593,7 @@ class ProjektService:
                                           ).filter(UserProject.username == auth_helper.username
                                                    )
             for up in user_projects:
-                user_active_project_ids.append(up.project_master_id)
+                user_active_project_ids.append(up.project_id)
 
         back = AllProjectsDTO(all_projects_dtos, user_active_project_ids)
         return json.dumps(back, default=data_helper.serialize)
@@ -602,7 +603,7 @@ class ProjektService:
 
             user_projects = session.query(UserProject
                                           ).filter(UserProject.username == auth_helper.username
-                                                   ).filter(UserProject.project_master_id == pmaster_id).first()
+                                                   ).filter(UserProject.project_id == pmaster_id).first()
 
             if user_projects is None:
                 up = UserProject(auth_helper.username, pmaster_id)

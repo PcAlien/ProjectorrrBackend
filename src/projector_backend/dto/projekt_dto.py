@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
-from src.projector_backend.entities.projekt import Projekt, ProjektMitarbeiter
+from src.projector_backend.entities.project_ent import ProjectData, ProjectEmployee
 from src.projector_backend.services.tempclasses import Ma_Identifier_DTO
 
 
@@ -25,7 +25,7 @@ class ProjektmitarbeiterDTO(Ma_Identifier_DTO):
         super().__init__(name, personalnummer, psp_element)
 
     @classmethod
-    def create_from_db(cls, pma: ProjektMitarbeiter):
+    def create_from_db(cls, pma: ProjectEmployee):
         return cls(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element, pma.stundensatz,
                    pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id, )
 
@@ -70,14 +70,14 @@ class ProjektDTO:
         self.project_master_id = project_master_id
 
     @classmethod
-    def create_from_db(cls, projekt: Projekt, psp_packages: [PspPackageDTO]):
+    def create_from_db(cls, projekt: ProjectData, psp_packages: [PspPackageDTO]):
         projektmitarbeiter: [ProjektmitarbeiterDTO] = []
-        pma: ProjektMitarbeiter
+        pma: ProjectEmployee
         for pma in projekt.projektmitarbeiter:
             projektmitarbeiter.append(
                 ProjektmitarbeiterDTO(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
 
         return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
-                   projektmitarbeiter, psp_packages,  projekt.project_master_id, projekt.id, uploaddatum=projekt.uploadDatum,
+                   projektmitarbeiter, psp_packages, projekt.project_id, projekt.id, uploaddatum=projekt.uploadDatum,
                    )

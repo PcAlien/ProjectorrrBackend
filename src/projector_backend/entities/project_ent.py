@@ -8,8 +8,22 @@ from sqlalchemy.orm import relationship
 from src.projector_backend.entities.Base import Base
 
 
-class ProjektMitarbeiter(Base):
-    __tablename__ = "projektmitarbeiter"
+class Project(Base):
+    __tablename__ = "projects"
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    projekt_original_name: Mapped[str] = mapped_column("project_name", String(30))
+    created_at: Mapped[datetime] = mapped_column("createdAt")
+    created_by: Mapped[str] = mapped_column("createdBy")
+
+    def __init__(self, projekt_original_name: str, created_by: str) -> None:
+        self.projekt_original_name = projekt_original_name
+        self.created_at = datetime.now()
+        self.created_by = created_by
+
+
+class ProjectEmployee(Base):
+    __tablename__ = "project_employees"
     id: Mapped[int] = mapped_column(primary_key=True)
     personalnummer: Mapped[int] = mapped_column("personalnummer")
     name: Mapped[str] = mapped_column("name", String(30))
@@ -20,8 +34,8 @@ class ProjektMitarbeiter(Base):
     laufzeit_von: Mapped[str] = mapped_column("laufzeit_von", String(30))
     laufzeit_bis: Mapped[str] = mapped_column("laufzeit_bis", String(30))
 
-    projekt_id = Column(Integer, ForeignKey("projekte.id"))
-    projekt = relationship("Projekt", back_populates="projektmitarbeiter", lazy=False)
+    project_id = Column(Integer, ForeignKey("projects_data.id"))
+    project = relationship("ProjectData", back_populates="projektmitarbeiter", lazy=False)
 
     def __init__(self,
                  personalnummer: int,
@@ -42,11 +56,11 @@ class ProjektMitarbeiter(Base):
         self.stundensatz = stundensatz
 
 
-class Projekt(Base):
-    __tablename__ = "projekte"
+class ProjectData(Base):
+    __tablename__ = "projects_data"
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    project_master_id: Mapped[int] = mapped_column("projectMasterId")
+    project_id: Mapped[int] = mapped_column("projectId")
     predecessor_id: Mapped[int] = mapped_column("predecessorId")
 
     psp: Mapped[str] = mapped_column("psp")
@@ -57,14 +71,14 @@ class Projekt(Base):
 
     #    psp_packages = relationship("PspPackage", back_populates="projekt", lazy=False)
 
-    projektmitarbeiter = relationship("ProjektMitarbeiter", back_populates="projekt", lazy=False)
+    projektmitarbeiter = relationship("ProjectEmployee", back_populates="project", lazy=False)
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
     changed_by: Mapped[str] = mapped_column("changed_by")
 
-    def __init__(self, project_master_id: int, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str,
+    def __init__(self, project_id: int, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str,
                  laufzeit_von: str,
-                 projektmitarbeiter: [ProjektMitarbeiter], changed_by, predecessor_id=0) -> None:
-        self.project_master_id = project_master_id
+                 projektmitarbeiter: [ProjectEmployee], changed_by, predecessor_id=0) -> None:
+        self.project_id = project_id
         self.predecessor_id = predecessor_id
         self.volumen = volumen
         self.projekt_name = projekt_name
@@ -75,10 +89,3 @@ class Projekt(Base):
         self.uploadDatum = datetime.now()
         self.changed_by = changed_by
 
-    # @classmethod
-    # def create_from_dto(cls,dto: ProjektDTO):
-    #     projektmitarbeiter : [ProjektMitarbeiter] = []
-    #     pma: ProjektMitarbeiter
-    #     for pma in dto.projektmitarbeiter:
-    #         projektmitarbeiter.append(ProjektMitarbeiter(None, pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element, pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis))
-    #     return cls(dto.volumen, dto.projekt_name, dto.laufzeit_bis, dto.psp, dto.laufzeit_von, projektmitarbeiter)
