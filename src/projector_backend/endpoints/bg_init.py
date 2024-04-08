@@ -9,7 +9,7 @@ from src.projector_backend.helpers.decorators import admin_required
 from src.projector_backend.helpers.unfertig import demo_calender_data_importer
 
 
-def create_init_blueprint(pservice, dbservice):
+def create_init_blueprint(pservice, dbservice, uservice):
     init_bp = Blueprint('init', __name__)
 
     # @project_bp.route('/login', methods=['POST'])
@@ -26,7 +26,7 @@ def create_init_blueprint(pservice, dbservice):
     #         abort(403)
 
     @init_bp.route('/init')
-    @admin_required()
+    # @admin_required()
     def init_app():  # put application's code here
 
         create_init_data()
@@ -36,7 +36,7 @@ def create_init_blueprint(pservice, dbservice):
 
     def create_init_data():
         dbservice.create_import_settings()
-        # uservice.create_demo_users()
+        uservice.create_demo_users()
         # _lade_demoprojekte()
         # _lade_demobuchungen()
         # _lade_demoabwesenheiten()

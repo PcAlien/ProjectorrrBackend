@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 from sqlalchemy import String, Column, Integer, ForeignKey
 from sqlalchemy.orm import Mapped
@@ -15,6 +16,8 @@ class Project(Base):
     projekt_original_name: Mapped[str] = mapped_column("project_name", String(30))
     created_at: Mapped[datetime] = mapped_column("createdAt")
     created_by: Mapped[str] = mapped_column("createdBy")
+
+    project_datas: Mapped[List["ProjectData"]] = relationship(back_populates="project", lazy=False)
 
     def __init__(self, projekt_original_name: str, created_by: str) -> None:
         self.projekt_original_name = projekt_original_name
@@ -60,8 +63,12 @@ class ProjectData(Base):
     __tablename__ = "projects_data"
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    project_id: Mapped[int] = mapped_column("projectId")
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    project: Mapped["Project"] = relationship(back_populates="project_datas", lazy=False)
+
+
     predecessor_id: Mapped[int] = mapped_column("predecessorId")
+
 
     psp: Mapped[str] = mapped_column("psp")
     projekt_name: Mapped[str] = mapped_column("projekt_name", String(30))

@@ -1,6 +1,7 @@
 import os
 
 from flask import Blueprint, current_app, request, abort, send_file
+from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
 
 from src.projector_backend.dto.booking_dto import BookingDTO
@@ -10,18 +11,21 @@ def create_bookings_blueprint(pservice,eh):
     bookings_bp = Blueprint('bookings', __name__)
 
     @bookings_bp.route('/buchungen', methods=['GET'])
+    @jwt_required()
     def gib_buchungen():  # put application's code here
         psp = request.args.get('psp')
         back = pservice.get_bookings_for_psp(psp, True)
         return back
 
     @bookings_bp.route('/maBookingsSummary', methods=['GET'])
+    @jwt_required()
     def get_ma_bookings_summary():  # put application's code here
         psp = request.args.get('psp')
         back = pservice.get_ma_bookings_summary_for_psp(psp, True)
         return back
 
     @bookings_bp.route('/bookingsupload', methods=["POST"])
+    @jwt_required()
     def bookings_upload():
         # Überprüfe, ob die POST-Anfrage eine Datei enthält
         if 'bookings_file' not in request.files:
@@ -60,6 +64,7 @@ def create_bookings_blueprint(pservice,eh):
                 }
 
     @bookings_bp.route('/exportBuchungen', methods=["GET"])
+    @jwt_required()
     def create_buchungen_export():
         psp = request.args.get('psp')
         filename_buchungen = eh.export_buchungen(psp, pservice.get_bookings_for_psp(psp, False),
@@ -68,6 +73,7 @@ def create_bookings_blueprint(pservice,eh):
         return send_file(file_path_buchungen, as_attachment=True)
 
     @bookings_bp.route('/exportUmsaetze', methods=["GET"])
+    @jwt_required()
     def create_umsaetze_export():
         psp = request.args.get('psp')
         booking_dtos: [BookingDTO] = pservice.get_bookings_for_psp(psp, False)

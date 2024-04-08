@@ -1,6 +1,8 @@
 import json
 from typing import Type
 import hashlib
+
+from flask_jwt_extended import get_jwt_identity
 from sqlalchemy.orm import sessionmaker
 
 from src.projector_backend.dto.UserDTO import UserDTO
@@ -64,5 +66,9 @@ class UserService:
                 return json.dumps(user_dto, default=data_helper.serialize)
             else:
                 return None
+
+
+
+
 
 

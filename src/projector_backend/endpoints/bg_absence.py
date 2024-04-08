@@ -1,5 +1,7 @@
+import os
+
 from flask import Blueprint, current_app, request, abort
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 
 
@@ -7,6 +9,7 @@ def create_absence_blueprint(cservice):
     absence_bp = Blueprint('absence', __name__)
 
     @absence_bp.route('/abwesenheitsUpload', methods=["POST"])
+    @jwt_required()
     def abwesenheits_upload():
         # Überprüfe, ob die POST-Anfrage eine Datei enthält
         if 'abwesenheits_file' not in request.files:
@@ -43,6 +46,7 @@ def create_absence_blueprint(cservice):
         return back
 
     @absence_bp.route('/addAbwesenheit', methods=["POST"])
+    @jwt_required()
     def add_abwesenheit():
         abw = request.form.get("abwesenheit")
         cservice.getInstance().add_abwesenheit(abw)

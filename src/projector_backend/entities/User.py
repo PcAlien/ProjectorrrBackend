@@ -42,9 +42,11 @@ class User(Base):
     password: Mapped[str] = mapped_column("password", String(64))
 
 
-    roles:Mapped[List[UserRole]] = relationship(secondary=userroles)
+    roles:Mapped[List[UserRole]] = relationship(secondary=userroles, lazy=False)
 
-    projects:Mapped[List[Project]] = relationship(secondary=user2projects)
+    projects:Mapped[List[Project]] = relationship(secondary=user2projects, lazy= False)
+
+    bundles: Mapped[List["ProjectBundle"]] = relationship(back_populates="owner")
 
     def __init__(self, username: str, password: str, roles: [UserRole]) -> None:
         self.roles = roles

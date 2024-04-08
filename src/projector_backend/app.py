@@ -16,6 +16,8 @@ from src.projector_backend.endpoints.bp_logging import create_auth_blueprint
 from src.projector_backend.endpoints.bg_bundles import create_bundles_blueprint
 from src.projector_backend.entities.Base import Base
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
+from src.projector_backend.services.UserService import UserService
+from src.projector_backend.services.auth_service import AuthService
 from src.projector_backend.services.calender_service import CalendarService
 from src.projector_backend.services.db_service import DBService
 from src.projector_backend.services.projekt_service import ProjektService
@@ -38,23 +40,24 @@ logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
 
 # Init Services
+authService = AuthService()
 dbservice = DBService(engine)
-pservice = ProjektService(engine)
+pservice = ProjektService(engine, authService)
 cservice = CalendarService(engine)
+uservice = UserService(engine)
 excelhelper = EhBuchungen()
 
-
 # Register blueprints
-auth_bp = create_auth_blueprint(engine, jwt)
+login_bp = create_auth_blueprint(engine, jwt)
 bundle_bp = create_bundles_blueprint(pservice)
-init_bp = create_init_blueprint(pservice, dbservice)
+init_bp = create_init_blueprint(pservice, dbservice, uservice)
 project_bp = create_project_blueprint(pservice)
 package_bp = create_package_blueprint(pservice)
 absence_bp = create_absence_blueprint(cservice)
 bookings_bp = create_bookings_blueprint(pservice, excelhelper)
 forecast_bp = create_forecast_blueprint(pservice)
 
-app.register_blueprint(auth_bp)
+app.register_blueprint(login_bp)
 app.register_blueprint(bundle_bp)
 app.register_blueprint(init_bp)
 app.register_blueprint(project_bp)
