@@ -26,7 +26,7 @@ app = Flask(__name__)
 origin = os.environ.get("ORIGIN")
 
 # Security settings
-CORS(app, origins=["http://" + origin + ":4200"], supports_credentials=True)
+CORS(app, origins=["http://" + origin + ":4200","http://127.0.0.1:4200", "http://localhost:4200", "http://rtgsrv1pmgmt1:4200" ], supports_credentials=True)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
 jwt = JWTManager(app)
