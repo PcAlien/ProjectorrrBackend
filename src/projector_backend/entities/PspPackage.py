@@ -13,7 +13,7 @@ from src.projector_backend.helpers import data_helper
 class PspPackage(Base):
     __tablename__ = "PspPackages"
     id: Mapped[int] = mapped_column(primary_key=True)
-    psp: Mapped[str] = mapped_column("psp")
+    psp: Mapped[str] = mapped_column("psp", String(10))
     package_name: Mapped[str] = mapped_column("package_name", String(30))
     package_description: Mapped[str] = mapped_column("package_description", String(400))
     package_identifier: Mapped[str] = mapped_column("package_identifier", String(40))

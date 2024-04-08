@@ -4,12 +4,13 @@ from flask import Blueprint, current_app,request,abort
 
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
+from src.projector_backend.entities.Base import Base
 from src.projector_backend.helpers import data_helper
 from src.projector_backend.helpers.decorators import admin_required
 from src.projector_backend.helpers.unfertig import demo_calender_data_importer
 
 
-def create_init_blueprint(pservice, dbservice, uservice):
+def create_init_blueprint(engine, pservice, dbservice, uservice):
     init_bp = Blueprint('init', __name__)
 
     # @project_bp.route('/login', methods=['POST'])
@@ -28,7 +29,7 @@ def create_init_blueprint(pservice, dbservice, uservice):
     @init_bp.route('/init')
     # @admin_required()
     def init_app():  # put application's code here
-
+        Base.metadata.create_all(engine)
         create_init_data()
         # pservice.get_latest_bookings_for_psp("11828", True)
 

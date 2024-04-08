@@ -2,7 +2,7 @@ import random
 import string
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import String, Column, Integer, ForeignKey
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
@@ -13,7 +13,7 @@ from src.projector_backend.entities.Base import Base
 class ProjectBundlePSPElement(Base):
     __tablename__ = "project_bundles_psp_elements"
     id: Mapped[int] = mapped_column(primary_key=True)
-    psp: Mapped[str] = mapped_column("psp")
+    psp: Mapped[str] = mapped_column("psp", String(20))
 
     project_bundles_id = Column(Integer, ForeignKey("project_bundles.id"))
     project_bundle = relationship("ProjectBundle", back_populates="bundled_psps", lazy=False)
@@ -25,9 +25,9 @@ class ProjectBundlePSPElement(Base):
 class ProjectBundle(Base):
     __tablename__ = "project_bundles"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column("name")
-    description: Mapped[str] = mapped_column("description")
-    identifier: Mapped[str] = mapped_column("identifier")
+    name: Mapped[str] = mapped_column("name", String(30))
+    description: Mapped[str] = mapped_column("description", String(300))
+    identifier: Mapped[str] = mapped_column("identifier", String(50))
 
     bundled_psps = relationship("ProjectBundlePSPElement", back_populates="project_bundle", lazy=False)
 

@@ -15,7 +15,7 @@ class Project(Base):
 
     projekt_original_name: Mapped[str] = mapped_column("project_name", String(30))
     created_at: Mapped[datetime] = mapped_column("createdAt")
-    created_by: Mapped[str] = mapped_column("createdBy")
+    created_by: Mapped[str] = mapped_column("createdBy", String(30))
 
     project_datas: Mapped[List["ProjectData"]] = relationship(back_populates="project", lazy=False)
 
@@ -70,7 +70,7 @@ class ProjectData(Base):
     predecessor_id: Mapped[int] = mapped_column("predecessorId")
 
 
-    psp: Mapped[str] = mapped_column("psp")
+    psp: Mapped[str] = mapped_column("psp", String(10))
     projekt_name: Mapped[str] = mapped_column("projekt_name", String(30))
     volumen: Mapped[int] = mapped_column("volumen")
     laufzeit_von: Mapped[str] = mapped_column("laufzeit_von", String(30))
@@ -80,7 +80,7 @@ class ProjectData(Base):
 
     projektmitarbeiter = relationship("ProjectEmployee", back_populates="project", lazy=False)
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
-    changed_by: Mapped[str] = mapped_column("changed_by")
+    changed_by: Mapped[str] = mapped_column("changed_by", String(30))
 
     def __init__(self, project_id: int, volumen: int, projekt_name: str, laufzeit_bis: str, psp: str,
                  laufzeit_von: str,
