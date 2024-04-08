@@ -39,10 +39,10 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
 #engine = create_engine("sqlite:///db/datenbank.db", echo=True)
 
 # Replace with your MySQL credentials
-user = "root"
-password = "password"
-host = "localhost"  # Or hostname if your MySQL server is remote
-database = "projectorrr"
+user = os.environ.get("DB_USER")
+password = os.environ.get("DB_PASSWORD")
+host = os.environ.get("DB_HOST")
+database = os.environ.get("DB_DB")
 
 engine :Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
 
