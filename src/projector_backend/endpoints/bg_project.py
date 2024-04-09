@@ -33,12 +33,6 @@ def create_project_blueprint(pservice):
         back = pservice.get_all_projects_basics()
         return back
 
-    @project_bp.route('/archivedProjects', methods=['GET'])
-    @jwt_required()
-    def get_archived_projects():  # put application's code here
-        back = pservice.get_archived_projects(True)
-        return back
-
     @project_bp.route('/projektupload', methods=["POST"])
     @jwt_required()
     def projektupload():  # put application's code here
@@ -125,22 +119,9 @@ def create_project_blueprint(pservice):
     @project_bp.route('/toggleUserProject', methods=['GET'])
     @jwt_required()
     def toggle_user_project():  # put application's code here
-        pmaster_id = request.args.get('pmaster_id')
+        pmaster_id = request.args.get('pid')
         back = pservice.toggle_user_project(pmaster_id)
         return back
 
-    # @project_bp.route('/archived_project_summaries', methods=['GET'])
-    # @jwt_required()
-    # def get_archived_project_summaries():  # put application's code here
-    #     # psp = request.args.get('psp')
-    #     back = pservice.get_project_summaries(True, archiviert=True)
-    #     return back
-
-    @project_bp.route('/toggle_archived', methods=['GET'])
-    @jwt_required()
-    def toggle_archived():  # put application's code here
-        psp = request.args.get('psp')
-        back = pservice.toogle_archive_project(psp)
-        return back
-
     return project_bp
+
