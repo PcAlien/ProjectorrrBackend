@@ -24,7 +24,6 @@ from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzD
 from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.dto.returners import DbResult
 
-
 from src.projector_backend.entities.PspPackage import PspPackage
 from src.projector_backend.entities.User import User
 from src.projector_backend.entities.booking_etc import Booking
@@ -58,36 +57,38 @@ class ProjektService:
 
     def save_update_project(self, projektDTO: ProjektDTO, update=False) -> Tuple[ProjektDTO, DbResult]:
 
-        predecessor_id = 0
-
-        if update:
-            if not projektDTO.projektmitarbeiter:
-                project_dto: ProjektDTO = self.get_project_by_psp(projektDTO.psp, False)
-                projektDTO.projektmitarbeiter = project_dto.projektmitarbeiter
-            predecessor_id = projektDTO.dbID
-            project_id = projektDTO.project_master_id
-        else:
-            # neues Projekt erstellen
-            project = Project(projektDTO.projekt_name, self.auth_service.get_logged_user_name())
-            with self.Session() as session:
-                session.add(project)
-                session.commit()
-                session.refresh(project)
-                project_id = project.id
-
-        projektmitarbeiter: [ProjectEmployee] = []
-        # pma: ProjektmitarbeiterDTO
-        for pma in projektDTO.projektmitarbeiter:
-            neuerPMA = ProjectEmployee(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
-                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
-            projektmitarbeiter.append(neuerPMA)
-
-        project_data = ProjectData(project_id, projektDTO.volumen, projektDTO.projekt_name, projektDTO.laufzeit_bis,
-                              projektDTO.psp,
-                              projektDTO.laufzeit_von, projektmitarbeiter, self.auth_service.get_logged_user_name(), predecessor_id)
-
         with self.Session() as session:
             try:
+
+                predecessor_id = 0
+
+                if update:
+                    if not projektDTO.projektmitarbeiter:
+                        project_dto: ProjektDTO = self.get_project_by_psp(projektDTO.psp, False)
+                        projektDTO.projektmitarbeiter = project_dto.projektmitarbeiter
+                    predecessor_id = projektDTO.dbID
+                    project_id = projektDTO.project_master_id
+                else:
+                    # neues Projekt erstellen
+                    project = Project(projektDTO.projekt_name, self.auth_service.get_logged_user_name())
+
+                    session.add(project)
+                    session.commit()
+                    session.refresh(project)
+                    project_id = project.id
+
+                projektmitarbeiter: [ProjectEmployee] = []
+                # pma: ProjektmitarbeiterDTO
+                for pma in projektDTO.projektmitarbeiter:
+                    neuerPMA = ProjectEmployee(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
+                                               pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
+                    projektmitarbeiter.append(neuerPMA)
+
+                project_data = ProjectData(project_id, projektDTO.volumen, projektDTO.projekt_name,
+                                           projektDTO.laufzeit_bis,
+                                           projektDTO.psp,
+                                           projektDTO.laufzeit_von, projektmitarbeiter,
+                                           self.auth_service.get_logged_user_name(), predecessor_id)
 
                 if not update:
                     pro = session.query(ProjectData).filter(ProjectData.psp == project_data.psp).first()
@@ -102,51 +103,52 @@ class ProjektService:
 
                 if not update:
                     user = self.auth_service.get_logged_user(session)
-                    project = session.query(Project).filter(Project.id == project_id)
+                    project = session.query(Project).filter(Project.id == project_id).first()
                     # Project beziehen
                     user.projects.append(project)
+                    #session.refresh(user)
                     session.commit()
 
+                if update:
+                    return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages), DbResult(True,
+                                                                                                      "Project has been updated")
+                else:
+                    return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages), DbResult(True,
+                                                                                                      "A new project has been created")
 
             except IntegrityError as e:
+
                 # Behandle den Fehler speziell für Integritätsverletzungen
                 session.rollback()
                 print(f"Fehler während der Transaktion: {e}")
                 result = DbResult(False, e)
                 return None, result
 
-            if update:
-                return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages), DbResult(True,
-                                                                                             "Project has been updated")
-            else:
-                return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages), DbResult(True,
-                                                                                             "A new project has been created")
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
+            with self.Session() as session:
+                subquery = (
+                    session.query(func.max(ProjectData.uploadDatum))
+                    .filter(ProjectData.psp == psp)
+                    .subquery()
+                )
 
-        with self.Session() as session:
-            subquery = (
-                session.query(func.max(ProjectData.uploadDatum))
-                .filter(ProjectData.psp == psp)
-                .subquery()
-            )
+                pro = (
+                    session.query(ProjectData)
+                    .filter(ProjectData.psp == psp)
+                    .filter(ProjectData.uploadDatum.in_(subquery)).first()
+                )
 
-            pro = (
-                session.query(ProjectData)
-                .filter(ProjectData.psp == psp)
-                .filter(ProjectData.uploadDatum.in_(subquery)).first()
-            )
+                dtos = self.get_psp_packages(psp, False)
 
-            dtos = self.get_psp_packages(psp, False)
+            dto = ProjektDTO.create_from_db(pro, dtos)
+            if json_format:
+                return json.dumps(dto, default=data_helper.serialize)
+            else:
+                return dto
 
-        dto = ProjektDTO.create_from_db(pro, dtos)
-        if json_format:
-            return json.dumps(dto, default=data_helper.serialize)
-        else:
-            return dto
 
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
-
         with self.Session() as session:
             pma = session.query(ProjectEmployee).filter(ProjectEmployee.psp_element == psp_element).first()
             if type(pma) == NoneType:
@@ -154,8 +156,8 @@ class ProjektService:
 
             return ProjektmitarbeiterDTO.create_from_db(pma)
 
-    def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
 
+    def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
 
@@ -180,6 +182,7 @@ class ProjektService:
         else:
             return projektDTOs
 
+
     def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
         projektDTOs: [ProjektDTO] = []
         with self.Session() as session:
@@ -189,7 +192,6 @@ class ProjektService:
             pmaster_ids = []
             for userproject in user.projects:
                 pmaster_ids.append(userproject.id)
-
 
             subquery = (
                 session.query(func.max(ProjectData.uploadDatum))
@@ -201,7 +203,7 @@ class ProjektService:
             projekte = (
                 session.query(ProjectData)
                 .filter(ProjectData.uploadDatum.in_(subquery))
-                #.filter(ProjectData.project.in_(user.projects))
+                # .filter(ProjectData.project.in_(user.projects))
                 # TODO: klappt das so ?
                 .filter(ProjectData.project_id.in_(pmaster_ids))
             )
@@ -214,6 +216,7 @@ class ProjektService:
             return json.dumps(projektDTOs, default=data_helper.serialize)
         else:
             return projektDTOs
+
 
     # def get_archived_projects(self, json_format: bool) -> [ProjektDTO] or str:
     #
@@ -295,6 +298,7 @@ class ProjektService:
 
         return missing_psps
 
+
     def add_psp_package(self, dto: PspPackageDTO):
         with self.Session() as session:
             try:
@@ -313,6 +317,7 @@ class ProjektService:
                 return None, result
 
             return package.package_identifier, DbResult(True, "A new package has been created")
+
 
     def update_psp_package(self, dto: PspPackageDTO):
         with self.Session() as session:
@@ -340,8 +345,8 @@ class ProjektService:
 
             return package.package_identifier, DbResult(True, "Package has been updated")
 
-    def delete_psp_package(self, dto: PspPackageDTO):
 
+    def delete_psp_package(self, dto: PspPackageDTO):
         with self.Session() as session:
             try:
                 # package:PspPackage
@@ -363,8 +368,8 @@ class ProjektService:
 
             return DbResult(True, "Package has been updated")
 
-    def get_psp_packages(self, psp: str, json_format: bool):
 
+    def get_psp_packages(self, psp: str, json_format: bool):
         with self.Session() as session:
             packages = (
                 session.query(PspPackage).where(PspPackage.psp == psp)
@@ -379,8 +384,8 @@ class ProjektService:
         else:
             return package_dtos
 
-    def get_package(self, identifier: str, json_format: bool):
 
+    def get_package(self, identifier: str, json_format: bool):
         with self.Session() as session:
             package = (
                 session.query(PspPackage).where(PspPackage.package_identifier == identifier).first()
@@ -391,6 +396,7 @@ class ProjektService:
             return json.dumps(dto, default=data_helper.serialize)
         else:
             return dto
+
 
     # def get_psp_package_summary(self, identifier: str, json_format: bool):
     #     pspp_dto = self.get_psp_package(identifier,False)
@@ -423,14 +429,13 @@ class ProjektService:
 
         return DbResult(True, "Bundle has been created")
 
+
     def edit_project_bundle(self, dto: ProjectBundleCreateDTO):
-        #TODO: kann das so stimmen?
+        # TODO: kann das so stimmen?
         psps = []
 
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
-
-
 
         with self.Session() as session:
             try:
@@ -450,8 +455,8 @@ class ProjektService:
 
         return DbResult(True, "Bundle has been updated.")
 
-    def delete_bundle(self, identifier: str) -> DbResult:
 
+    def delete_bundle(self, identifier: str) -> DbResult:
         with self.Session() as session:
             try:
                 obj: [ProjectBundle] = session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
@@ -468,6 +473,7 @@ class ProjektService:
                 result = DbResult(False, e)
                 return result
             return DbResult(True, "Hat geklappt.")
+
 
     def get_project_bundles(self, json_format: bool = True) -> [ProjectBundleDTO] or str:
         pb_dtos: [ProjectBundleDTO] = []
@@ -510,8 +516,8 @@ class ProjektService:
         else:
             return dto
 
-    def get_project_bundle(self, identifier: str, json_format: bool = True) -> ProjectBundleDTO or str:
 
+    def get_project_bundle(self, identifier: str, json_format: bool = True) -> ProjectBundleDTO or str:
         with self.Session() as session:
             subquery = (
                 session.query(func.max(ProjectBundle.uploadDatum))
@@ -522,7 +528,8 @@ class ProjektService:
             project_bundle: ProjectBundle or None
             project_bundle = (
                 session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
-                .filter(ProjectBundle.uploadDatum.in_(subquery)).filter(ProjectBundle.owner == self.auth_service.get_logged_user(session))
+                .filter(ProjectBundle.uploadDatum.in_(subquery)).filter(
+                    ProjectBundle.owner == self.auth_service.get_logged_user(session))
                 .first()
             )
 
@@ -544,6 +551,7 @@ class ProjektService:
                 return json.dumps(pb_dto, default=data_helper.serialize)
             else:
                 return pb_dto
+
 
     def get_project_summary(self, psp: str, json_format: bool) -> ProjectSummaryDTO or str:
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
@@ -569,15 +577,15 @@ class ProjektService:
         else:
             last_updated = "-"
         ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos, monatsaufteilung_dtos,
-                                                      erfassungs_nachweise, package_summaries, last_updated )
+                                                      erfassungs_nachweise, package_summaries, last_updated)
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)
         else:
             return ps_dto
 
-    def get_project_summaries(self, json_format: bool) -> [ProjectSummaryDTO]:
 
+    def get_project_summaries(self, json_format: bool) -> [ProjectSummaryDTO]:
         projekte = self.get_active_projects(False)
         ps_dtos = []
         for pro in projekte:
@@ -591,6 +599,7 @@ class ProjektService:
         else:
             return ps_dtos
 
+
     def get_all_projects_basics(self):
         all_projects_dtos = self.get_all_projects(False)
         user_active_project_ids = []
@@ -602,12 +611,12 @@ class ProjektService:
         back = AllProjectsDTO(all_projects_dtos, user_active_project_ids)
         return json.dumps(back, default=data_helper.serialize)
 
+
     def toggle_user_project(self, project_id):
         with (self.Session() as session):
 
             project = session.query(Project).filter_by(id=project_id).first()
-            user  = self.auth_service.get_logged_user(session)
-
+            user = self.auth_service.get_logged_user(session)
 
             # Get user TODO
             # result :User= session.query(User).filter(User.username == auth_helper.username,
@@ -628,6 +637,7 @@ class ProjektService:
             #     session.commit()
 
         return self.get_all_projects_basics()
+
 
     def get_bookings_summary_for_psp_by_month(self, booking_dtos: [BookingDTO], json_format: bool) -> [
                                                                                                           MonatsaufteilungSummaryDTO] or str:
@@ -675,12 +685,14 @@ class ProjektService:
         else:
             return madtos_compressed
 
+
     def _sum_stunden_umsatz_for_group(self, group_list):
         # Summen berechnen
         stunden_sum = sum(item.stunden for item in group_list)
         umsatz_sum = sum(item.umsatz for item in group_list)
 
         return stunden_sum, umsatz_sum
+
 
     def _group_and_sum_by_psp_element(self, booking_dtos: [MaBookingsSummaryElementDTO]) -> [
         MaBookingsSummaryElementDTO]:
@@ -703,6 +715,7 @@ class ProjektService:
                 MaBookingsSummaryElementDTO(group_list_item.name, group_list_item.personalnummer, group_list_item.psp,
                                             key, group_list_item.stundensatz, stunden_sum, umsatz_sum))
         return result
+
 
     def create_new_from_dtos_and_save(self, bookingDTOs: [BookingDTO]) -> DbResult:
         """
@@ -757,6 +770,7 @@ class ProjektService:
 
         return DbResult(True, "All bookings have been stored successfully.")
 
+
     def create_new_from_dto_and_save(self, bookingDTO: BookingDTO) -> str:
         """
         Erstellt einen neuen Buchungseintrag in der DB und gibt ein entsprechendes DTO zurück.
@@ -791,6 +805,7 @@ class ProjektService:
             session.commit()
             session.refresh(buchung)
 
+
     def get_bookings_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
         """
         Liefert alle Buchungen zu einem PSP. Berücksichtigt werden dabei nur Buchungen mit dem jüngsten Uploaddatum.
@@ -822,6 +837,7 @@ class ProjektService:
         else:
             return booking_dtos
 
+
     def get_bookings_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungDTO] or str:
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
 
@@ -843,8 +859,10 @@ class ProjektService:
         else:
             return monatsaufteilung_dtos
 
+
     def _sort_by_month(self, monatsaufteilung: MonatsaufteilungSummaryDTO):
         return monatsaufteilung.monat
+
 
     def get_ma_bookings_summary_for_psp(self, psp: str, json_format: bool) -> MaBookingsSummaryDTO or str:
         """
@@ -904,6 +922,7 @@ class ProjektService:
         else:
             return ma_bookings_summary_dto
 
+
     def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str], DbResult]:
         bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename)
         dto: BookingDTO
@@ -918,6 +937,7 @@ class ProjektService:
         dbResult = self.create_new_from_dtos_and_save(not_missing_psp_bookings)
 
         return missing_psps, dbResult
+
 
     def create_forecast_by_alltime_avg(self, psp, json_format: bool) -> PspForecastDTO or str:
         """
@@ -941,8 +961,8 @@ class ProjektService:
         else:
             return pfcdto
 
-    def create_forecast_by_projektmeldung(self, psp, json_format: bool) -> PspForecastDTO or str:
 
+    def create_forecast_by_projektmeldung(self, psp, json_format: bool) -> PspForecastDTO or str:
         fcs = ForecastService()
 
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
@@ -955,15 +975,14 @@ class ProjektService:
         else:
             return pfcdto
 
+
     def erstelle_erfassungsauswertung(self, projekt_dto: ProjektDTO, booking_dtos: [BookingDTO], json_format: bool) -> [
                                                                                                                            ErfassungsnachweisDTO] or str:
-
         laufzeit_von_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_von)
         laufzeit_bis_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_bis)
         anzahl_tage_seit_projektstart = (datetime.now().date() - laufzeit_von_date).days
 
         anzahl_projekttage = (laufzeit_bis_date - laufzeit_von_date).days
-
 
         #  booking_dtos: [BookingDTO] = self.get_bookings_for_psp(projekt_dto.psp, False)
 
@@ -1008,7 +1027,6 @@ class ProjektService:
 
         nachweise: [ErfassungsnachweisDTO] = []
 
-
         for pnummer, name_and_workhours in pmas.items():
 
             tage: [str] = []
@@ -1041,7 +1059,8 @@ class ProjektService:
                 erfassungs_nachweis_details_dtos.append(end_dto)
 
             # edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
-            edto = ErfassungsnachweisDTO(name_and_workhours[0], pnummer, erfassungs_nachweis_details_dtos, name_and_workhours[1])
+            edto = ErfassungsnachweisDTO(name_and_workhours[0], pnummer, erfassungs_nachweis_details_dtos,
+                                         name_and_workhours[1])
             nachweise.append(edto)
 
         # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
@@ -1063,9 +1082,9 @@ class ProjektService:
         else:
             return nachweise
 
+
     def get_package_summary(self, identifier: str, json_format: bool,
                             booking_dtos: [BookingDTO] = None) -> PspPackageSummaryDTO or str:
-
         pspp_dto: PspPackageDTO = self.get_package(identifier, False)
         pspp_dtos: [PspPackageDTO] = self.get_psp_packages(pspp_dto.psp, False)
 
@@ -1141,6 +1160,7 @@ class ProjektService:
         else:
             return summary_dto
 
+
     def get_package_summaries(self, projekt_dto_or_str: ProjektDTO or str, booking_dtos: [BookingDTO],
                               json_format: bool) -> [PspPackageSummaryDTO] or str:
         if type(projekt_dto_or_str) == str:
@@ -1160,6 +1180,7 @@ class ProjektService:
             return json.dumps(summaries, default=data_helper.serialize)
         else:
             return summaries
+
 
     def get_bundle_nachweise(self, project_summaries: [ProjectSummaryDTO], json_format: bool):
         alle_erfassung_dtos: [ErfassungsnachweisDTO] = []
@@ -1203,7 +1224,7 @@ class ProjektService:
                 for end in erfassungs_nachweis_dto.erfassungs_nachweis_details:
                     # Prüfen, ob es für diesen Tag schon ein detailsDTO gibt.
                     watched_erfassungs_nachweis_dto: ErfassungsNachweisDetailDTO = None
-                    cnachweis :ErfassungsNachweisDetailDTO
+                    cnachweis: ErfassungsNachweisDetailDTO
                     for cnachweis in collected_erfassungs_nachweise_dtos:
                         if cnachweis.tag == end.tag:
                             watched_erfassungs_nachweis_dto = cnachweis
@@ -1219,7 +1240,8 @@ class ProjektService:
                         watched_erfassungs_nachweis_dto.abwesenheit = end.abwesenheit
                         continue
 
-            new_endto = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, collected_erfassungs_nachweise_dtos, avg_work_hours_sum)
+            new_endto = ErfassungsnachweisDTO(efdtos[0].name, efdtos[0].personalnummer, collected_erfassungs_nachweise_dtos,
+                                              avg_work_hours_sum)
 
             neue_erfassungsnachwei_dtos.append(new_endto)
 

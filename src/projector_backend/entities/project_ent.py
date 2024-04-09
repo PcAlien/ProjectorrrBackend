@@ -30,7 +30,7 @@ class ProjectEmployee(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     personalnummer: Mapped[int] = mapped_column("personalnummer")
     name: Mapped[str] = mapped_column("name", String(30))
-    psp_bezeichnung: Mapped[str] = mapped_column("psp_bezeichnung", String(30))
+    psp_bezeichnung: Mapped[str] = mapped_column("psp_bezeichnung", String(200))
     psp_element: Mapped[str] = mapped_column("psp_element", String(30))
     stundensatz: Mapped[float] = mapped_column("stundensatz", )
     stundenbudget: Mapped[float] = mapped_column("stundenbudget", )

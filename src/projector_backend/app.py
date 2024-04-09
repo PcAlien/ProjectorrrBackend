@@ -35,8 +35,7 @@ jwt = JWTManager(app)
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
 
-# DB-Settings
-#engine = create_engine("sqlite:///db/datenbank.db", echo=True)
+
 
 # Replace with your MySQL credentials
 user = os.environ.get("DB_USER")
@@ -44,7 +43,9 @@ password = os.environ.get("DB_PASSWORD")
 host = os.environ.get("DB_HOST")
 database = os.environ.get("DB_DB")
 
-engine :Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
+# DB-Settings
+engine = create_engine("sqlite:///db/datenbank.db", echo=True)
+#engine :Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
 
 
 
