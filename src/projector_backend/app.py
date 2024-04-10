@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from sqlalchemy import create_engine, Engine
@@ -26,7 +26,8 @@ app = Flask(__name__)
 origin = os.environ.get("ORIGIN")
 
 # Security settings
-CORS(app, origins=["http://" + origin + ":4200","http://127.0.0.1:4200", "http://localhost:4200", "http://rtgsrv1pmgmt1:4200" ], supports_credentials=True)
+CORS(app, supports_credentials=True)
+#CORS(app, origins=["http://" + origin + ":4200","http://127.0.0.1:4200", "http://localhost:4200", "http://rtgsrv1pmgmt1:4200" ], supports_credentials=True)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
 jwt = JWTManager(app)
@@ -44,12 +45,9 @@ host = os.environ.get("DB_HOST")
 database = os.environ.get("DB_DB")
 
 # DB-Settings
-engine = create_engine("sqlite:///db/datenbank.db", echo=True)
-#engine :Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}")
-
-
-
-
+#engine = create_engine("sqlite:///db/datenbank.db", echo=True)
+engine :Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}?sql_mode=")
+# engine.connect().execute("SET sql_mode = ''")
 
 
 
@@ -87,6 +85,10 @@ app.register_blueprint(forecast_bp)
 def hello_world():  # put application's code here
     return "Hi - this is Projectorrr backend."
 
+@app.route('/origin')
+def origin():  # put application's code here
+    print("ORIGIN-CALL: " + request.headers.get('Origin'))
+    return jsonify(message= request.headers.get('Origin'))
 
 # if __name__ == '__main__':
 #     app.run()

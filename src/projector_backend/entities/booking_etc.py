@@ -19,7 +19,7 @@ class Booking(Base):
     bearbeitungsstatus: Mapped[int] = mapped_column("bearbeitungsstatus")
     bezeichnung: Mapped[str] = mapped_column("bezeichnung", String(300))
     psp: Mapped[str] = mapped_column("psp", String(10))
-    pspElement: Mapped[str] = mapped_column("pspElement", String(7))
+    pspElement: Mapped[str] = mapped_column("pspElement", String(20))
     stunden: Mapped[float] = mapped_column("stunden")
     text: Mapped[str] = mapped_column("text", String(300))
     erstelltAm: Mapped[datetime] = mapped_column("erstelltAm")
