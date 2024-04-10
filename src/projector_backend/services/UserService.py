@@ -13,10 +13,11 @@ from src.projector_backend.helpers import data_helper
 class UserService:
     _instance = None
 
-    def __new__(cls, engine, ):
+    def __new__(cls, engine, auth_service):
         if cls._instance is None:
             cls._instance = super(UserService, cls).__new__(cls)
             cls._instance.engine = engine
+            cls._instance.auth_service = auth_service
             cls._instance.Session = sessionmaker(bind=cls._instance.engine)
         return cls._instance
 
@@ -34,6 +35,21 @@ class UserService:
         hashed_password = hashlib.sha256(password_bytes).hexdigest()
 
         return hashed_password
+
+    def change_password(self, old_password, new_password) -> bool:
+        with self.Session() as session:
+            user = session.query(User).filter(User.username==self.auth_service.get_logged_user_name()).first()
+            encoded_old = old_password.encode()
+            encoded_new = new_password.encode()
+            hashed_old_password = hashlib.sha256(encoded_old).hexdigest()
+            if user.password != hashed_old_password:
+                return False
+            else:
+
+                hashed_new_password = hashlib.sha256(encoded_new).hexdigest()
+                user.password = hashed_new_password
+                session.commit()
+                return True
 
     def create_demo_users(self):
         # TODO: verbessern

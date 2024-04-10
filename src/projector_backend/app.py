@@ -58,11 +58,11 @@ authService = AuthService()
 dbservice = DBService(engine)
 pservice = ProjektService(engine, authService)
 cservice = CalendarService(engine)
-uservice = UserService(engine)
+uservice = UserService(engine, authService)
 excelhelper = EhBuchungen()
 
 # Register blueprints
-login_bp = create_auth_blueprint(engine, jwt)
+login_bp = create_auth_blueprint(jwt, uservice)
 bundle_bp = create_bundles_blueprint(pservice)
 init_bp = create_init_blueprint(engine, pservice, dbservice, uservice)
 project_bp = create_project_blueprint(pservice)
