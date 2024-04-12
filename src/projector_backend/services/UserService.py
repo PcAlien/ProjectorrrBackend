@@ -51,17 +51,28 @@ class UserService:
                 session.commit()
                 return True
 
+    def create_user (self, username) -> bool:
+        with self.Session() as session:
+            user = session.query(User).filter(User.username == username).first()
+
+            if user:
+                return False
+            else:
+                role =session.query(UserRole).filter(UserRole.name == "user").first()
+                u1 = User(username, self.hash_password("password"), [role])
+                session.add(u1)
+                session.commit()
+                return True
+
+
+
     def create_demo_users(self):
         # TODO: verbessern
         r1 = UserRole("user")
         r2 = UserRole("admin")
-
-        u1 = User("stefan", self.hash_password("password"), [r2])
-        u2 = User("robert", self.hash_password("password"), [r1])
-
+        u1 = User("testuser", self.hash_password("password"), [r2])
         with self.Session() as session:
             session.add(u1)
-            session.add(u2)
             session.commit()
 
     def get_all_users(self):

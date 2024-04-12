@@ -32,6 +32,16 @@ def create_auth_blueprint(jwt, userService):
         else:
             return {'status': "error"}
 
+    @auth_bp.route('/createUser', methods=['POST'])
+    @jwt_required()
+    def create_user():
+        credits = json.loads(request.form['credits'])
+        result = userService.create_user(credits['username'])
+        if result:
+            return {'status': "success"}
+        else:
+            return {'status': "error"}
+
 
     @jwt.token_in_blocklist_loader
     def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
