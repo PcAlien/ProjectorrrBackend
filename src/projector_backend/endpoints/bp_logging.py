@@ -43,9 +43,6 @@ def create_auth_blueprint(jwt, userService):
             return {'status': "error"}
 
 
-    @jwt.token_in_blocklist_loader
-    def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
-        jti = jwt_payload["jti"]
-        return jti in blacklist
+
 
     return auth_bp
