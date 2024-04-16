@@ -2,7 +2,7 @@ import json
 from typing import Type
 import hashlib
 
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, set_access_cookies
 from sqlalchemy.orm import sessionmaker
 
 from src.projector_backend.dto.UserDTO import UserDTO
@@ -82,7 +82,7 @@ class UserService:
             for user in users:
                 print(user.roles)
 
-    def login(self,username, password) -> str:
+    def login(self,username, password) :
         with (self.Session() as session):
             user = session.query(User).filter(User.username == username).filter(User.password == self.hash_password(password)).first()
 
@@ -90,7 +90,9 @@ class UserService:
                 user_dto = UserDTO.create_from_db(user)
                 user_dto.create_access_token()
 
-                return json.dumps(user_dto, default=data_helper.serialize)
+
+                #return user_dto, user_dto.access_token
+                return json.dumps(user_dto, default=data_helper.serialize), user_dto.access_token
             else:
                 return None
 

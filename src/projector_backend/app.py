@@ -32,8 +32,14 @@ CORS(app, supports_credentials=True)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=120)
-app.config['JWT_BLACKLIST_ENABLED'] = True
+app.config['JWT_BLACKLIST_ENABLED'] = False
+
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Optional, wenn du CSRF-Schutz für Cookies deaktivieren möchtest
+#app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "json", "query_string"]
+app.config["JWT_COOKIE_SECURE"] = False
 jwt = JWTManager(app)
+
 
 blocklist = []
 
@@ -44,57 +50,6 @@ def token_in_blocklist_loader(jwt_header, jwt_payload):
     jti = jwt_payload["jti"]
     return jti in blocklist
 
-
-# We are using the `refresh=True` options in jwt_required to only allow
-# refresh tokens to access this route.
-@app.route("/refresh", methods=["GET"])
-@jwt_required()
-def refresh():
-    identity = get_jwt_identity()
-    jti = get_jwt()["jti"]
-    blocklist.append(jti)
-    access_token = create_access_token(identity=identity)
-    return jsonify(access_token=access_token)
-
-
-#
-# @app.before_request
-# def mach_irgendwas():
-#     auth= request.headers.get('Authorization')
-#     if auth:
-#         print("AUTH: " + auth)
-#
-# @app.after_request
-# @jwt_required()
-# def bla(response):
-#
-#     current_user = get_current_user()
-#     new_access_token = create_access_token(identity=current_user, fresh=False)
-#     print("bla aufgerufen", new_access_token)
-#     return response
-
-# Benutzerdefinierte Middleware, um die Ablaufzeit des Tokens automatisch zu verlängern
-# @app.after_request
-# def refresh_expiring_jwt(response):
-#     try:
-#         # Überprüfe, ob der Endpunkt geschützt ist und der Benutzer authentifiziert ist
-#         #and 'application/json' in response.headers.get('Content-Type')
-#         if response.status_code == 200:
-#             #access_token = request.headers.get('Authorization').split(' ')[1]
-#             # Erstelle ein neues Zugriffstoken mit derselben Identität, aber ohne es zurückzugeben
-#             verify_jwt_in_request()
-#             current_user = get_jwt_identity()
-#             new_access_token = create_access_token(identity=current_user, fresh=False)
-#
-#             # Setze das aktualisierte Token nur im Hintergrund, ohne es an den Client zurückzugeben
-#             @after_this_request
-#             def update_access_token(response):
-#                 response.headers['Authorization'] = f'Bearer {new_access_token}'
-#                 return response
-#     except Exception as e:
-#         print(e)  # Behandele hier Fehler, die während der Token-Aktualisierung auftreten können
-#     finally:
-#         return response
 
 
 # Base.metadata.create_all(engine)
