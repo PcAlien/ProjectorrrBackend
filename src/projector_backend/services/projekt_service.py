@@ -136,7 +136,7 @@ class ProjektService:
                 pro = (
                     session.query(ProjectData)
                     .filter(ProjectData.psp == psp)
-                    .filter(ProjectData.uploadDatum.in_(subquery)).first()
+                    .filter(ProjectData.uploadDatum.in_(session.query(subquery))).first()
                 )
 
                 dtos = self.get_psp_packages(psp, False)
@@ -201,9 +201,7 @@ class ProjektService:
 
             projekte = (
                 session.query(ProjectData)
-                .filter(ProjectData.uploadDatum.in_(subquery))
-                # .filter(ProjectData.project.in_(user.projects))
-                # TODO: klappt das so ?
+                .filter(ProjectData.uploadDatum.in_(session.query(subquery)))
                 .filter(ProjectData.project_id.in_(pmaster_ids))
             )
 
@@ -421,7 +419,7 @@ class ProjektService:
 
             project_bundles = (
                 session.query(ProjectBundle)
-                .filter(ProjectBundle.uploadDatum.in_(subquery))
+                .filter(ProjectBundle.uploadDatum.in_(session.query(subquery)))
                 .filter(ProjectBundle.owner == self.auth_service.get_logged_user(session))
             )
 
@@ -737,16 +735,13 @@ class ProjektService:
         """
 
         with self.Session() as session:
-            subquery = (
-                session.query(func.max(Booking.uploadDatum))
-                .filter(Booking.psp == psp)
-                .subquery()
-            )
+            subquery = session.query(func.max(Booking.uploadDatum)).filter(Booking.psp == psp).scalar()
+
 
             latest_results = (
                 session.query(Booking)
                 .filter(Booking.psp == psp)
-                .filter(Booking.uploadDatum.in_(subquery))
+                .filter(Booking.uploadDatum == subquery)
             )
 
         booking_dtos: [BookingDTO] = []

@@ -56,7 +56,7 @@ class CalendarService:
             abwesenheit = (
                 session.query(Abwesenheit)
                 .filter(Abwesenheit.personalnummer == personalnummer)
-                .filter(Abwesenheit.uploadDatum.in_(subquery)).first()
+                .filter(Abwesenheit.uploadDatum.in_(session.query(subquery))).first()
             )
 
             if abwesenheit is None:

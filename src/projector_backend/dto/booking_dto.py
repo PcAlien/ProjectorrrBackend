@@ -72,4 +72,4 @@ class BookingDTO:
         return cls(buchung.name, buchung.personalnummer, buchung.datum, buchung.berechnungsmotiv,
                    buchung.bearbeitungsstatus, buchung.bezeichnung, buchung.psp, buchung.pspElement, buchung.stunden,
                    buchung.text, buchung.erstelltAm, buchung.letzteAenderung, buchung.id, umsatz=buchung.umsatz,
-                   stundensatz=buchung.stundensatz)
+                   stundensatz=buchung.stundensatz, uploaddatum=buchung.uploadDatum)
