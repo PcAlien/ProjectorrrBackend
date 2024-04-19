@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
 
 from src.projector_backend.dto.projekt_dto import ProjektDTO
+from src.projector_backend.dto.returners import DbResult
 from src.projector_backend.excel.eh_projektmeldung import EhProjektmeldung
 from src.projector_backend.helpers import data_helper
 from src.projector_backend.services.UserService import UserService
@@ -88,17 +89,20 @@ def create_project_blueprint(pservice):
                 file_found = True
 
                 eh = EhProjektmeldung()
-                pmas = eh.create_pms_from_export("./uploads/" + filename)
+                pmas, upload_errors, upload_warnings = eh.create_pms_from_export("./uploads/" + filename)
                 dto.projektmitarbeiter = pmas
 
-        neuesDTO, dbResult = pservice.save_update_project(dto, True)
+        if not upload_errors:
+            neuesDTO, dbResult = pservice.save_update_project(dto, True)
+        else:
+            dbResult = DbResult(False, upload_errors)
 
         if file_found:
             os.remove("./uploads/" + filename)
 
         if dbResult.complete:
             project_json = json.dumps(neuesDTO, default=data_helper.serialize)
-            return {'status': "Success", 'project': project_json}
+            return {'status': "Success", 'project': project_json, 'warnings': json.dumps(upload_warnings)}
         else:
             return {'status': "Error", 'error': dbResult.message}
 
@@ -124,4 +128,3 @@ def create_project_blueprint(pservice):
         return back
 
     return project_bp
-
