@@ -50,7 +50,7 @@ class EhProjektmeldung(ExcelHelper):
 
 
                 if not bezeichnung or bezeichnung is None:
-                    warnings.append("Für das PSP Element " + psp_element + " wurde keine PSP-Bezeichnung hinterlegt.")
+                    warnings.append("Beim PSP Element " + psp_element + " wurde keine PSP-Bezeichnung hinterlegt.")
                     if stundensatz == 0:
                         pma.psp_bezeichnung = "NF Stunden - " + name
                     else:
