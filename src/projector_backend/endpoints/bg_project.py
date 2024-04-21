@@ -56,7 +56,7 @@ def create_project_blueprint(pservice):
         file.save("./uploads/" + filename)
 
         eh = EhProjektmeldung()
-        pmas = eh.create_pms_from_export("./uploads/" + filename)
+        pmas = eh.create_pms_from_export("./uploads/" + filename, json_projektdaten['psp'])
 
         dto = ProjektDTO(**json_projektdaten)
         dto.projektmitarbeiter = pmas
@@ -89,7 +89,7 @@ def create_project_blueprint(pservice):
                 file_found = True
 
                 eh = EhProjektmeldung()
-                pmas, upload_errors, upload_warnings = eh.create_pms_from_export("./uploads/" + filename)
+                pmas, upload_errors, upload_warnings = eh.create_pms_from_export("./uploads/" + filename, dto.psp)
                 dto.projektmitarbeiter = pmas
 
         if not upload_errors:

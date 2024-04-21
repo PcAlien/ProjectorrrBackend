@@ -172,98 +172,117 @@ class CalendarService:
                 self.spalte_beginn = spalte_start
                 self.spalte_ende = spalte_start + 1
 
-        file_path = os.path.join(os.getcwd(), 'uploads', filename)
-        wb = self.eh.load_workbook(file_path)
-        wb.active: Worksheet = 0
+        try:
+            file_path = os.path.join(os.getcwd(), 'uploads', filename)
+            wb = self.eh.load_workbook(file_path)
+            wb.active: Worksheet = 0
 
-        liste_monate: [Monatsabstufung] = []
-        liste_spaltennummern = {}
+            liste_monate: [Monatsabstufung] = []
+            liste_spaltennummern = {}
 
-        # 1. Definieren, wo ein Monat anfängt.
-        for row in wb.active.iter_rows(values_only=False, min_row=1, max_row=2):
+            # Schneller Check, ob es überhaupt die richtige Datei ist
+            name_cell = wb.active['A2'].value
+            project_cell = wb.active['B2'].value
+            nr_cell = wb.active['C2'].value
 
-            cell: Cell
-            column = 1
-            for cell in row:
-                if type(cell.value) == datetime:
-                    if len(liste_monate) > 0:
-                        liste_monate[-1].spalte_ende = column - 1
+            if (name_cell != "Name" or project_cell != "Projekt" or nr_cell != "Perso.-Nr."):
+                return DbResult(False, "Die angegebene Datei hat das falsche Format. Handelt es sich dabei wirklich um die Abwesenheitsliste?")
 
-                    monat = Monatsabstufung(cell.value, column)
-                    liste_monate.append(monat)
-                    # print(column, cell.value)
-                column += 1
+            # 1. Definieren, wo ein Monat anfängt.
+            for row in wb.active.iter_rows(values_only=False, min_row=1, max_row=2):
 
-            liste_monate[-1].spalte_ende = column - 1
+                cell: Cell
+                column = 1
+                for cell in row:
+                    if type(cell.value) == datetime:
+                        if len(liste_monate) > 0:
+                            liste_monate[-1].spalte_ende = column - 1
 
-        # 2. Definieren, welcher Tag (Zahl) des Monats es ist
-        for row in wb.active.iter_rows(values_only=False, min_row=2, max_row=3, min_col=3):
-
-            cell: Cell
-            column = 3
-            for cell in row:
-                if type(cell.value) == int:
-                    liste_spaltennummern[column] = cell.value
-                column += 1
-
-        abw_dtos: [AbwesenheitDTO] = []
-
-        # 3. Urlaube eintragen
-        for row in wb.active.iter_rows(values_only=False, min_row=3):
-
-            cell: Cell
-            column = 0
-
-            ma_name = row[0].value
-            ma_nr = row[2].value
-
-            abwdt_dtos: [AbwesenheitDetailsDTO] = []
-
-            for cell in row:
-                if column < 3:
+                        monat = Monatsabstufung(cell.value, column)
+                        liste_monate.append(monat)
+                        # print(column, cell.value)
                     column += 1
-                    continue
 
-                if type(cell.value) == str:
+                liste_monate[-1].spalte_ende = column - 1
 
-                    cv = cell.value.strip().lower()
-                    if cv == "x" or cv == "u" or cv == "k" or cv == "a":
-                        tag_zahl = liste_spaltennummern[column + 1]
+            # 2. Definieren, welcher Tag (Zahl) des Monats es ist
+            for row in wb.active.iter_rows(values_only=False, min_row=2, max_row=3, min_col=3):
 
-                        passender_monat: Monatsabstufung = next(
-                            (monat for monat in liste_monate if monat.spalte_beginn <= column + 1 <= monat.spalte_ende),
-                            None)
+                cell: Cell
+                column = 3
+                for cell in row:
+                    if type(cell.value) == int:
+                        liste_spaltennummern[column] = cell.value
+                    column += 1
 
-                        if passender_monat is not None:
-                            ut = datetime(month=passender_monat.monat.month, day=tag_zahl, year=2024)
-                            if cv == "x" or cv == "u":
-                                abwdt_dtos.append(AbwesenheitDetailsDTO(date_helper.from_date_to_string(ut), "u"))
-                            else:
-                                abwdt_dtos.append(AbwesenheitDetailsDTO(date_helper.from_date_to_string(ut), "a"))
+            abw_dtos: [AbwesenheitDTO] = []
 
-                        # else:
-                        #     print("Kein passendes Element gefunden:")
-                        #     print("Passender Monat ist None. ")
-                        #     print("Zelle:", cv, cell.col_idx, cell.coordinate)
+            # 3. Urlaube eintragen
+            for row in wb.active.iter_rows(values_only=False, min_row=3):
 
-                column += 1
+                cell: Cell
+                column = 0
 
-            abw_dtos.append(AbwesenheitDTO(ma_name, ma_nr, abwdt_dtos))
+                ma_name = row[0].value
+                ma_nr = row[2].value
 
-        # 4. Wochenende und Feiertage entnehmen
+                if (not ma_nr or ma_nr ==""):
+                    return DbResult(False, "Für den Mitarbeiter '" + ma_name + "' wurde keine Personalnummer angegeben.")
 
-        deutsche_feiertage = holidays.Germany()
+                abwdt_dtos: [AbwesenheitDetailsDTO] = []
 
-        abw_dto: AbwesenheitDTO
-        for abw_dto in abw_dtos:
-            abwdtl_dto: AbwesenheitDetailsDTO
-            for abwdtl_dto in abw_dto.abwesenheitDetails:
+                for cell in row:
+                    if column < 3:
+                        column += 1
+                        continue
 
-                converted_date = date_helper.from_string_to_date_without_time(abwdtl_dto.datum)
+                    if type(cell.value) == str:
 
-                if converted_date in deutsche_feiertage or converted_date.weekday() == 5 or converted_date.weekday() == 6:
-                    abw_dto.abwesenheitDetails.remove(abwdtl_dto)
+                        cv = cell.value.strip().lower()
+                        if cv == "x" or cv == "u" or cv == "k" or cv == "a":
+                            tag_zahl = liste_spaltennummern[column + 1]
 
-        # 5 in der Datenbank speichern
-        result: DbResult = self.add_abwesenheiten(abw_dtos)
-        return result
+                            passender_monat: Monatsabstufung = next(
+                                (monat for monat in liste_monate if monat.spalte_beginn <= column + 1 <= monat.spalte_ende),
+                                None)
+
+                            if passender_monat is not None:
+                                ut = datetime(month=passender_monat.monat.month, day=tag_zahl, year=2024)
+                                if cv == "x" or cv == "u":
+                                    abwdt_dtos.append(AbwesenheitDetailsDTO(date_helper.from_date_to_string(ut), "u"))
+                                else:
+                                    abwdt_dtos.append(AbwesenheitDetailsDTO(date_helper.from_date_to_string(ut), "a"))
+
+                            # else:
+                            #     print("Kein passendes Element gefunden:")
+                            #     print("Passender Monat ist None. ")
+                            #     print("Zelle:", cv, cell.col_idx, cell.coordinate)
+
+                    column += 1
+
+                abw_dtos.append(AbwesenheitDTO(ma_name, ma_nr, abwdt_dtos))
+
+            # 4. Wochenende und Feiertage entnehmen
+
+            deutsche_feiertage = holidays.Germany()
+
+            abw_dto: AbwesenheitDTO
+            for abw_dto in abw_dtos:
+                abwdtl_dto: AbwesenheitDetailsDTO
+                for abwdtl_dto in abw_dto.abwesenheitDetails:
+
+                    converted_date = date_helper.from_string_to_date_without_time(abwdtl_dto.datum)
+
+                    if converted_date in deutsche_feiertage or converted_date.weekday() == 5 or converted_date.weekday() == 6:
+                        abw_dto.abwesenheitDetails.remove(abwdtl_dto)
+
+            # 5 in der Datenbank speichern
+            result: DbResult = self.add_abwesenheiten(abw_dtos)
+            return result
+
+        except IndexError:
+            return DbResult(False, "Die Abwesenheitsdatei konnte nicht verarbeitet werden, da das Format nicht korrekt ist. Wurde die richtige Datei ausgewählt?")
+
+        except:
+            return DbResult(False, "Die Abwesenheitsdatei konnte nicht verarbeitet werden. ")
+

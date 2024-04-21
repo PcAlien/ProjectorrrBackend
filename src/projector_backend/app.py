@@ -31,13 +31,13 @@ CORS(app, supports_credentials=True)
 # CORS(app, origins=["http://" + origin + ":4200","http://127.0.0.1:4200", "http://localhost:4200", "http://rtgsrv1pmgmt1:4200" ], supports_credentials=True)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=120)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=60)
 app.config['JWT_BLACKLIST_ENABLED'] = False
 
-app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Optional, wenn du CSRF-Schutz für Cookies deaktivieren möchtest
 #app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "json", "query_string"]
-app.config["JWT_COOKIE_SECURE"] = False
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+
 jwt = JWTManager(app)
 
 

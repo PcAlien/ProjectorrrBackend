@@ -17,8 +17,10 @@ def create_auth_blueprint(jwt, userService):
         username = request.form['email']
         password = request.form['password']
         user_dto, at = userService.login(username, password)
+
+
         response = make_response(user_dto)
-        response.set_cookie('access_token_cookie', at, httponly=True)
+        #response.set_cookie('access_token_cookie', at, httponly=True)
 
 
         if user_dto:
