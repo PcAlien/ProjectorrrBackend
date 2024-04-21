@@ -18,9 +18,15 @@ userroles = Table(
 user2projects = Table(
     "user2projects",
     Base.metadata,
-    Column("left_id", ForeignKey("users.id")),
-    Column("right_id", ForeignKey("projects.id"))
+    Column("left_id", ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("right_id", ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True)
 )
+
+# class User2Project(Base):
+#     __tablename__ = "user2projects"
+#
+#     left_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+#     right_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
 
 class UserRole(Base):
 
@@ -44,7 +50,7 @@ class User(Base):
 
     roles:Mapped[List[UserRole]] = relationship(secondary=userroles, lazy=False)
 
-    projects:Mapped[List[Project]] = relationship(secondary=user2projects, lazy= False)
+    projects:Mapped[List[Project]] = relationship(secondary=user2projects, lazy= False, cascade="")
 
     bundles: Mapped[List["ProjectBundle"]] = relationship(back_populates="owner")
 

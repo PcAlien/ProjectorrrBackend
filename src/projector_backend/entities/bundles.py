@@ -29,7 +29,7 @@ class ProjectBundle(Base):
     description: Mapped[str] = mapped_column("description", String(300))
     identifier: Mapped[str] = mapped_column("identifier", String(50))
 
-    bundled_psps = relationship("ProjectBundlePSPElement", back_populates="project_bundle", lazy=False)
+    bundled_psps = relationship("ProjectBundlePSPElement", back_populates="project_bundle", lazy=False, cascade="all")
 
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 

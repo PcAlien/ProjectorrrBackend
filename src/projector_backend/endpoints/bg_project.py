@@ -1,7 +1,7 @@
 import json
 import os
 
-from flask import Blueprint, current_app, request, abort
+from flask import Blueprint, current_app, request, abort, jsonify
 from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
 
@@ -9,6 +9,7 @@ from src.projector_backend.dto.projekt_dto import ProjektDTO
 from src.projector_backend.dto.returners import DbResult
 from src.projector_backend.excel.eh_projektmeldung import EhProjektmeldung
 from src.projector_backend.helpers import data_helper
+from src.projector_backend.helpers.decorators import admin_required
 from src.projector_backend.services.UserService import UserService
 
 
@@ -56,12 +57,19 @@ def create_project_blueprint(pservice):
         file.save("./uploads/" + filename)
 
         eh = EhProjektmeldung()
-        pmas = eh.create_pms_from_export("./uploads/" + filename, json_projektdaten['psp'])
+        pmas, upload_errors, upload_warnings  = eh.create_pms_from_export("./uploads/" + filename, json_projektdaten['psp'])
 
-        dto = ProjektDTO(**json_projektdaten)
-        dto.projektmitarbeiter = pmas
+        if upload_errors:
+            dbResult = DbResult(False, upload_errors)
+        else:
 
-        neuesDTO, dbResult = pservice.save_update_project(dto)
+            dto = ProjektDTO(**json_projektdaten)
+            dto.projektmitarbeiter = pmas
+            neuesDTO, dbResult = pservice.save_update_project(dto)
+
+
+
+
 
         os.remove("./uploads/" + filename)
         if dbResult.complete:
@@ -127,4 +135,14 @@ def create_project_blueprint(pservice):
         back = pservice.toggle_user_project(pmaster_id)
         return back
 
+    @project_bp.route('/deleteProject', methods=['GET'])
+    @admin_required()
+    def delete_project():  # put application's code here
+        psp = request.args.get('psp')
+
+        back = pservice.delete_project(psp)
+        return jsonify(back)
+
     return project_bp
+
+

@@ -9,6 +9,7 @@ from sqlalchemy.orm import relationship
 from src.projector_backend.entities.Base import Base
 
 
+
 class Project(Base):
     __tablename__ = "projects"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -17,7 +18,7 @@ class Project(Base):
     created_at: Mapped[datetime] = mapped_column("createdAt")
     created_by: Mapped[str] = mapped_column("createdBy", String(30))
 
-    project_datas: Mapped[List["ProjectData"]] = relationship(back_populates="project", lazy=False)
+    project_datas: Mapped[List["ProjectData"]] = relationship(back_populates="project", lazy=False, cascade="all")
 
     def __init__(self, projekt_original_name: str, created_by: str) -> None:
         self.projekt_original_name = projekt_original_name
@@ -78,7 +79,7 @@ class ProjectData(Base):
 
     #    psp_packages = relationship("PspPackage", back_populates="projekt", lazy=False)
 
-    projektmitarbeiter = relationship("ProjectEmployee", back_populates="project", lazy=False)
+    projektmitarbeiter = relationship("ProjectEmployee", back_populates="project", lazy=False, cascade="all")
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
     changed_by: Mapped[str] = mapped_column("changed_by", String(30))
 

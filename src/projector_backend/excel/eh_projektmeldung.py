@@ -35,9 +35,9 @@ class EhProjektmeldung(ExcelHelper):
         splitted = test_psp_element.split(".")
         viewed_psp = splitted[0]
 
-        if viewed_psp != psp:
+        if viewed_psp != str(psp):
             errors.append(
-                "Die ausgewählten Datei scheint für ein anderes Projekt bestimmt zu sein (" + viewed_psp + " anstelle von " + psp + ")")
+                "Die ausgewählten Datei scheint für ein anderes Projekt bestimmt zu sein (" + str(viewed_psp) + " anstelle von " + str(psp) + ")")
             return pmas, errors, warnings
 
         for row in ws.iter_rows(values_only=True, min_row=2):
