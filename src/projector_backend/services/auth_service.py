@@ -1,13 +1,6 @@
-import json
 from typing import Type
-import hashlib
-
 from flask_jwt_extended import get_jwt_identity
-from sqlalchemy.orm import sessionmaker
-
-from src.projector_backend.dto.UserDTO import UserDTO
-from src.projector_backend.entities.User import UserRole, User
-from src.projector_backend.helpers import data_helper
+from src.projector_backend.entities.User import  User
 
 
 class AuthService:

@@ -30,3 +30,29 @@ class AbwesenheitDTO:
             )
 
         return cls(abwesenheit.name, abwesenheit.personalnummer, abwesenheitDetailsDTOs)
+
+class AbwesenheitsRangeDTO:
+    personalnummer: int
+    abwStart: str
+    abwEnde: str
+    abwType: str
+
+    def __init__(self, personalnummer, abwStart, abwEnde, abwType):
+        self.personalnummer = personalnummer
+        self.abwStart = abwStart
+        self.abwEnde = abwEnde
+        self.abwType = abwType
+
+
+
+class EmployeeDTO:
+    name: str
+    personalnummer: int
+
+    def __init__(self, name: str, personalnummer: int,) -> None:
+        self.name = name
+        self.personalnummer = personalnummer
+
+    @classmethod
+    def create_from_db(cls, abwesenheit: Abwesenheit):
+        return cls(abwesenheit.name, abwesenheit.personalnummer)

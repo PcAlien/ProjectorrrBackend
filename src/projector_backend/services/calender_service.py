@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Type
 
 import holidays
@@ -10,7 +10,8 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
-from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO
+from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO, AbwesenheitDetailsDTO, EmployeeDTO, \
+    AbwesenheitsRangeDTO
 from src.projector_backend.dto.calendar_data import CalenderData
 from src.projector_backend.dto.returners import DbResult
 from src.projector_backend.entities.abwesenheit_db import Abwesenheit, AbwesenheitDetails
@@ -126,6 +127,54 @@ class CalendarService:
                 return DbResult(False, e)
 
         return DbResult(True, "All vacation entries haven been stored successfully.")
+
+    def add_abwesenheits_range(self, abw_r_dto: AbwesenheitsRangeDTO):
+
+
+        # 1 Alle Tage auflisten
+        startdatum = date_helper.from_string_to_date_without_time(abw_r_dto.abwStart)
+        enddatum = date_helper.from_string_to_date_without_time(abw_r_dto.abwEnde)
+
+        def date_range(start_date, end_date):
+            days = (end_date - start_date).days + 1
+            return [start_date + timedelta(days=i) for i in range(days)]
+
+        date_list = date_range(startdatum, enddatum)
+
+        abw_details = []
+
+        try:
+            Session = sessionmaker(bind=self.engine)
+            with Session() as session:
+               # employee = session.query(Abwesenheit).filter(Abwesenheit.personalnummer == abw_r_dto.personalnummer).first()
+
+                subquery = (
+                    session.query(func.max(Abwesenheit.uploadDatum))
+                    .filter(Abwesenheit.personalnummer == abw_r_dto.personalnummer)
+                    .subquery()
+                )
+
+                employee = (
+                    session.query(Abwesenheit)
+                    .filter(Abwesenheit.personalnummer == abw_r_dto.personalnummer)
+                    .filter(Abwesenheit.uploadDatum.in_(session.query(subquery))).first()
+                )
+
+
+                for datum in date_list:
+                    abw_detail = AbwesenheitDetails(date_helper.from_date_to_string(datum),abw_r_dto.abwType)
+                    abw_detail.abwesenheit = employee
+                    abw_details.append(abw_detail)
+
+                session.add_all(abw_details)
+                session.commit()
+            return True
+        except:
+            return False
+
+
+
+
 
     def _get_all_abwesenheiten(self, json_format: bool = True):
         Session = sessionmaker(bind=self.engine)
@@ -286,3 +335,19 @@ class CalendarService:
         except:
             return DbResult(False, "Die Abwesenheitsdatei konnte nicht verarbeitet werden. ")
 
+    def get_employees(self, json_format: bool = True):
+        Session = sessionmaker(bind=self.engine)
+
+        with Session() as session:
+
+            abwesenheiten = session.query(Abwesenheit).all()
+
+            emp_dtos = []
+            for abw in abwesenheiten:
+                employee_dto = EmployeeDTO.create_from_db(abw)
+                emp_dtos.append(employee_dto)
+
+            if (json_format):
+                return json.dumps(emp_dtos, default=data_helper.serialize)
+            else:
+                return emp_dtos

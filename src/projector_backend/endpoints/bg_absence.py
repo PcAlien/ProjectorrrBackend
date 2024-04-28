@@ -1,8 +1,11 @@
+import json
 import os
 
-from flask import Blueprint, current_app, request, abort
+from flask import Blueprint, current_app, request, abort, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
+
+from src.projector_backend.dto.abwesenheiten import AbwesenheitsRangeDTO
 
 
 def create_absence_blueprint(cservice):
@@ -52,5 +55,28 @@ def create_absence_blueprint(cservice):
         cservice.getInstance().add_abwesenheit(abw)
 
         return {'answer': "Added Abwesenheit!!!"}
+
+    @absence_bp.route('/addAbwesenheiten', methods=["POST"])
+    @jwt_required()
+    def add_abwesenheiten():
+        abw = request.form.get("abwData")
+        jload = json.loads(abw)
+        abwRange = AbwesenheitsRangeDTO(**jload)
+        back = cservice.getInstance().add_abwesenheits_range(abwRange)
+
+        if back:
+            return {'status': "Success"}
+        else:
+            return {'status': "Error",
+                    'error': "Das ging wohl irgendwie nicht so wie geplant..."
+                    }
+
+
+
+    @absence_bp.route('/getEmployees', methods=["GET"])
+    @jwt_required()
+    def get_employees():
+        back = cservice.getInstance().get_employees()
+        return back
 
     return absence_bp
