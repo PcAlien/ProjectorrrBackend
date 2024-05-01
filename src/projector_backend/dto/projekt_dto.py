@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
+from src.projector_backend.dto.abwesenheiten import EmployeeDTO
 from src.projector_backend.entities.project_ent import ProjectData, ProjectEmployee
 from src.projector_backend.services.tempclasses import Ma_Identifier_DTO
 
@@ -14,7 +15,7 @@ class ProjektmitarbeiterDTO(Ma_Identifier_DTO):
     uploaddatum: datetime
 
 
-    def __init__(self, personalnummer: str, name: str, psp_bezeichnung: str, psp_element: str, stundensatz: int,
+    def __init__(self, employee_dto, psp_bezeichnung: str, psp_element: str, stundensatz: int,
                  stundenbudget: int, laufzeit_von: str, laufzeit_bis: str, dbID=0, ) -> None:
         self.stundenbudget = stundenbudget
         self.laufzeit_bis = laufzeit_bis
@@ -22,12 +23,13 @@ class ProjektmitarbeiterDTO(Ma_Identifier_DTO):
         self.laufzeit_von = laufzeit_von
         self.stundensatz = stundensatz
         self.dbID = dbID
-        super().__init__(name, personalnummer, psp_element)
+        super().__init__(employee_dto, psp_element)
 
     @classmethod
     def create_from_db(cls, pma: ProjectEmployee):
-        return cls(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element, pma.stundensatz,
-                   pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id, )
+        edto = EmployeeDTO.create_from_db(pma.employee)
+        return cls(edto, pma.psp_bezeichnung, pma.psp_element, pma.stundensatz,
+                   pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id )
 
 
 class ProjektDTO:
@@ -74,10 +76,11 @@ class ProjektDTO:
         projektmitarbeiter: [ProjektmitarbeiterDTO] = []
         pma: ProjectEmployee
         for pma in projekt.projektmitarbeiter:
+            edto = EmployeeDTO.create_from_db(pma.employee)
             projektmitarbeiter.append(
-                ProjektmitarbeiterDTO(pma.personalnummer, pma.name, pma.psp_bezeichnung, pma.psp_element,
+                ProjektmitarbeiterDTO(edto, pma.psp_bezeichnung, pma.psp_element,
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
 
-        return cls(projekt.projekt_name, projekt.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
+        return cls(projekt.projekt_name, projekt.project.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
                    projektmitarbeiter, psp_packages, projekt.project_id, projekt.id, uploaddatum=projekt.uploadDatum,
                    )

@@ -93,7 +93,7 @@ class ForecastService:
 
                     abw: AbwesenheitDTO
                     for abw in calender_data.abwesenheiten:
-                        if abw.personalnummer == ma.personalnummer:
+                        if abw.employee.personalnummer == ma.employee.personalnummer:
                             ma_abwesenheiten = abw.abwesenheitDetails
 
                     # Datum betrachten: wird es ein WE Tag, ein Urlaubstag, ein Abwesenheitstag sein? Falls ja, kein Umsatz.
@@ -114,7 +114,7 @@ class ForecastService:
 
                     letzter_gesamtumsatz_ma += tagesumsatz
 
-                    pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
+                    pedf = PspElementDayForecast(betrachteter_tag, ma.employee.name, ma.employee.personalnummer, ma.psp_element,
                                                  tagesumsatz,
                                                  letzter_gesamtumsatz_ma)
                     psp_element_day_forecasts.append(pedf)
@@ -126,7 +126,7 @@ class ForecastService:
                     psp_element_to_gesamtumsatz_dict[ma.psp_element] = 0
                     mas_without_entries.add(ma)
 
-                    pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
+                    pedf = PspElementDayForecast(betrachteter_tag, ma.employee.name, ma.employee.personalnummer, ma.psp_element,
                                                  0,
                                                  0)
                     psp_element_day_forecasts.append(pedf)
@@ -236,7 +236,7 @@ class ForecastService:
                 # TODO: Muss das eigentlich immer wieder gemacht werden? Kann das nicht auserhalb der Schleife passieren?
                 abw: AbwesenheitDTO
                 for abw in calender_data.abwesenheiten:
-                    if abw.personalnummer == ma.personalnummer:
+                    if abw.employee.personalnummer == ma.employee.personalnummer:
                         ma_abwesenheiten = abw.abwesenheitDetails
 
                 # Datum betrachten: wird es ein WE Tag, ein Urlaubstag, ein Abwesenheitstag sein? Falls ja, kein Umsatz.
@@ -257,7 +257,7 @@ class ForecastService:
 
                 letzter_gesamtumsatz_ma += tagesumsatz
 
-                pedf = PspElementDayForecast(betrachteter_tag, ma.name, ma.personalnummer, ma.psp_element,
+                pedf = PspElementDayForecast(betrachteter_tag, ma.employee.name, ma.employee.personalnummer, ma.psp_element,
                                              tagesumsatz,
                                              letzter_gesamtumsatz_ma)
                 psp_element_day_forecasts.append(pedf)

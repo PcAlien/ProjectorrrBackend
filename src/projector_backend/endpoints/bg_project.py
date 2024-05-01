@@ -86,6 +86,8 @@ def create_project_blueprint(pservice):
 
         dto = ProjektDTO(**json_projektdaten)
         file_found = False
+        upload_errors = None
+        upload_warnings = None
         if 'file' in request.files:
             file = request.files['file']
             if file.filename != "":

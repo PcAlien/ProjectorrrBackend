@@ -66,14 +66,24 @@ class UserService:
 
 
 
-    def create_demo_users(self):
+    def create_admin_users(self):
         # TODO: verbessern
-        r1 = UserRole("user")
-        r2 = UserRole("admin")
-        u1 = User("testuser", self.hash_password("password"), [r2])
         with self.Session() as session:
-            session.add(u1)
-            session.commit()
+
+            adminsuser = session.query(User).filter(User.username == "admin").first()
+            if not adminsuser:
+
+                r1 = UserRole("user")
+                r2 = UserRole("admin")
+                session.add(r1)
+                session.add(r2)
+                session.commit()
+                session.refresh(r2)
+
+                u1 = User("admin", self.hash_password("password"), [r2])
+
+                session.add(u1)
+                session.commit()
 
     def get_all_users(self):
         with self.Session() as session:
@@ -94,7 +104,7 @@ class UserService:
                 #return user_dto, user_dto.access_token
                 return json.dumps(user_dto, default=data_helper.serialize), user_dto.access_token
             else:
-                return None
+                return None, None
 
 
 

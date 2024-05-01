@@ -1,12 +1,12 @@
 from datetime import datetime
 
+from src.projector_backend.dto.abwesenheiten import EmployeeDTO
 from src.projector_backend.entities.booking_etc import Booking
 from src.projector_backend.helpers import date_helper as dh
 
 
 class BookingDTO:
-    name: str
-    personalnummer: int
+    employee: EmployeeDTO
     datum: datetime
     berechnungsmotiv: str
     bearbeitungsstatus: int
@@ -21,8 +21,7 @@ class BookingDTO:
     stundensatz: float
     umsatz: float
 
-    def __init__(self, name: str,
-                 personalnummer: int,
+    def __init__(self, employee: EmployeeDTO,
                  datum: str | datetime,
                  berechnungsmotiv: str,
                  bearbeitungsstatus: int,
@@ -58,8 +57,7 @@ class BookingDTO:
         else:
             self.letzteAenderung = letzteAenderung
 
-        self.personalnummer = personalnummer
-        self.name = name
+        self.employee = employee
         self.text = text
         self.psp = psp
         self.id = id
@@ -69,7 +67,8 @@ class BookingDTO:
 
     @classmethod
     def create_from_db(cls, buchung: Booking):
-        return cls(buchung.name, buchung.personalnummer, buchung.datum, buchung.berechnungsmotiv,
+        edto = EmployeeDTO.create_from_db(buchung.employee)
+        return cls(edto, buchung.datum, buchung.berechnungsmotiv,
                    buchung.bearbeitungsstatus, buchung.bezeichnung, buchung.psp, buchung.pspElement, buchung.stunden,
                    buchung.text, buchung.erstelltAm, buchung.letzteAenderung, buchung.id, umsatz=buchung.umsatz,
                    stundensatz=buchung.stundensatz, uploaddatum=buchung.uploadDatum)

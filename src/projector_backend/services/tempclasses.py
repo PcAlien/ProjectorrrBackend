@@ -1,3 +1,5 @@
+from src.projector_backend.dto.abwesenheiten import EmployeeDTO
+
 
 class MaDailyAvgDTO:
     """
@@ -11,13 +13,11 @@ class MaDailyAvgDTO:
         self.durchschnitts_tagesumsatz = durchschnitts_tagesumsatz
 
 class Ma_Identifier_DTO():
-    name: str
-    personalnummer: str
+    employee: EmployeeDTO
     psp_element: str
 
-    def __init__(self, name, personalnummer, psp_element) -> None:
-        self.name = name
-        self.personalnummer = personalnummer
+    def __init__(self, employee: EmployeeDTO, psp_element) -> None:
+        self.employee = employee
         self.psp_element = psp_element
 
 
@@ -43,7 +43,7 @@ class Ma_Zwischenspeicher_DTO(Ma_Identifier_DTO):
         self.stunden = 0
         self.tage = 0
         self.calc_values_by_projektmeldung = calc_values_by_projektmeldung
-        super().__init__(name, personalnummer, psp_element)
+        super().__init__(EmployeeDTO(name, personalnummer), psp_element)
 
     def add_stunden(self, stunden):
         self.stunden += stunden

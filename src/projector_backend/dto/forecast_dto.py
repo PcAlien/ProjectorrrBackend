@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from src.projector_backend.dto.abwesenheiten import EmployeeDTO
 from src.projector_backend.dto.projekt_dto import ProjektmitarbeiterDTO, ProjektDTO
 from src.projector_backend.services.tempclasses import Ma_Identifier_DTO, MaDailyAvgDTO
 
@@ -13,13 +14,13 @@ class PspElementDayForecast(Ma_Identifier_DTO):
     geschaetzter_tagesumsatz: float
     geschatzer_gesamtumsatz: float  # bis zum tag
 
-    def __init__(self, tag: datetime, name: str, personalnummer: str, psp_element: str,
+    def __init__(self, tag: datetime, name: str, personalnummer: int, psp_element: str,
                  geschaetzter_tagesumsatz: float,
                  geschatzer_gesamtumsatz: float) -> None:
         self.geschaetzter_tagesumsatz = geschaetzter_tagesumsatz
         self.tag = tag
         self.geschatzer_gesamtumsatz = geschatzer_gesamtumsatz
-        super().__init__(name, personalnummer, psp_element)
+        super().__init__(EmployeeDTO(name, personalnummer), psp_element)
 
 
 class ForecastDayView:

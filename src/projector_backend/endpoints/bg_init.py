@@ -37,7 +37,7 @@ def create_init_blueprint(engine, pservice, dbservice, uservice):
 
     def create_init_data():
         dbservice.create_import_settings()
-        uservice.create_demo_users()
+        uservice.create_admin_users()
         # _lade_demoprojekte()
         # _lade_demobuchungen()
         # _lade_demoabwesenheiten()

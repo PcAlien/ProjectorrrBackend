@@ -1,25 +1,28 @@
+from src.projector_backend.dto.abwesenheiten import EmployeeDTO
+
+
 class MaBookingsSummaryElementDTO:
-    name: str
-    personalnummer: int
+
+    employee: EmployeeDTO
     psp: str
     psp_element: str
     stundensatz: float
     stunden: float
     umsatz: float
 
-    def __init__(self, name: str, personalnummer: int, psp: str, psp_element: str, stundensatz: float, stunden: float,
+    def __init__(self, employee: EmployeeDTO, psp: str, psp_element: str, stundensatz: float, stunden: float,
                  umsatz: float) -> None:
         self.stunden = stunden
         self.umsatz = umsatz
         self.psp_element = psp_element
-        self.name = name
-        self.personalnummer = personalnummer
+        self.employee = employee
         self.psp = psp
         self.stundensatz = stundensatz
 
 
 class MaBookingsSummaryDTO:
     sum: int
+    psp: str
     bookings: [MaBookingsSummaryElementDTO]
 
     def __init__(self, bookings: [MaBookingsSummaryElementDTO], sum: int) -> None:
@@ -29,3 +32,4 @@ class MaBookingsSummaryDTO:
     @classmethod
     def create_from_db_result(cls, test):
         pass
+

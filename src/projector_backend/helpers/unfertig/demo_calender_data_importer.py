@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.projector_backend.entities.abwesenheit_db import AbwesenheitDetails, Abwesenheit
+from src.projector_backend.entities.abwesenheit_db import AbwesenheitDetails, Employee
 from src.projector_backend.helpers import data_helper
 from src.projector_backend.services.calender_service import CalendarService
 
@@ -28,7 +28,7 @@ def run():
             abd = AbwesenheitDetails(a, "U", uploadDatum)
             abwesenheitenDetailsList.append(abd)
 
-        ab: Abwesenheit = Abwesenheit(maName, personalnummer, "", abwesenheitenDetailsList, uploadDatum)
+        ab: Employee = Employee(maName, personalnummer, abwesenheitenDetailsList, uploadDatum=uploadDatum)
         abs.append(ab)
 
     CalendarService.getInstance().proceed_demodaten(abs)

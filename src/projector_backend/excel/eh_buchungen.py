@@ -6,6 +6,7 @@ from openpyxl.styles import numbers
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
+from src.projector_backend.dto.abwesenheiten import EmployeeDTO
 from src.projector_backend.dto.booking_dto import BookingDTO
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungDTO, MonatsaufteilungSummaryDTO
@@ -47,13 +48,19 @@ class EhBuchungen(ExcelHelper):
 
     def _process_excel_reading(self, uploadDatum: datetime, ws: Worksheet, ifc: ImportFileColumns,
                                bookingDTOs: [BookingDTO]):
+
+        import time
+        start = time.time()
         if ifc.delete_empty_lines:
             self._delete_summary_rows(ws)
+        stop = time.time()
+
+        diff = stop-start
+        print("ZEIT: ", diff)
 
         for row in ws.iter_rows(values_only=True, min_row=2):
-            dto = BookingDTO(
-                row[ifc.name],
-                row[ifc.personalnummer],
+            dto = BookingDTO(EmployeeDTO(row[ifc.name],
+                row[ifc.personalnummer]),
                 row[ifc.leistungsdatum],
                 row[ifc.fakturierbar],
                 row[ifc.status],
@@ -83,9 +90,9 @@ class EhBuchungen(ExcelHelper):
                     toDelete.append(i)
 
         # delete useless rows
-        for counter, rowNumber in enumerate(toDelete):
-            sheet.delete_rows(rowNumber - counter)
-            counter += 1
+        for  rowNumber in sorted(toDelete, reverse=True):
+            sheet.delete_rows(rowNumber)
+
 
         # TODO: lässt sich das kürzen?
 
@@ -156,7 +163,7 @@ class EhBuchungen(ExcelHelper):
         dto: BookingDTO
         for dto in booking_dtos:
             worksheet.append(
-                [dto.name, dto.personalnummer, dto.datum, dto.berechnungsmotiv, dto.bearbeitungsstatus, dto.bezeichnung,
+                [dto.employee.name,dto.employee.personalnummer, dto.datum, dto.berechnungsmotiv, dto.bearbeitungsstatus, dto.bezeichnung,
                  dto.psp, dto.pspElement, dto.stunden, dto.stundensatz, dto.umsatz, dto.text,
                  dto.erstelltAm, dto.letzteAenderung])
 
@@ -170,7 +177,7 @@ class EhBuchungen(ExcelHelper):
         dto: MaBookingsSummaryElementDTO
         for dto in mas_dtos:
             worksheet.append(
-                [dto.name, dto.personalnummer, dto.psp_element, dto.stunden, dto.stundensatz, dto.umsatz])
+                [dto.employee.name, dto.employee.personalnummer, dto.psp_element, dto.stunden, dto.stundensatz, dto.umsatz])
 
         self.format_column(worksheet, 3, numbers.FORMAT_NUMBER_00)
         self.format_column(worksheet, 4, '#,##0.00 €')

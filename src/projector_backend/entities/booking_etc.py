@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import String
-from sqlalchemy.orm import Mapped
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.orm import mapped_column
 
 # from dto.projekt_dto import ProjektDTO
@@ -12,8 +12,11 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column("name", String(30))
-    personalnummer: Mapped[int] = mapped_column("personalnummer")
+
+
+    employee: Mapped["Employee"] = relationship(back_populates="bookings", lazy=False)
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))
+
     datum: Mapped[datetime] = mapped_column("Datum")
     berechnungsmotiv: Mapped[str] = mapped_column("berechnungsmotiv", String(2))
     bearbeitungsstatus: Mapped[int] = mapped_column("bearbeitungsstatus")
@@ -28,8 +31,8 @@ class Booking(Base):
     umsatz: Mapped[float] = mapped_column("umsatz")
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
-    def __init__(self, name: str,
-                 personalnummer: int,
+    def __init__(self,
+                 employee: employee,
                  datum: datetime,
                  berechnungsmotiv: str,
                  bearbeitungsstatus: int,
@@ -52,8 +55,7 @@ class Booking(Base):
         self.berechnungsmotiv = berechnungsmotiv
         self.bezeichnung = bezeichnung
         self.letzteAenderung = letzteAenderung
-        self.personalnummer = personalnummer
-        self.name = name
+        self.employee = employee
         self.text = text
         self.psp = psp
         self.stundensatz = stundensatz

@@ -1,4 +1,17 @@
-from src.projector_backend.entities.abwesenheit_db import Abwesenheit
+from src.projector_backend.entities.abwesenheit_db import Employee, AbwesenheitDetails
+
+
+class EmployeeDTO:
+    name: str
+    personalnummer: int
+
+    def __init__(self, name: str, personalnummer: int,) -> None:
+        self.name = name
+        self.personalnummer = personalnummer
+
+    @classmethod
+    def create_from_db(cls, employee: Employee):
+        return cls(employee.name, employee.personalnummer)
 
 
 class AbwesenheitDetailsDTO:
@@ -11,27 +24,30 @@ class AbwesenheitDetailsDTO:
 
 
 class AbwesenheitDTO:
-    name: str
-    personalnummer: int
+
+    employee: EmployeeDTO
     abwesenheitDetails: [AbwesenheitDetailsDTO]
 
-    def __init__(self, name: str, personalnummer: int,  abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
+    def __init__(self, employee,  abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
         self.abwesenheitDetails: [AbwesenheitDetailsDTO] = abwesenheitDetails
-        self.name = name
-        self.personalnummer = personalnummer
+        self.employee = employee
+
 
     @classmethod
-    def create_from_db(cls, abwesenheit: Abwesenheit):
+    def create_from_db(cls, employee: Employee, abwesenheiten: [AbwesenheitDetails] ):
         abwesenheitDetailsDTOs: [AbwesenheitDetailsDTO] = []
         abd: AbwesenheitDetailsDTO
-        for abd in abwesenheit.abwesenheiten:
+        for abd in abwesenheiten:
             abwesenheitDetailsDTOs.append(
                 AbwesenheitDetailsDTO(abd.datum, abd.typ)
             )
 
-        return cls(abwesenheit.name, abwesenheit.personalnummer, abwesenheitDetailsDTOs)
+        edto = EmployeeDTO(employee.name, employee.personalnummer)
+
+        return cls(edto, abwesenheitDetailsDTOs)
 
 class AbwesenheitsRangeDTO:
+    # TODO: echt?
     personalnummer: int
     abwStart: str
     abwEnde: str
@@ -45,14 +61,4 @@ class AbwesenheitsRangeDTO:
 
 
 
-class EmployeeDTO:
-    name: str
-    personalnummer: int
 
-    def __init__(self, name: str, personalnummer: int,) -> None:
-        self.name = name
-        self.personalnummer = personalnummer
-
-    @classmethod
-    def create_from_db(cls, abwesenheit: Abwesenheit):
-        return cls(abwesenheit.name, abwesenheit.personalnummer)

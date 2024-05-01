@@ -83,4 +83,7 @@ def create_bookings_blueprint(pservice,eh):
         file_path_umsaetze = os.path.join(os.getcwd(), 'exports', filename_umsaetze)
         return send_file(file_path_umsaetze, as_attachment=True)
 
+
+
+
     return bookings_bp
