@@ -926,104 +926,109 @@ class ProjektService:
         laufzeit_bis_date = date_helper.from_string_to_date_without_time(projekt_dto.laufzeit_bis)
 
         anzahl_tage_seit_projektstart = (datetime.now().date() - laufzeit_von_date).days
-        anzahl_projekttage = (laufzeit_bis_date - laufzeit_von_date).days
-
-        # vorfiltern --> Datum
-        jetzt = datetime.now()
-        jetzt_um_null_uhr = datetime(year=jetzt.year, month=jetzt.month, day=jetzt.day, minute=0, hour=0, second=0)
-
-        # Es werden nur die Buchungen betrachtet, die in den letzte Tagen vorgenommen wurden.
-        filtered_booking_dtos: [BookingDTO] = []
-
-        suchtage: [datetime] = []
-        counter = 0
-        abbruchkante = 6
-        if anzahl_tage_seit_projektstart < 6:
-            abbruchkante = anzahl_tage_seit_projektstart
-
-        # Festlegen, welche Tage betrachtet werden (bis zu 6 Tage zurück, ausgenommen Feiertage und Wochenenden)
-        done = False
-        delta = timedelta(days=1)
-        oneDayBack = jetzt_um_null_uhr
-        while not done:
-            oneDayBack = oneDayBack - delta
-            if oneDayBack.weekday() < 5:
-                suchtage.append(oneDayBack)
-                counter += 1
-                if counter == abbruchkante:
-                    done = True
-
-        suchtage.reverse()
-
-        # Alle Buchungseinträge identifizieren und sammeln, die innerhalb dieser 6 Tage zurück liegen
-
-        b: BookingDTO
-        for b in booking_dtos:
-            if b.datum >= suchtage[0]:
-                filtered_booking_dtos.append(b)
-
-        # class blablub():
-        #     employee: Employee
-        #     avg_work_hours_per_day : float
-
-        # alle Personalnummern rausholen und in dict speichern --> personalnummer : name
-        pmas = dict()
-        for pma in projekt_dto.projektmitarbeiter:
-            avg_work_hours_per_day = pma.stundenbudget / anzahl_projekttage
-            pmas[pma.employee.personalnummer] = [pma.employee.name, avg_work_hours_per_day]
-
         nachweise: [ErfassungsnachweisDTO] = []
 
-        for pnummer, name_and_workhours in pmas.items():
+        if(anzahl_tage_seit_projektstart > 0):
 
-            tage: [str] = []
-            erfassungs_nachweis_details_dtos = []
+            anzahl_projekttage = (laufzeit_bis_date - laufzeit_von_date).days
 
-            abwesenheit: AbwesenheitDTO = CalendarService.getInstance().get_abwesenheiten_for_psnr(pnummer, False)
-            for gesuchtesDatum in suchtage:
+            # vorfiltern --> Datum
+            jetzt = datetime.now()
+            jetzt_um_null_uhr = datetime(year=jetzt.year, month=jetzt.month, day=jetzt.day, minute=0, hour=0, second=0)
 
-                en_stunden = 0
-                abw = ""
+            # Es werden nur die Buchungen betrachtet, die in den letzte Tagen vorgenommen wurden.
+            filtered_booking_dtos: [BookingDTO] = []
 
-                found = False
-                gesuchtes_datum_string = date_helper.from_date_to_string(gesuchtesDatum)
-                tage.append(gesuchtes_datum_string)
-                if abwesenheit is not None:
-                    for abwesenheitsDetailDTO in abwesenheit.abwesenheitDetails:
-                        if abwesenheitsDetailDTO.datum == gesuchtes_datum_string:
-                            abw = abwesenheitsDetailDTO.typ
-                            found = True
-                            break
+            suchtage: [datetime] = []
+            counter = 0
+            abbruchkante = 6
+            if anzahl_tage_seit_projektstart < 6:
+                abbruchkante = anzahl_tage_seit_projektstart
 
-                if not found:
-                    gesammelte_stunden = 0.0
-                    for b in filtered_booking_dtos:
-                        if b.employee.personalnummer == pnummer and b.datum == gesuchtesDatum:
-                            gesammelte_stunden += b.stunden
-                    en_stunden = gesammelte_stunden
+            # Festlegen, welche Tage betrachtet werden (bis zu 6 Tage zurück, ausgenommen Feiertage und Wochenenden)
+            done = False
+            delta = timedelta(days=1)
+            oneDayBack = jetzt_um_null_uhr
+            while not done:
+                oneDayBack = oneDayBack - delta
+                if oneDayBack.weekday() < 5:
+                    suchtage.append(oneDayBack)
+                    counter += 1
+                    if counter == abbruchkante:
+                        done = True
 
-                end_dto = ErfassungsNachweisDetailDTO(gesuchtes_datum_string, en_stunden, abw)
-                erfassungs_nachweis_details_dtos.append(end_dto)
+            suchtage.reverse()
 
-            # edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
-            # TODO: das geht sicher besser
-            edto = ErfassungsnachweisDTO(EmployeeDTO(name_and_workhours[0], pnummer), erfassungs_nachweis_details_dtos,
-                                         name_and_workhours[1])
-            nachweise.append(edto)
+            # Alle Buchungseinträge identifizieren und sammeln, die innerhalb dieser 6 Tage zurück liegen
 
-        # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
-        # nachweise_korrigiert = dict()
-        #
-        # for edto in nachweise:
-        #     if edto.personalnummer not in nachweise_korrigiert.keys():
-        #         nachweise_korrigiert[edto.personalnummer] = edto
-        #     else:
-        #         watched_edto: ErfassungsnachweisDTO = nachweise_korrigiert[edto.personalnummer]
-        #         anzahl_tage = len(watched_edto.tage)
-        #         for i in range(anzahl_tage):
-        #             watched_edto.stunden[i] += edto.stunden[i]
-        #
-        # nachweise = list(nachweise_korrigiert.values())
+            b: BookingDTO
+            for b in booking_dtos:
+                if b.datum >= suchtage[0]:
+                    filtered_booking_dtos.append(b)
+
+            # class blablub():
+            #     employee: Employee
+            #     avg_work_hours_per_day : float
+
+            # alle Personalnummern rausholen und in dict speichern --> personalnummer : name
+            pmas = dict()
+            for pma in projekt_dto.projektmitarbeiter:
+                avg_work_hours_per_day = pma.stundenbudget / anzahl_projekttage
+                pmas[pma.employee.personalnummer] = [pma.employee.name, avg_work_hours_per_day]
+
+            nachweise: [ErfassungsnachweisDTO] = []
+
+            for pnummer, name_and_workhours in pmas.items():
+
+                tage: [str] = []
+                erfassungs_nachweis_details_dtos = []
+
+                abwesenheit: AbwesenheitDTO = CalendarService.getInstance().get_abwesenheiten_for_psnr(pnummer, False)
+                for gesuchtesDatum in suchtage:
+
+                    en_stunden = 0
+                    abw = ""
+
+                    found = False
+                    gesuchtes_datum_string = date_helper.from_date_to_string(gesuchtesDatum)
+                    tage.append(gesuchtes_datum_string)
+                    if abwesenheit is not None:
+                        for abwesenheitsDetailDTO in abwesenheit.abwesenheitDetails:
+                            if abwesenheitsDetailDTO.datum == gesuchtes_datum_string:
+                                abw = abwesenheitsDetailDTO.typ
+                                found = True
+                                break
+
+                    if not found:
+                        gesammelte_stunden = 0.0
+                        for b in filtered_booking_dtos:
+                            if b.employee.personalnummer == pnummer and b.datum == gesuchtesDatum:
+                                gesammelte_stunden += b.stunden
+                        en_stunden = gesammelte_stunden
+
+                    end_dto = ErfassungsNachweisDetailDTO(gesuchtes_datum_string, en_stunden, abw)
+                    erfassungs_nachweis_details_dtos.append(end_dto)
+
+                # edto = ErfassungsnachweisDTO(name, pnummer, suchtage, stunden)
+                # TODO: das geht sicher besser
+                edto = ErfassungsnachweisDTO(EmployeeDTO(name_and_workhours[0], pnummer), erfassungs_nachweis_details_dtos,
+                                             name_and_workhours[1])
+                nachweise.append(edto)
+
+            # # Personen mit mehreren PSP Elementen erzeugen mehrere Einträge, das muss korrgiert werden
+            # nachweise_korrigiert = dict()
+            #
+            # for edto in nachweise:
+            #     if edto.personalnummer not in nachweise_korrigiert.keys():
+            #         nachweise_korrigiert[edto.personalnummer] = edto
+            #     else:
+            #         watched_edto: ErfassungsnachweisDTO = nachweise_korrigiert[edto.personalnummer]
+            #         anzahl_tage = len(watched_edto.tage)
+            #         for i in range(anzahl_tage):
+            #             watched_edto.stunden[i] += edto.stunden[i]
+            #
+            # nachweise = list(nachweise_korrigiert.values())
+
 
         if json_format:
             return json.dumps(nachweise, default=data_helper.serialize)

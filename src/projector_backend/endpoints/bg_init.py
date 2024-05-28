@@ -8,6 +8,7 @@ from src.projector_backend.entities.Base import Base
 from src.projector_backend.helpers import data_helper
 from src.projector_backend.helpers.decorators import admin_required
 from src.projector_backend.helpers.unfertig import demo_calender_data_importer
+from src.projector_backend.version import version
 
 
 def create_init_blueprint(engine, pservice, dbservice, uservice):
@@ -34,6 +35,11 @@ def create_init_blueprint(engine, pservice, dbservice, uservice):
         # pservice.get_latest_bookings_for_psp("11828", True)
 
         return "OK"
+
+    @init_bp.route('/version')
+    def get_version():  # put application's code here
+        return version
+
 
     def create_init_data():
         dbservice.create_import_settings()
