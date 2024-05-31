@@ -1,4 +1,5 @@
 import json
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
@@ -49,6 +50,7 @@ class ProjektService:
             cls._instance.auth_service = auth_service
             cls._instance.helper = EhBuchungen()
             cls._instance.Session = sessionmaker(bind=cls._instance.engine)
+            cls._instance._session = None
         return cls._instance
 
     @classmethod
@@ -57,9 +59,32 @@ class ProjektService:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
 
+    @contextmanager
+    def session_scope(self):
+        """Provide a transactional scope around a series of operations."""
+        if self._session is None:
+            self._session = self.Session()
+            own_session = True
+        else:
+            own_session = False
+
+        try:
+            yield self._session
+            if own_session:
+                self._session.commit()
+        except Exception:
+            if own_session:
+                self._session.rollback()
+            raise
+        finally:
+            if own_session:
+                self._session.close()
+                self._session = None
+
+
     def save_update_project(self, projektDTO: ProjektDTO, update=False) -> Tuple[ProjektDTO, DbResult]:
 
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
 
                 predecessor_id = 0
@@ -127,7 +152,7 @@ class ProjektService:
                 return None, result
 
     def get_project_by_psp(self, psp: str, json_format: bool) -> ProjektDTO or str:
-        with self.Session() as session:
+        with self.session_scope() as session:
 
             # Alias für ProjectData.project erstellen
             project_alias = aliased(Project)
@@ -147,14 +172,14 @@ class ProjektService:
 
             dtos = self.get_psp_packages(psp, False)
 
-        dto = ProjektDTO.create_from_db(pro, dtos)
-        if json_format:
-            return json.dumps(dto, default=data_helper.serialize)
-        else:
-            return dto
+            dto = ProjektDTO.create_from_db(pro, dtos)
+            if json_format:
+                return json.dumps(dto, default=data_helper.serialize)
+            else:
+                return dto
 
     def get_pma_for_psp_element(self, psp_element: str) -> ProjektmitarbeiterDTO:
-        with self.Session() as session:
+        with self.session_scope() as session:
             pma = session.query(ProjectEmployee).filter(ProjectEmployee.psp_element == psp_element).first()
             if type(pma) == NoneType:
                 print(psp_element)
@@ -163,7 +188,7 @@ class ProjektService:
 
     def get_all_projects(self, json_format: bool) -> [ProjektDTO] or str:
         projektDTOs: [ProjektDTO] = []
-        with self.Session() as session:
+        with self.session_scope() as session:
 
             subquery = (
                 session.query(func.max(ProjectData.uploadDatum))
@@ -181,14 +206,14 @@ class ProjektService:
                 dtos = self.get_psp_packages(p.project.psp, False)
                 projektDTOs.append(ProjektDTO.create_from_db(p, dtos))
 
-        if (json_format):
-            return json.dumps(projektDTOs, default=data_helper.serialize)
-        else:
-            return projektDTOs
+            if (json_format):
+                return json.dumps(projektDTOs, default=data_helper.serialize)
+            else:
+                return projektDTOs
 
     def get_active_projects(self, json_format: bool) -> [ProjektDTO] or str:
         projektDTOs: [ProjektDTO] = []
-        with self.Session() as session:
+        with self.session_scope() as session:
 
             # Welche Projekte sind dem User zugeordnet?
             user = self.auth_service.get_logged_user(session)
@@ -213,10 +238,10 @@ class ProjektService:
                 dtos = self.get_psp_packages(p.project.psp, False)
                 projektDTOs.append(ProjektDTO.create_from_db(p, dtos))
 
-        if (json_format):
-            return json.dumps(projektDTOs, default=data_helper.serialize)
-        else:
-            return projektDTOs
+            if (json_format):
+                return json.dumps(projektDTOs, default=data_helper.serialize)
+            else:
+                return projektDTOs
 
     def get_missing_project_psp_for_bookings(self, bookings: [BookingDTO]) -> {}:
         projekte: [ProjektDTO] = self.get_all_projects(False)
@@ -234,7 +259,7 @@ class ProjektService:
         return missing_psps
 
     def add_psp_package(self, dto: PspPackageDTO):
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
                 package = PspPackage(dto.psp, dto.package_name, dto.package_description, dto.volume,
                                      dto.tickets_identifier)
@@ -253,7 +278,7 @@ class ProjektService:
             return package.package_identifier, DbResult(True, "A new package has been created")
 
     def update_psp_package(self, dto: PspPackageDTO):
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
                 # package:PspPackage
 
@@ -279,7 +304,7 @@ class ProjektService:
             return package.package_identifier, DbResult(True, "Package has been updated")
 
     def delete_psp_package(self, dto: PspPackageDTO):
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
                 # package:PspPackage
 
@@ -301,7 +326,7 @@ class ProjektService:
             return DbResult(True, "Package has been updated")
 
     def get_psp_packages(self, psp: str, json_format: bool):
-        with self.Session() as session:
+        with self.session_scope() as session:
             packages = (
                 session.query(PspPackage).where(PspPackage.psp == psp)
             )
@@ -310,22 +335,22 @@ class ProjektService:
                 dto = PspPackageDTO.create_from_db(p)
                 package_dtos.append(dto)
 
-        if (json_format):
-            return json.dumps(package_dtos, default=data_helper.serialize)
-        else:
-            return package_dtos
+            if (json_format):
+                return json.dumps(package_dtos, default=data_helper.serialize)
+            else:
+                return package_dtos
 
     def get_package(self, identifier: str, json_format: bool):
-        with self.Session() as session:
+        with self.session_scope() as session:
             package = (
                 session.query(PspPackage).where(PspPackage.package_identifier == identifier).first()
             )
-        dto = PspPackageDTO.create_from_db(package)
+            dto = PspPackageDTO.create_from_db(package)
 
-        if (json_format):
-            return json.dumps(dto, default=data_helper.serialize)
-        else:
-            return dto
+            if (json_format):
+                return json.dumps(dto, default=data_helper.serialize)
+            else:
+                return dto
 
     def create_project_bundle(self, dto: ProjectBundleCreateDTO):
         psps = []
@@ -333,7 +358,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
                 bundle = ProjectBundle(dto.bundle_name, dto.bundle_descripton, psps,
                                        self.auth_service.get_logged_user(session),
@@ -358,7 +383,7 @@ class ProjektService:
         for psp in dto.psp_list:
             psps.append(ProjectBundlePSPElement(psp["psp"]))
 
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
 
                 bundle: ProjectBundle = session.query(ProjectBundle).filter(ProjectBundle.identifier == dto.identifier).first()
@@ -411,7 +436,7 @@ class ProjektService:
         return DbResult(True, "Bundle has been updated.")
 
     def delete_bundle(self, identifier: str) -> DbResult:
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
                 obj: [ProjectBundle] = session.query(ProjectBundle).where(ProjectBundle.identifier == identifier)
                 for o in obj:
@@ -431,7 +456,7 @@ class ProjektService:
     def get_project_bundles(self, json_format: bool = True) -> [ProjectBundleDTO] or str:
         pb_dtos: [ProjectBundleDTO] = []
 
-        with self.Session() as session:
+        with self.session_scope() as session:
 
             project_bundles = (
                 session.query(ProjectBundle)
@@ -458,13 +483,13 @@ class ProjektService:
 
                 pb_dtos.append(dto)
 
-        if (json_format):
-            return json.dumps(pb_dtos, default=data_helper.serialize)
-        else:
-            return dto
+            if (json_format):
+                return json.dumps(pb_dtos, default=data_helper.serialize)
+            else:
+                return dto
 
     def get_project_bundle(self, identifier: str, json_format: bool = True) -> ProjectBundleDTO or str:
-        with self.Session() as session:
+        with self.session_scope() as session:
             project_bundle: ProjectBundle or None
             project_bundle = (
                 session.query(ProjectBundle).where(ProjectBundle.identifier == identifier).filter(
@@ -549,7 +574,7 @@ class ProjektService:
     def get_all_projects_basics(self):
         all_projects_dtos = self.get_all_projects(False)
         user_active_project_ids = []
-        with self.Session() as session:
+        with self.session_scope() as session:
             userprojects = self.auth_service.get_logged_user(session).projects
             for up in userprojects:
                 user_active_project_ids.append(up.id)
@@ -558,7 +583,7 @@ class ProjektService:
         return json.dumps(back, default=data_helper.serialize)
 
     def toggle_user_project(self, project_id):
-        with (self.Session() as session):
+        with (self.session_scope() as session):
 
             project = session.query(Project).filter_by(id=project_id).first()
             user = self.auth_service.get_logged_user(session)
@@ -653,7 +678,7 @@ class ProjektService:
         :param bookingDTOs: die DTOs elches in die DB übertragen werden sollen
         :return: Ergebnis des Datenbankaufrufs.
         """
-        with self.Session() as session:
+        with self.session_scope() as session:
             try:
                 project_dtos: [ProjektDTO] = self.get_all_projects(False)
 
@@ -738,7 +763,7 @@ class ProjektService:
                           bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm, bookingDTO.letzteAenderung,
                           bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
 
-        with self.Session() as session:
+        with self.session_scope() as session:
             session.add(buchung)
             session.commit()
             session.refresh(buchung)
@@ -751,7 +776,7 @@ class ProjektService:
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/bookings.json".
         """
 
-        with self.Session() as session:
+        with self.session_scope() as session:
             subquery = session.query(func.max(Booking.uploadDatum)).filter(Booking.psp == psp).scalar()
 
             latest_results = (
@@ -760,15 +785,15 @@ class ProjektService:
                 .filter(Booking.uploadDatum == subquery)
             )
 
-        booking_dtos: [BookingDTO] = []
+            booking_dtos: [BookingDTO] = []
 
-        for dto in latest_results:
-            booking_dtos.append(BookingDTO.create_from_db(dto))
+            for dto in latest_results:
+                booking_dtos.append(BookingDTO.create_from_db(dto))
 
-        if json_format:
-            return json.dumps(booking_dtos, default=data_helper.serialize)
-        else:
-            return booking_dtos
+            if json_format:
+                return json.dumps(booking_dtos, default=data_helper.serialize)
+            else:
+                return booking_dtos
 
     def get_bookings_for_psp_by_month(self, psp: str, json_format: bool) -> [MonatsaufteilungDTO] or str:
         booking_dtos: [BookingDTO] = self.get_bookings_for_psp(psp, False)
@@ -802,7 +827,7 @@ class ProjektService:
         :return: Aktuelle Buchungen zum PSP. Der JSON String entspricht dabei "helpers/json_templates/mitarbeiteruebersicht.json".
         """
 
-        with self.Session() as session:
+        with self.session_scope() as session:
 
             booking_dtos = self.get_bookings_for_psp(psp, False)
 
@@ -859,16 +884,16 @@ class ProjektService:
             #     .all()
             # )
 
-        sum_all_bookings = 0
-        for dto in maBookingsSummaryElementDTOs:
-            sum_all_bookings += dto.umsatz
+            sum_all_bookings = 0
+            for dto in maBookingsSummaryElementDTOs:
+                sum_all_bookings += dto.umsatz
 
-        ma_bookings_summary_dto = MaBookingsSummaryDTO(maBookingsSummaryElementDTOs, sum_all_bookings)
+            ma_bookings_summary_dto = MaBookingsSummaryDTO(maBookingsSummaryElementDTOs, sum_all_bookings)
 
-        if json_format:
-            return json.dumps(ma_bookings_summary_dto, default=data_helper.serialize)
-        else:
-            return ma_bookings_summary_dto
+            if json_format:
+                return json.dumps(ma_bookings_summary_dto, default=data_helper.serialize)
+            else:
+                return ma_bookings_summary_dto
 
     def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str], DbResult]:
         bookingDTOs: [BookingDTO] = self.helper.create_bookings_from_export("uploads/" + filename)
@@ -1202,7 +1227,7 @@ class ProjektService:
             return neue_erfassungsnachwei_dtos
 
     def delete_project(self, psp) -> bool:
-        with (self.Session() as session):
+        with (self.session_scope() as session):
             projectDTO = self.get_project_by_psp(psp, False)
 
             project: Project = session.query(Project).filter_by(id=projectDTO.project_master_id).first()

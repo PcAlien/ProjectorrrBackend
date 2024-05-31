@@ -123,6 +123,7 @@ def create_project_blueprint(pservice):
         back = pservice.get_project_summary(psp, True)
         return back
 
+    # Dashboard
     @project_bp.route('/project_summaries', methods=['GET'])
     @jwt_required()
     def get_project_summaries():  # put application's code here

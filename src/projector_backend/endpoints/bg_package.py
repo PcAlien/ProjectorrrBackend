@@ -17,12 +17,19 @@ def create_package_blueprint(pservice):
         json_projektdaten = json.loads(request.form['package'])
         dto = PspPackageDTO(**json_projektdaten)
 
-        identifier, dbResult = pservice.add_psp_package(dto)
+        try:
+            identifier, dbResult = pservice.add_psp_package(dto)
+        except:
+            print("Das hat leider so gar nicht geklappt")
+            print(dbResult)
+            print(identifier)
 
         if dbResult.complete:
+            print("ADD PSP PACKAGE SUCCESS", identifier)
             identifier_json = json.dumps(identifier, default=data_helper.serialize)
             return {'status': "Success", 'identifier': identifier_json}
         else:
+            print("ADD PSP PACKAGE NOT SUCCESS")
             return {'status': "Error", 'error': dbResult.message}
 
     @package_bp.route('/loadPspPackage', methods=["GET"])
