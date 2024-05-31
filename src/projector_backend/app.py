@@ -65,7 +65,7 @@ database = os.environ.get("DB_DB")
 
 # DB-Settings
 # engine = create_engine("sqlite:///db/datenbank.db", echo=True)
-engine: Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}?sql_mode=", pool_size=2, max_overflow=0)
+engine: Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}?sql_mode=", pool_size=20, max_overflow=0)
 # engine.connect().execute("SET sql_mode = ''")
 
 
