@@ -138,6 +138,14 @@ def create_project_blueprint(pservice):
         back = pservice.toggle_user_project(pmaster_id)
         return back
 
+    @project_bp.route('/togglePackageArchive', methods=['GET'])
+    @jwt_required()
+    def togglePackageArchive():  # put application's code here
+        package_id = request.args.get('piid')
+        back = pservice.toggle_package_archived(package_id)
+        return {'status': "success"}
+
+
     @project_bp.route('/deleteProject', methods=['GET'])
     @admin_required()
     def delete_project():  # put application's code here

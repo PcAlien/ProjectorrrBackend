@@ -40,13 +40,14 @@ class ProjektDTO:
     laufzeit_von: str
     laufzeit_bis: str
     psp_packages: [PspPackageDTO]
+    psp_packages_archived: [PspPackageDTO]
     uploaddatum: datetime
     archiviert: bool
 
     project_master_id: int
 
     def __init__(self, projekt_name: str, psp: str, volumen: int, laufzeit_von: str, laufzeit_bis: str,
-                 projektmitarbeiter: [ProjektmitarbeiterDTO], psp_packages: [PspPackageDTO], project_master_id: int = 0, dbID=0,
+                 projektmitarbeiter: [ProjektmitarbeiterDTO], psp_packages: [PspPackageDTO], psp_packages_archived: [PspPackageDTO], project_master_id: int = 0, dbID=0,
                  uploaddatum=datetime.today(),  archiviert=False) -> None:
         self.volumen = volumen
         self.projekt_name = projekt_name
@@ -64,6 +65,12 @@ class ProjektDTO:
             self.psp_packages: [PspPackageDTO] = psp_packages
         else:
             self.psp_packages: [PspPackageDTO] = []
+
+        if psp_packages_archived:
+            self.psp_packages_archived: [PspPackageDTO] = psp_packages_archived
+        else:
+            self.psp_packages_archived: [PspPackageDTO] = []
+
         self.psp = psp
         self.laufzeit_von = laufzeit_von
         self.dbID = dbID
@@ -72,7 +79,7 @@ class ProjektDTO:
         self.project_master_id = project_master_id
 
     @classmethod
-    def create_from_db(cls, projekt: ProjectData, psp_packages: [PspPackageDTO]):
+    def create_from_db(cls, projekt: ProjectData, psp_packages: [PspPackageDTO], psp_packages_archived: [PspPackageDTO]):
         projektmitarbeiter: [ProjektmitarbeiterDTO] = []
         pma: ProjectEmployee
         for pma in projekt.projektmitarbeiter:
@@ -82,5 +89,5 @@ class ProjektDTO:
                                       pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis, pma.id))
 
         return cls(projekt.projekt_name, projekt.project.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
-                   projektmitarbeiter, psp_packages, projekt.project_id, projekt.id, uploaddatum=projekt.uploadDatum,
+                   projektmitarbeiter, psp_packages,psp_packages_archived, projekt.project_id, projekt.id, uploaddatum=projekt.uploadDatum,
                    )

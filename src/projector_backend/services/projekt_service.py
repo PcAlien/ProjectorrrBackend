@@ -131,7 +131,7 @@ class ProjektService:
                 session.refresh(project_data)
 
                 if update:
-                    return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages), DbResult(True,
+                    return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages, projektDTO.psp_packages_archived), DbResult(True,
                                                                                                       "Project has been updated")
                 else:
                     user = self.auth_service.get_logged_user(session)
@@ -140,7 +140,7 @@ class ProjektService:
                     user.projects.append(project)
                     # session.refresh(user)
                     session.commit()
-                    return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages), DbResult(True,
+                    return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages, projektDTO.psp_packages_archived), DbResult(True,
                                                                                                       "A new project has been created")
 
             except IntegrityError as e:
@@ -170,9 +170,10 @@ class ProjektService:
                 .filter(ProjectData.uploadDatum.in_(session.query(subquery))).first()
             )
 
-            dtos = self.get_psp_packages(psp, False)
+            psp_packages = self.get_psp_packages(psp, False, False)
+            psp_packages_archived = self.get_psp_packages(psp, False, True)
 
-            dto = ProjektDTO.create_from_db(pro, dtos)
+            dto = ProjektDTO.create_from_db(pro, psp_packages, psp_packages_archived)
             if json_format:
                 return json.dumps(dto, default=data_helper.serialize)
             else:
@@ -203,8 +204,9 @@ class ProjektService:
             )
 
             for p in projekte:
-                dtos = self.get_psp_packages(p.project.psp, False)
-                projektDTOs.append(ProjektDTO.create_from_db(p, dtos))
+                psp_packages = self.get_psp_packages(p.project.psp, False)
+                psp_packages_archived = self.get_psp_packages(p.project.psp, False)
+                projektDTOs.append(ProjektDTO.create_from_db(p, psp_packages, psp_packages_archived))
 
             if (json_format):
                 return json.dumps(projektDTOs, default=data_helper.serialize)
@@ -235,8 +237,9 @@ class ProjektService:
             )
 
             for p in projekte:
-                dtos = self.get_psp_packages(p.project.psp, False)
-                projektDTOs.append(ProjektDTO.create_from_db(p, dtos))
+                psp_packages = self.get_psp_packages(p.project.psp, False)
+                psp_packages_archived = self.get_psp_packages(p.project.psp, False)
+                projektDTOs.append(ProjektDTO.create_from_db(p, psp_packages, psp_packages_archived))
 
             if (json_format):
                 return json.dumps(projektDTOs, default=data_helper.serialize)
@@ -326,10 +329,10 @@ class ProjektService:
 
             return DbResult(True, "Package has been updated")
 
-    def get_psp_packages(self, psp: str, json_format: bool):
+    def get_psp_packages(self, psp: str,  json_format: bool, archived= False):
         with self.session_scope() as session:
             packages = (
-                session.query(PspPackage).where(PspPackage.psp == psp)
+                session.query(PspPackage).where(PspPackage.psp == psp).filter(PspPackage.archived == archived)
             )
             package_dtos = []
             for p in packages:
@@ -537,6 +540,7 @@ class ProjektService:
         erfassungs_nachweise: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(project_dto, booking_dtos,
                                                                                            False)
         package_summaries = self.get_package_summaries(project_dto, booking_dtos, False)
+        package_summaries_archived = self.get_package_summaries(project_dto, booking_dtos, False, True)
 
         umsaetze_dtos: [UmsatzDTO] = []
 
@@ -551,7 +555,7 @@ class ProjektService:
         else:
             last_updated = "-"
         ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos, monatsaufteilung_dtos,
-                                                      erfassungs_nachweise, package_summaries, last_updated)
+                                                      erfassungs_nachweise, package_summaries, package_summaries_archived, last_updated)
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)
@@ -596,6 +600,16 @@ class ProjektService:
             session.commit()
 
         return self.get_all_projects_basics()
+
+    def toggle_package_archived(self, package_identifier):
+        with (self.session_scope() as session):
+
+            psp_package = session.query(PspPackage).filter_by(package_identifier = package_identifier).first()
+            psp_package.archived = not psp_package.archived
+
+            session.commit()
+
+        return True
 
     def get_bookings_summary_for_psp_by_month(self, booking_dtos: [BookingDTO], json_format: bool) -> [
                                                                                                           MonatsaufteilungSummaryDTO] or str:
@@ -1062,9 +1076,9 @@ class ProjektService:
             return nachweise
 
     def get_package_summary(self, identifier: str, json_format: bool,
-                            booking_dtos: [BookingDTO] = None) -> PspPackageSummaryDTO or str:
+                            booking_dtos: [BookingDTO] = None, archived = False) -> PspPackageSummaryDTO or str:
         pspp_dto: PspPackageDTO = self.get_package(identifier, False)
-        pspp_dtos: [PspPackageDTO] = self.get_psp_packages(pspp_dto.psp, False)
+        pspp_dtos: [PspPackageDTO] = self.get_psp_packages(pspp_dto.psp, False, archived)
 
         if booking_dtos is None:
             booking_dtos: [BookingDTO] = self.get_bookings_for_psp(pspp_dto.psp, False)
@@ -1139,7 +1153,7 @@ class ProjektService:
             return summary_dto
 
     def get_package_summaries(self, projekt_dto_or_str: ProjektDTO or str, booking_dtos: [BookingDTO],
-                              json_format: bool) -> [PspPackageSummaryDTO] or str:
+                              json_format: bool, archived = False) -> [PspPackageSummaryDTO] or str:
         if type(projekt_dto_or_str) == str:
             projekt_dto = self.get_project_by_psp(projekt_dto_or_str, False)
         elif type(projekt_dto_or_str) == ProjektDTO:
@@ -1148,10 +1162,17 @@ class ProjektService:
         summaries: [PspPackageSummaryDTO] = []
 
         pack: PspPackageDTO
-        for pack in projekt_dto.psp_packages:
-            identifier = pack.package_identifier
-            dto = self.get_package_summary(identifier, False, booking_dtos=booking_dtos)
-            summaries.append(dto)
+
+        if not archived:
+            for pack in projekt_dto.psp_packages:
+                identifier = pack.package_identifier
+                dto = self.get_package_summary(identifier, False, booking_dtos=booking_dtos, archived=archived)
+                summaries.append(dto)
+        else:
+            for pack in projekt_dto.psp_packages_archived:
+                identifier = pack.package_identifier
+                dto = self.get_package_summary(identifier, False, booking_dtos=booking_dtos, archived=archived)
+                summaries.append(dto)
 
         if json_format:
             return json.dumps(summaries, default=data_helper.serialize)

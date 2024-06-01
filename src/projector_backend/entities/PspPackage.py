@@ -2,7 +2,7 @@ import json
 import random
 import string
 
-from sqlalchemy import String
+from sqlalchemy import String, Boolean, false
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
@@ -18,13 +18,14 @@ class PspPackage(Base):
     package_link: Mapped[str] = mapped_column("package_link", String(250))
     package_description: Mapped[str] = mapped_column("package_description", String(400))
     package_identifier: Mapped[str] = mapped_column("package_identifier", String(40))
+    archived: Mapped[bool] =  mapped_column("archived", Boolean)
 
     tickets_identifier: Mapped[str] = mapped_column("tickets_identifier", String(100))
 
     volumen: Mapped[float] = mapped_column("volumen")
 
     def __init__(self, psp: str, package_name: str, package_link:str, package_description: str, volumen: float,
-                 tickets_identifier: str or [str],
+                 tickets_identifier: str or [str], archived = False
                  ) -> None:
         self.psp = psp
         self.package_name = package_name
@@ -37,6 +38,7 @@ class PspPackage(Base):
             self.tickets_identifier = tickets_identifier
 
         self.volumen = volumen
+        self.archived = archived
 
     def create_package_identifier(self):
         characters = string.ascii_letters + string.digits
