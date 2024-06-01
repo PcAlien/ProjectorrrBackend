@@ -12,11 +12,12 @@ class PspPackageDTO:
     volume: float
     tickets_identifier: [str]
 
-    def __init__(self, psp: str, package_name: str, package_description: str, volume: float,
+    def __init__(self, psp: str, package_name: str, package_link, package_description: str, volume: float,
                  tickets_identifier: [str] or str,
                  package_identifier: str = "00000", ) -> None:
         self.volume = volume
         self.package_name = package_name
+        self.package_link = package_link
         self.psp = psp
         self.package_identifier = package_identifier
         self.package_description = package_description
@@ -27,7 +28,7 @@ class PspPackageDTO:
 
     @classmethod
     def create_from_db(cls, pspp_dto: PspPackage):
-        return cls(pspp_dto.psp, pspp_dto.package_name, pspp_dto.package_description, pspp_dto.volumen,
+        return cls(pspp_dto.psp, pspp_dto.package_name, pspp_dto.package_link, pspp_dto.package_description, pspp_dto.volumen,
                    pspp_dto.tickets_identifier, pspp_dto.package_identifier)
 
 

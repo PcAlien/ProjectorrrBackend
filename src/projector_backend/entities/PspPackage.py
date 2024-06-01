@@ -15,6 +15,7 @@ class PspPackage(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     psp: Mapped[str] = mapped_column("psp", String(10))
     package_name: Mapped[str] = mapped_column("package_name", String(30))
+    package_link: Mapped[str] = mapped_column("package_link", String(250))
     package_description: Mapped[str] = mapped_column("package_description", String(400))
     package_identifier: Mapped[str] = mapped_column("package_identifier", String(40))
 
@@ -22,11 +23,12 @@ class PspPackage(Base):
 
     volumen: Mapped[float] = mapped_column("volumen")
 
-    def __init__(self, psp: str, package_name: str, package_description: str, volumen: float,
+    def __init__(self, psp: str, package_name: str, package_link:str, package_description: str, volumen: float,
                  tickets_identifier: str or [str],
                  ) -> None:
         self.psp = psp
         self.package_name = package_name
+        self.package_link = package_link
         self.package_description = package_description
         self.package_identifier = self.create_package_identifier()
         if type(tickets_identifier) == list:

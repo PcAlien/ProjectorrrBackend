@@ -261,7 +261,7 @@ class ProjektService:
     def add_psp_package(self, dto: PspPackageDTO):
         with self.session_scope() as session:
             try:
-                package = PspPackage(dto.psp, dto.package_name, dto.package_description, dto.volume,
+                package = PspPackage(dto.psp, dto.package_name, dto.package_link, dto.package_description, dto.volume,
                                      dto.tickets_identifier)
                 session.add(package)
                 session.commit()
@@ -288,6 +288,7 @@ class ProjektService:
                 )
 
                 package.package_name = dto.package_name
+                package.package_link = dto.package_link
                 package.package_description = dto.package_description
                 package.tickets_identifier = json.dumps(dto.tickets_identifier, default=data_helper.serialize)
                 package.volumen = dto.volume
