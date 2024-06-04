@@ -114,7 +114,7 @@ class ProjektService:
 
                 # pma: ProjektmitarbeiterDTO
                 for pma in projektDTO.projektmitarbeiter:
-                    employee = self.get_create_Employee(pma.employee.name, pma.employee.personalnummer, session)
+                    employee = self.get_create_Employee(pma.employee.name, pma.employee.personalnummer)
 
                     neuerPMA = ProjectEmployee(employee, pma.psp_bezeichnung, pma.psp_element,
                                                pma.stundensatz, pma.stundenbudget, pma.laufzeit_von, pma.laufzeit_bis)
@@ -706,7 +706,7 @@ class ProjektService:
 
                     if bookingDTO.employee.personalnummer not in employee_dict.keys():
                         employee = self.get_create_Employee(bookingDTO.employee.name,
-                                                            bookingDTO.employee.personalnummer, session)
+                                                            bookingDTO.employee.personalnummer)
                         employee_dict[bookingDTO.employee.personalnummer] = employee
 
                     employee = employee_dict[bookingDTO.employee.personalnummer]
@@ -1294,14 +1294,15 @@ class ProjektService:
 
         return True
 
-    def get_create_Employee(self, name, personalnummer, session):
+    def get_create_Employee(self, name, personalnummer):
 
-        employee = session.query(Employee).filter(Employee.personalnummer == personalnummer).first()
+        with (self.session_scope() as session):
+            employee = session.query(Employee).filter(Employee.personalnummer == personalnummer).first()
 
-        if not employee:
-            employee = Employee(name, personalnummer)
-            session.add(employee)
-            session.commit()
-            session.refresh(employee)
+            if not employee:
+                employee = Employee(name, personalnummer)
+                session.add(employee)
+                session.commit()
+                session.refresh(employee)
 
-        return employee
+            return employee
