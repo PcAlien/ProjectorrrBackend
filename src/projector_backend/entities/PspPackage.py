@@ -20,7 +20,7 @@ class PspPackage(Base):
     package_identifier: Mapped[str] = mapped_column("package_identifier", String(40))
     archived: Mapped[bool] =  mapped_column("archived", Boolean)
 
-    tickets_identifier: Mapped[str] = mapped_column("tickets_identifier", String(100))
+    tickets_identifier: Mapped[str] = mapped_column("tickets_identifier", String(500))
 
     volumen: Mapped[float] = mapped_column("volumen")
 
