@@ -38,6 +38,7 @@ from src.projector_backend.helpers import data_helper, date_helper
 from src.projector_backend.services.ForecastService import ForecastService
 from src.projector_backend.services.auth_service import AuthService
 from src.projector_backend.services.calender_service import CalendarService
+import time
 
 
 class ProjektService:
@@ -693,24 +694,34 @@ class ProjektService:
         with self.session_scope() as session:
             try:
 
+                start = time.time()
+
                 buchungen: [Booking] = []
                 employee_dict = dict()
                 missing_psp_element_list: [str] = []
+                pma_dict = dict()
 
                 for bookingDTO in bookingDTOs:
 
                     # Es kann vorkommen, dass ein Mitarbeiter noch nicht im System hinterlegt ist.
                     # Falls dies nicht der Fall ist, wird dieser im System automatisch angelegt.
                     # Der Mitarbeiter wird über seine Personalnummer identifiziert - nicht über das PSP Element!
+
                     if bookingDTO.employee.personalnummer not in employee_dict.keys():
                         employee = self.get_create_Employee(bookingDTO.employee.name,
                                                             bookingDTO.employee.personalnummer)
-                    else:
-                        employee = employee_dict[bookingDTO.employee.personalnummer]
+                        employee_dict[bookingDTO.employee.personalnummer] = employee
 
-                    pmaDTO = self.get_pma_for_psp_element(bookingDTO.pspElement)
+                    employee = employee_dict[bookingDTO.employee.personalnummer]
+
+                    if bookingDTO.pspElement not in pma_dict.keys():
+                        pma_dict[bookingDTO.pspElement] = self.get_pma_for_psp_element(bookingDTO.pspElement)
+
+                    pmaDTO = pma_dict[bookingDTO.pspElement]
+
                     if pmaDTO is None:
-                        missing_psp_element_list.append(bookingDTO.pspElement)
+                        if bookingDTO.pspElement not in missing_psp_element_list:
+                            missing_psp_element_list.append(bookingDTO.pspElement)
 
                     else:
                         bookingDTO.stundensatz = pmaDTO.stundensatz
@@ -727,11 +738,12 @@ class ProjektService:
                                           bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
                         buchungen.append(buchung)
 
-                        # Füge alle Buchungen hinzu
-                        session.add_all(buchungen)
+                # Füge alle Buchungen hinzu
+                session.add_all(buchungen)
 
-                        # Führe die Transaktion durch
-                        session.commit()
+                # Führe die Transaktion durch
+                session.commit()
+
 
             except IntegrityError as e:
                 # Behandle den Fehler speziell für Integritätsverletzungen
@@ -902,8 +914,13 @@ class ProjektService:
             else:
                 return ma_bookings_summary_dto
 
-    def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str],List[str], DbResult]:
+    def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str], List[str], DbResult]:
+
+        start = time.time()
+
+        # Dauer ca. 1 Sekunde
         bookingDTOs: [BookingDTO] = self.helper.create_booking_dtos_from_export("uploads/" + filename)
+
         dto: BookingDTO
 
         missing_psps: {str} = self.get_missing_project_psp_for_bookings(bookingDTOs)
@@ -913,7 +930,12 @@ class ProjektService:
             if dto.psp not in missing_psps:
                 not_missing_psp_bookings.append(dto)
 
+        #start = time.time()
         missing_psp_elements_list, dbResult = self.create_new_bookings_from_dtos_and_save(not_missing_psp_bookings)
+        stop = time.time()
+        diff = stop - start
+        # Dauer knapp 26 Sekunden
+        print("ZEIT für den gesamten Buchungsupload: ", diff)
 
         return missing_psps, missing_psp_elements_list, dbResult
 
@@ -1294,7 +1316,7 @@ class ProjektService:
             if not employee:
                 employee = Employee(name, personalnummer)
                 session.add(employee)
-                session.commit()
-                session.refresh(employee)
+                # session.commit()
+                # session.refresh(employee)
 
             return employee

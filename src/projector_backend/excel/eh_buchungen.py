@@ -49,35 +49,48 @@ class EhBuchungen(ExcelHelper):
     def _process_excel_reading(self, uploadDatum: datetime, ws: Worksheet, ifc: ImportFileColumns,
                                bookingDTOs: [BookingDTO]):
 
-        import time
-        start = time.time()
-        if ifc.delete_empty_lines:
-            self._delete_summary_rows(ws)
-        stop = time.time()
-
-        diff = stop-start
-        print("ZEIT: ", diff)
+        # import time
+        # start = time.time()
+        # if ifc.delete_empty_lines:
+        #     self._delete_summary_rows(ws)
+        # stop = time.time()
+        #
+        # diff = stop-start
+        #print("ZEIT: ", diff)
 
         for row in ws.iter_rows(values_only=True, min_row=2):
-            dto = BookingDTO(EmployeeDTO(row[ifc.name],
-                row[ifc.personalnummer]),
-                row[ifc.leistungsdatum],
-                row[ifc.fakturierbar],
-                row[ifc.status],
-                row[ifc.bezeichnung],
-                row[ifc.psp],
-                row[ifc.psp_element],
-                row[ifc.stunden],
-                row[ifc.text],
-                row[ifc.erfasst_am],
-                row[ifc.letzte_aenderung],
-                uploaddatum=uploadDatum
-            )
-            if dto.erstelltAm == None:
-                dto.erstelltAm = dto.letzteAenderung
-            bookingDTOs.append(dto)
+            if not self._check_is_summary_row(row):
+                dto = BookingDTO(EmployeeDTO(row[ifc.name],
+                    row[ifc.personalnummer]),
+                    row[ifc.leistungsdatum],
+                    row[ifc.fakturierbar],
+                    row[ifc.status],
+                    row[ifc.bezeichnung],
+                    row[ifc.psp],
+                    row[ifc.psp_element],
+                    row[ifc.stunden],
+                    row[ifc.text],
+                    row[ifc.erfasst_am],
+                    row[ifc.letzte_aenderung],
+                    uploaddatum=uploadDatum
+                )
+                if dto.erstelltAm == None:
+                    dto.erstelltAm = dto.letzteAenderung
+                bookingDTOs.append(dto)
 
         return bookingDTOs
+
+    def _check_is_summary_row(self, row):
+
+        cell: Cell
+        if type(row[1]) is NoneType:
+            return True
+        else:
+            if row[1].isspace() or row[1] == "":
+                return True
+
+        return False
+
 
     def _delete_summary_rows(self, sheet: Worksheet):
         toDelete = []
@@ -94,7 +107,7 @@ class EhBuchungen(ExcelHelper):
             sheet.delete_rows(rowNumber)
 
 
-        # TODO: lässt sich das kürzen?
+        # TODO: lässt sich das kürzen? und schneller machen? das lädt ja ewig
 
     def export_buchungen(self, psp, booking_dtos: [BookingDTO], monatsaufteilung_dtos: [MonatsaufteilungDTO]):
         export_file_folder = "./exports/"
