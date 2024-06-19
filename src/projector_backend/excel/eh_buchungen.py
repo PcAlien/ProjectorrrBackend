@@ -24,7 +24,7 @@ class EhBuchungen(ExcelHelper):
         else:
             return DBService.getInstance().get_import_settings(1)
 
-    def create_bookings_from_export(self, source_file_path: str) -> [BookingDTO]:
+    def create_booking_dtos_from_export(self, source_file_path: str) -> [BookingDTO]:
 
         wb: Workbook = self.load_workbook(source_file_path)
         ifc: ImportFileColumns = self.get_export_type(wb)

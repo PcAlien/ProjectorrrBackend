@@ -45,22 +45,28 @@ def create_bookings_blueprint(pservice,eh):
         # Speichere die Datei im Upload-Ordner
         file.save("./uploads/" + filename)
 
-        missing_psps, dbResult = pservice.convert_bookings_from_excel_export(filename)
+        missing_psps, missing_psp_element_list, dbResult = pservice.convert_bookings_from_excel_export(filename)
 
         mpsp_str = ""
+        mpsp_elements_str = ""
         if len(missing_psps) > 0:
             mpsp_str = missing_psps.__str__()
-            print("Folgende PSPs fehlen:", mpsp_str)
+            #print("Folgende PSPs fehlen:", mpsp_str)
+
+        if len(missing_psp_element_list) > 0:
+            mpsp_elements_str = missing_psp_element_list.__str__()
 
         os.remove("./uploads/" + filename)
         if (not dbResult.complete):
             return {'status': "Failed",
                     'missingPSPs': mpsp_str,
+                    'missingPSPElements': mpsp_elements_str,
                     'error': dbResult.message
                     }
 
         return {'status': "Success",
                 'missingPSPs': mpsp_str,
+                'missingPSPElements': mpsp_elements_str,
                 }
 
     @bookings_bp.route('/exportBuchungen', methods=["GET"])
