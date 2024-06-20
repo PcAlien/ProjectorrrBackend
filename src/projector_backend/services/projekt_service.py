@@ -917,8 +917,6 @@ class ProjektService:
     def convert_bookings_from_excel_export(self, filename: str) -> Tuple[List[str], List[str], DbResult]:
 
         start = time.time()
-
-        # Dauer ca. 1 Sekunde
         bookingDTOs: [BookingDTO] = self.helper.create_booking_dtos_from_export("uploads/" + filename)
 
         dto: BookingDTO
@@ -930,12 +928,11 @@ class ProjektService:
             if dto.psp not in missing_psps:
                 not_missing_psp_bookings.append(dto)
 
-        #start = time.time()
         missing_psp_elements_list, dbResult = self.create_new_bookings_from_dtos_and_save(not_missing_psp_bookings)
         stop = time.time()
         diff = stop - start
-        # Dauer knapp 26 Sekunden
-        print("ZEIT für den gesamten Buchungsupload: ", diff)
+
+        print("ZEIT fuer den gesamten Buchungsupload: ", diff)
 
         return missing_psps, missing_psp_elements_list, dbResult
 
