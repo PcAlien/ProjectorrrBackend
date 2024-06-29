@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime
 
 
 def read_json_file(file_path):
@@ -18,6 +18,8 @@ def read_json_file(file_path):
 def serialize(obj):
     try:
         if isinstance(obj, date):
+            return obj.strftime('%d.%m.%Y')
+        elif isinstance(obj, datetime):
             return obj.strftime('%d.%m.%Y')
         elif isinstance(obj, set):
             return list(obj)

@@ -27,6 +27,7 @@ class ImportFileColumns(Base):
     letzte_aenderung: Mapped[int] = mapped_column("letzte_aenderung")
     worksheet: Mapped[int] = mapped_column("worksheet")
     delete_empty_lines: Mapped[int] = mapped_column("delete_empty_lines")
+    counter: Mapped[int] = mapped_column("counter")
 
     def __init__(self,
                  import_name: str,
@@ -46,6 +47,7 @@ class ImportFileColumns(Base):
                  letzte_aenderung: int,
                  worksheet: int,
                  delete_empty_lines: int,
+                 counter: int
                  ):
         self.import_name = import_name
         self.type = type
@@ -63,3 +65,4 @@ class ImportFileColumns(Base):
         self.letzte_aenderung = letzte_aenderung
         self.worksheet = worksheet
         self.delete_empty_lines = delete_empty_lines
+        self.counter= counter

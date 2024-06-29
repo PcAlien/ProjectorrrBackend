@@ -116,6 +116,23 @@ def create_project_blueprint(pservice):
         else:
             return {'status': "Error", 'error': dbResult.message}
 
+    @project_bp.route('/get_psp_upload_dates', methods=['GET'])
+    # @jwt_required()
+    def get_psp_upload_dates():  # put application's code here
+        psp = request.args.get('psp')
+        back = pservice.get_upload_date_list_for_psp(psp)
+        return back
+
+    @project_bp.route('/get_history_v1', methods=['GET'])
+    # @jwt_required()
+    def get_history_v1():
+        psp = request.args.get('psp')
+        start = request.args.get('start_date')
+        end = request.args.get('end_date')
+
+        back = pservice.get_history_for_psp_in_range(psp, start, end)
+        return back
+
     @project_bp.route('/project_summary', methods=['GET'])
     @jwt_required()
     def get_project_summary():  # put application's code here

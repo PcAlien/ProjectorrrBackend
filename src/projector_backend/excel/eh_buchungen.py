@@ -72,6 +72,7 @@ class EhBuchungen(ExcelHelper):
                     row[ifc.text],
                     row[ifc.erfasst_am],
                     row[ifc.letzte_aenderung],
+                    row[ifc.counter],
                     uploaddatum=uploadDatum
                 )
                 if dto.erstelltAm == None:

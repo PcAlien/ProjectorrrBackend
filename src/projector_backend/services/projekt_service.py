@@ -14,10 +14,11 @@ from src.projector_backend.dto.AllProjects import AllProjectsDTO
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO, PspPackageSummaryDTO, PspPackageUmsatzDTO, \
     Package_Identifier_Issues
 from src.projector_backend.dto.abwesenheiten import AbwesenheitDTO, EmployeeDTO
-from src.projector_backend.dto.booking_dto import BookingDTO
+from src.projector_backend.dto.booking_dto import BookingDTO, BookingDTOProxy
 from src.projector_backend.dto.bundle_dtos import ProjectBundleCreateDTO, ProjectBundleDTO
 from src.projector_backend.dto.erfassungsnachweise import ErfassungsnachweisDTO, ErfassungsNachweisDetailDTO
 from src.projector_backend.dto.forecast_dto import PspForecastDTO
+from src.projector_backend.dto.history import EditedItem, HistResult
 
 from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryDTO, MaBookingsSummaryElementDTO
 
@@ -35,6 +36,8 @@ from src.projector_backend.entities.bundles import ProjectBundlePSPElement, Proj
 from src.projector_backend.entities.project_ent import ProjectEmployee, ProjectData, Project
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.helpers import data_helper, date_helper
+from src.projector_backend.helpers.date_helper import from_date_to_string_extended
+from src.projector_backend.helpers.sorter import sortme
 from src.projector_backend.services.ForecastService import ForecastService
 from src.projector_backend.services.auth_service import AuthService
 from src.projector_backend.services.calender_service import CalendarService
@@ -552,7 +555,11 @@ class ProjektService:
             last_updated = booking_dtos[0].uploaddatum
         else:
             last_updated = "-"
-        ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, umsaetze_dtos, monatsaufteilung_dtos,
+
+        sorted_madtos = sorted(monatsaufteilung_dtos, key=sortme)
+        sorted_umsaetze = sorted(umsaetze_dtos, key=sortme)
+
+        ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, sorted_umsaetze, sorted_madtos,
                                                       erfassungs_nachweise, package_summaries,
                                                       package_summaries_archived, last_updated)
 
@@ -735,7 +742,8 @@ class ProjektService:
                                           bookingDTO.pspElement,
                                           bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm,
                                           bookingDTO.letzteAenderung,
-                                          bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
+                                          bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.counter,
+                                          bookingDTO.uploaddatum)
                         buchungen.append(buchung)
 
                 # Füge alle Buchungen hinzu
@@ -780,14 +788,122 @@ class ProjektService:
         buchung = Booking(bookingDTO.employee, bookingDTO.datum, bookingDTO.berechnungsmotiv,
                           bookingDTO.bearbeitungsstatus, bookingDTO.bezeichnung, bookingDTO.psp, bookingDTO.pspElement,
                           bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm, bookingDTO.letzteAenderung,
-                          bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.uploaddatum)
+                          bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.counter, bookingDTO.uploaddatum)
 
         with self.session_scope() as session:
             session.add(buchung)
             session.commit()
             session.refresh(buchung)
 
-    def get_bookings_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
+    def get_upload_date_list_for_psp(self, psp: str):
+        with self.session_scope() as session:
+            result = session.query(Booking.uploadDatum).filter(Booking.psp == psp).filter(
+                Booking.counter > 0).distinct().all()
+            unique_datetimes = [row[0] for row in result]
+
+            datums_texte = []
+
+            dt: datetime
+            for dt in unique_datetimes:
+                datums_texte.append(from_date_to_string_extended(dt))
+
+            datums_texte.reverse()
+
+            # bla = self._get_upload_date_list_for_psp_with_range(psp,"","")
+
+            return json.dumps(datums_texte, default=data_helper.serialize)
+
+    def _get_upload_date_list_for_psp_in_range(self, psp: str, start: str, end: str):
+        with self.session_scope() as session:
+            datum_objekt_start = datetime.strptime(start, "%d.%m.%Y - %H:%M:%S Uhr")
+            datum_objekt_end = datetime.strptime(end, "%d.%m.%Y - %H:%M:%S Uhr")
+
+            result = session.query(Booking.uploadDatum).filter(Booking.psp == psp).filter(
+                Booking.counter > 0).filter(
+                Booking.uploadDatum <= datum_objekt_start).filter(
+                Booking.uploadDatum >= datum_objekt_end).distinct().all()
+            unique_datetimes = [row[0] for row in result]
+
+            return unique_datetimes
+
+    def get_history_for_psp_in_range(self, psp: str, start_upload_date, end_upload_date):
+
+        upload_date_list = self._get_upload_date_list_for_psp_in_range(psp, start_upload_date, end_upload_date)
+
+        upload_date_list.reverse()
+
+        with self.session_scope() as session:
+
+            all_bookings_proxys_in_order = []
+            for up in upload_date_list:
+                bookings = session.query(Booking).filter(Booking.psp == psp).filter(Booking.uploadDatum == up).all()
+                b_dtos = []
+                for b in bookings:
+                    b_dtos.append(BookingDTO.create_from_db(b))
+
+                set_proxy = {BookingDTOProxy(item) for item in b_dtos}
+
+                all_bookings_proxys_in_order.append(set_proxy)
+
+            anzahl_uploads = len(upload_date_list)
+
+            hiResultList = []
+
+            for i in range(0, anzahl_uploads - 1):
+                set_one = all_bookings_proxys_in_order[i]
+                set_two = all_bookings_proxys_in_order[i + 1]
+
+                deleted_items = []
+                edited_items = []
+                new_items = []
+                b: BookingDTOProxy
+
+                for item in set_one:
+                    item.checked = False
+                    # 1. Fall: Werte wurden nicht verändert
+                    if item in set_two:
+                        item_from_two = [b for b in set_two if b == item]
+                        item_from_two[0].checked = True
+                        item.checked = True
+                    else:
+                        # Es gibt keine 1:1 Übereinstimmung - nach Veränderung suchen
+                        item_from_two = [b for b in set_two if b.booking.counter == item.booking.counter]
+                        if len(item_from_two) > 0:
+                            # Das bedeutet, es gab eine Veränderung im Text , des Datums oder der Stundenzahl
+                            item_from_two[0].checked = True
+
+                            text_changed = item_from_two[0].booking.text != item.booking.text
+                            date_changed = item_from_two[0].booking.datum != item.booking.datum
+                            stunden_changed = item_from_two[0].booking.stunden != item.booking.stunden
+
+                            budDiff = 0
+                            if stunden_changed:
+                                budDiff = item.booking.umsatz - item_from_two[0].booking.umsatz
+
+                            ei = EditedItem(item.booking.employee.name, "(" + item.booking.pspElement+")",text_changed, stunden_changed, date_changed, budDiff,
+                                            item_from_two[0].booking.text, item.booking.text,
+                                            item.booking.datum,
+                                            item_from_two[0].booking.datum,
+                                            item_from_two[0].booking.stunden, item.booking.stunden)
+                            edited_items.append(ei)
+
+                        else:
+                            # Neu hinzugefügt
+                            new_items.append(item.booking)
+
+                for item in set_two:
+                    if not item.checked:
+                        # Das bedeutet, dass dieser Eintrag gelöscht wurde
+                        deleted_items.append(item.booking)
+
+                hiResultList.append(
+                    HistResult(from_date_to_string_extended(upload_date_list[i]), deleted_items, edited_items,
+                               new_items))
+
+            return json.dumps(hiResultList, default=data_helper.serialize)
+
+    # def get_bookings_for_psp(self, psp: str, json_format: bool) -> [BookingDTO] or str:
+    def get_bookings_for_psp(self, psp: str, json_format: bool, upload_date: datetime = None) -> [BookingDTO] or str:
         """
         Liefert alle Buchungen zu einem PSP. Berücksichtigt werden dabei nur Buchungen mit dem jüngsten Uploaddatum.
         :param psp: Das PSP, für das die Buchungen ausgegeben werden sollen.
@@ -796,13 +912,20 @@ class ProjektService:
         """
 
         with self.session_scope() as session:
-            subquery = session.query(func.max(Booking.uploadDatum)).filter(Booking.psp == psp).scalar()
 
-            latest_results = (
-                session.query(Booking)
-                .filter(Booking.psp == psp)
-                .filter(Booking.uploadDatum == subquery)
-            )
+            if upload_date:
+                latest_results = (
+                    session.query(Booking)
+                    .filter(Booking.psp == psp)
+                    .filter(Booking.uploadDatum == upload_date)
+                )
+            else:
+                subquery = session.query(func.max(Booking.uploadDatum)).filter(Booking.psp == psp).scalar()
+                latest_results = (
+                    session.query(Booking)
+                    .filter(Booking.psp == psp)
+                    .filter(Booking.uploadDatum == subquery)
+                )
 
             booking_dtos: [BookingDTO] = []
 
@@ -870,38 +993,6 @@ class ProjektService:
                 maseDTO = MaBookingsSummaryElementDTO(bookings[0].employee, bookings[0].psp, psp_element,
                                                       bookings[0].stundensatz, stunden, umsatz)
                 maBookingsSummaryElementDTOs.append(maseDTO)
-
-            # latest_upload_subquery = (
-            #     session.query(
-            #         Booking.employee,
-            #         Booking.psp,
-            #         Booking.pspElement,
-            #         Booking.stundensatz,
-            #         func.max(Booking.uploadDatum).label('LatestUploadDate')
-            #     )
-            #     .where(Booking.psp == psp)
-            #     .group_by(Booking.pspElement)
-            #     .subquery()
-            # )
-            #
-            # latest_results = (
-            #     session.query(
-            #         latest_upload_subquery.c.employee.name,
-            #         latest_upload_subquery.c.employee.personalnummer,
-            #         latest_upload_subquery.c.psp,
-            #         latest_upload_subquery.c.pspElement,
-            #         latest_upload_subquery.c.stundensatz,
-            #         func.sum(Booking.stunden).label('stunden'),
-            #         func.sum(Booking.umsatz).label('umsatz')
-            #     )
-            #     .join(
-            #         Booking,
-            #         (latest_upload_subquery.c.pspElement == Booking.pspElement) &
-            #         (latest_upload_subquery.c.LatestUploadDate == Booking.uploadDatum)
-            #     )
-            #     .group_by(latest_upload_subquery.c.pspElement)
-            #     .all()
-            # )
 
             sum_all_bookings = 0
             for dto in maBookingsSummaryElementDTOs:
@@ -1155,7 +1246,9 @@ class ProjektService:
             if found_ticket_indentifiers > 1:
                 package_identifier_issues.append(Package_Identifier_Issues(b, booking_to_identifiers[b]))
 
-        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_package_hours / 8.0, umsatz_dtos,
+        sorted_umsaetze = sorted(umsatz_dtos, key=sortme)
+
+        summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_package_hours / 8.0, sorted_umsaetze,
                                                                  package_identifier_issues)
 
         if json_format:

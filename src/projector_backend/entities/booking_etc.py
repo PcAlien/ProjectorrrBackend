@@ -29,6 +29,7 @@ class Booking(Base):
     letzteAenderung: Mapped[datetime] = mapped_column("letzteAenderung")
     stundensatz: Mapped[float] = mapped_column("stundensatz")
     umsatz: Mapped[float] = mapped_column("umsatz")
+    counter: Mapped[int] = mapped_column("counter")
     uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
 
     def __init__(self,
@@ -45,6 +46,7 @@ class Booking(Base):
                  letzteAenderung: datetime,
                  stundensatz: float,
                  umsatz: float,
+                 counter: int,
                  uploadDatum: datetime
                  ) -> None:
         self.datum = datum
@@ -60,4 +62,5 @@ class Booking(Base):
         self.psp = psp
         self.stundensatz = stundensatz
         self.umsatz = umsatz
+        self.counter = counter
         self.uploadDatum = uploadDatum

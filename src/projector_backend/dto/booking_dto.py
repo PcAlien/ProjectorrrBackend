@@ -20,6 +20,7 @@ class BookingDTO:
     id: int
     stundensatz: float
     umsatz: float
+    counter: int
 
     def __init__(self, employee: EmployeeDTO,
                  datum: str | datetime,
@@ -32,6 +33,7 @@ class BookingDTO:
                  text: str,
                  erstelltAm: str | datetime,
                  letzteAenderung: str | datetime,
+                 counter: int,
                  id=0,
                  stundensatz=0,
                  umsatz=0,
@@ -63,6 +65,7 @@ class BookingDTO:
         self.id = id
         self.umsatz = umsatz
         self.stundensatz = stundensatz
+        self.counter = counter
         self.uploaddatum = uploaddatum
 
     @classmethod
@@ -70,5 +73,24 @@ class BookingDTO:
         edto = EmployeeDTO.create_from_db(buchung.employee)
         return cls(edto, buchung.datum, buchung.berechnungsmotiv,
                    buchung.bearbeitungsstatus, buchung.bezeichnung, buchung.psp, buchung.pspElement, buchung.stunden,
-                   buchung.text, buchung.erstelltAm, buchung.letzteAenderung, buchung.id, umsatz=buchung.umsatz,
+                   buchung.text, buchung.erstelltAm, buchung.letzteAenderung, buchung.counter, buchung.id,
+                   umsatz=buchung.umsatz,
                    stundensatz=buchung.stundensatz, uploaddatum=buchung.uploadDatum)
+
+
+class BookingDTOProxy:
+    def __init__(self, booking: BookingDTO) -> None:
+        self.booking = booking
+        self.checked = False
+
+    def __eq__(self, other):
+        if isinstance(other, BookingDTOProxy):
+            return (self.booking.text == other.booking.text and
+                    self.booking.datum == other.booking.datum and
+                    self.booking.stunden == other.booking.stunden and
+                    self.booking.counter == other.booking.counter
+                    )
+        return False
+
+    def __hash__(self):
+        return hash((self.booking.text, self.booking.datum, self.booking.stunden, self.booking.counter))

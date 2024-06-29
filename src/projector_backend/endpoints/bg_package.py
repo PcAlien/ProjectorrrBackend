@@ -25,11 +25,9 @@ def create_package_blueprint(pservice):
             print(identifier)
 
         if dbResult.complete:
-            print("ADD PSP PACKAGE SUCCESS", identifier)
             identifier_json = json.dumps(identifier, default=data_helper.serialize)
             return {'status': "Success", 'identifier': identifier_json}
         else:
-            print("ADD PSP PACKAGE NOT SUCCESS")
             return {'status': "Error", 'error': dbResult.message}
 
     @package_bp.route('/loadPspPackage', methods=["GET"])

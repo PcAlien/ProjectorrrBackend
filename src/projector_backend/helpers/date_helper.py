@@ -15,3 +15,8 @@ def from_string_to_date_without_time(date: str) -> datetime:
 
 def from_date_to_string(date: datetime) -> str:
     return date.strftime("%d.%m.%Y")
+
+
+def from_date_to_string_extended(date: datetime) -> str:
+    return date.strftime("%d.%m.%Y - %H:%M:%S Uhr")
+
