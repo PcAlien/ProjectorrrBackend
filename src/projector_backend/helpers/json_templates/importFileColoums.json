@@ -14,7 +14,8 @@
   "text": 14,
   "letzte_aenderung":23,
   "worksheet": 0,
-  "delete_empty_lines": 1
+  "delete_empty_lines": 1,
+  "counter": 24
 },
 {
   "import_name": "Excel Export",
@@ -32,5 +33,6 @@
   "text": 14,
   "letzte_aenderung":25,
   "worksheet": 0,
-  "delete_empty_lines": 1
+  "delete_empty_lines": 1,
+  "counter": 26
 }]

@@ -804,8 +804,11 @@ class ProjektService:
             datums_texte = []
 
             dt: datetime
+            counter = 0
             for dt in unique_datetimes:
-                datums_texte.append(from_date_to_string_extended(dt))
+                counter+= 1
+                if counter <= 10:
+                    datums_texte.append(from_date_to_string_extended(dt))
 
             datums_texte.reverse()
 
