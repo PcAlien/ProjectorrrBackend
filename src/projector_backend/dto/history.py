@@ -9,6 +9,7 @@ class EditedItem:
     text_changed: bool
     stunden_changed: bool
     datum_changed: bool
+    berechnungsmotiv_changed: bool
     bugdet_diff: float
 
     old_text: str
@@ -17,9 +18,11 @@ class EditedItem:
     new_datum: str
     old_stunden: float
     new_stunden: float
+    new_bm: float
+    old_bm: float
 
     def __init__(self, employee_name, psp_element, text_changed, stunden_changed, datum_changed, bugdet_diff, old_text, new_text,
-                 old_datum, new_datum, old_stunden, new_stunden) -> None:
+                 old_datum, new_datum, old_stunden, new_stunden,old_bm, new_bm) -> None:
 
         self.employee_name = employee_name
         self.psp_element = psp_element
@@ -35,6 +38,8 @@ class EditedItem:
         self.new_datum = new_datum
         self.old_stunden = old_stunden
         self.new_stunden = new_stunden
+        self.old_bm = old_bm
+        self.new_bm = new_bm
 
 
 class HistResult:

@@ -878,6 +878,7 @@ class ProjektService:
                             text_changed = item_from_two[0].booking.text != item.booking.text
                             date_changed = item_from_two[0].booking.datum != item.booking.datum
                             stunden_changed = item_from_two[0].booking.stunden != item.booking.stunden
+                            bm_changed = item_from_two[0].booking.berechnungsmotiv != item.booking.berechnungsmotiv
 
                             budDiff = 0
                             if stunden_changed:
@@ -887,7 +888,9 @@ class ProjektService:
                                             item_from_two[0].booking.text, item.booking.text,
                                             item.booking.datum,
                                             item_from_two[0].booking.datum,
-                                            item_from_two[0].booking.stunden, item.booking.stunden)
+                                            item_from_two[0].booking.stunden, item.booking.stunden,
+                                            item_from_two[0].booking.berechnungsmotiv, item.booking.berechnungsmotiv
+                                            )
                             edited_items.append(ei)
 
                         else:

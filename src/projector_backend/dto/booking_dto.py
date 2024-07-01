@@ -88,9 +88,10 @@ class BookingDTOProxy:
             return (self.booking.text == other.booking.text and
                     self.booking.datum == other.booking.datum and
                     self.booking.stunden == other.booking.stunden and
-                    self.booking.counter == other.booking.counter
+                    self.booking.counter == other.booking.counter and
+                    self.booking.berechnungsmotiv == other.booking.berechnungsmotiv
                     )
         return False
 
     def __hash__(self):
-        return hash((self.booking.text, self.booking.datum, self.booking.stunden, self.booking.counter))
+        return hash((self.booking.text, self.booking.datum, self.booking.stunden, self.booking.counter, self.booking.berechnungsmotiv))
