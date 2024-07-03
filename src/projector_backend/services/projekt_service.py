@@ -732,7 +732,10 @@ class ProjektService:
 
                     else:
                         bookingDTO.stundensatz = pmaDTO.stundensatz
-                        bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
+                        if bookingDTO.berechnungsmotiv.lower == "f":
+                            bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
+                        else:
+                            bookingDTO.umsatz = 0
 
                         if not bookingDTO.text:
                             bookingDTO.text = ""
@@ -761,39 +764,7 @@ class ProjektService:
 
         return missing_psp_element_list, DbResult(True, "All bookings have been stored successfully.")
 
-    def create_new_from_dto_and_save(self, bookingDTO: BookingDTO) -> str:
-        """
-        Erstellt einen neuen Buchungseintrag in der DB und gibt ein entsprechendes DTO zurück.
-        :param bookingDTO: das DTO welches in die DB übertragen werden soll
-        :return: neues DTO, mit Stundensatz, Umsatz und DB-Id
-        """
 
-        project_dtos: [ProjektDTO] = self.get_all_projects(False)
-
-        pro: ProjektDTO
-
-        found = False
-        for pro in project_dtos:
-            if pro.psp == bookingDTO.psp:
-                found = True
-                break
-
-        if not found:
-            return bookingDTO.psp
-
-        pmaDTO = self.get_pma_for_psp_element(bookingDTO.pspElement)
-        bookingDTO.stundensatz = pmaDTO.stundensatz
-        bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
-
-        buchung = Booking(bookingDTO.employee, bookingDTO.datum, bookingDTO.berechnungsmotiv,
-                          bookingDTO.bearbeitungsstatus, bookingDTO.bezeichnung, bookingDTO.psp, bookingDTO.pspElement,
-                          bookingDTO.stunden, bookingDTO.text, bookingDTO.erstelltAm, bookingDTO.letzteAenderung,
-                          bookingDTO.stundensatz, bookingDTO.umsatz, bookingDTO.counter, bookingDTO.uploaddatum)
-
-        with self.session_scope() as session:
-            session.add(buchung)
-            session.commit()
-            session.refresh(buchung)
 
     def get_upload_date_list_for_psp(self, psp: str):
         with self.session_scope() as session:

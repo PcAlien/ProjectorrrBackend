@@ -71,26 +71,6 @@ def create_init_blueprint(engine, pservice, dbservice, uservice):
         for p in projekte:
             pservice.save_update_project(p)
 
-    def _lade_demobuchungen():
-        # Schritt 1:
-        json_data = data_helper.read_json_file("src/projector_backend/helpers/json_templates/examples/bookings.json")
-        uploadDatum = datetime.now()
-
-        for booking in json_data:
-            dto = BookingDTO(booking["name"],
-                             booking["personalnummer"],
-                             booking["datum"],
-                             booking["berechnungsmotiv"],
-                             booking["bearbeitungsstatus"],
-                             booking["bezeichnung"],
-                             booking["psp"],
-                             booking["pspElement"],
-                             booking["stunden"],
-                             booking["text"],
-                             booking["erstelltAm"],
-                             booking["letzteAenderung"],
-                             uploaddatum=uploadDatum)
-            pservice.create_new_from_dto_and_save(dto)
 
     def _lade_demoabwesenheiten():
         demo_calender_data_importer.run()
