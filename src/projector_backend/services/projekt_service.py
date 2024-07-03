@@ -883,8 +883,8 @@ class ProjektService:
                             budDiff = 0
                             if stunden_changed:
                                 budDiff = item.booking.umsatz - item_from_two[0].booking.umsatz
-
-                            ei = EditedItem(item.booking.employee.name, "(" + item.booking.pspElement+")",text_changed, stunden_changed, date_changed, budDiff,
+                            # tODO: wo ist bm_changed?
+                            ei = EditedItem(item.booking.employee.name, "(" + item.booking.pspElement+")",text_changed, stunden_changed, date_changed, bm_changed, budDiff,
                                             item_from_two[0].booking.text, item.booking.text,
                                             item.booking.datum,
                                             item_from_two[0].booking.datum,

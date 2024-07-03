@@ -21,7 +21,7 @@ class EditedItem:
     new_bm: float
     old_bm: float
 
-    def __init__(self, employee_name, psp_element, text_changed, stunden_changed, datum_changed, bugdet_diff, old_text, new_text,
+    def __init__(self, employee_name, psp_element, text_changed, stunden_changed, datum_changed, berechnungsmotiv_changed, bugdet_diff, old_text, new_text,
                  old_datum, new_datum, old_stunden, new_stunden,old_bm, new_bm) -> None:
 
         self.employee_name = employee_name
@@ -30,6 +30,7 @@ class EditedItem:
         self.text_changed = text_changed
         self.stunden_changed = stunden_changed
         self.datum_changed = datum_changed
+        self.berechnungsmotiv_changed = berechnungsmotiv_changed
         self.bugdet_diff = bugdet_diff
 
         self.old_text = old_text
