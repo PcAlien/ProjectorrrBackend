@@ -583,9 +583,19 @@ class ProjektService:
         sorted_madtos = sorted(monatsaufteilung_dtos, key=sortme)
         sorted_umsaetze = sorted(umsaetze_dtos, key=sortme)
 
+        missing_psp_elements = self.get_issues(psp, False)
+        missing_psp_elements_str :str = ""
+        for m in missing_psp_elements:
+            if m.type == "mpspe":
+                missing_psp_elements_str += ", " + m.issue
+
+        if missing_psp_elements_str:
+            missing_psp_elements_str = missing_psp_elements_str[2:]
+
+
         ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, sorted_umsaetze, sorted_madtos,
                                                       erfassungs_nachweise, package_summaries,
-                                                      package_summaries_archived, last_updated)
+                                                      package_summaries_archived, missing_psp_elements_str, last_updated)
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)

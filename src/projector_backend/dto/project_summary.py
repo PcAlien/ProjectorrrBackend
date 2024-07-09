@@ -23,9 +23,10 @@ class ProjectSummaryDTO:
     monatsaufteilungen: [MonatsaufteilungSummaryDTO] = []
     erfassungsnachweise: [ErfassungsnachweisDTO] = []
     package_summaries: [PspPackageSummaryDTO] = ()
+    missing_psp_elements: str = ""
 
     def __init__(self, project: ProjektDTO, umsaetze: [UmsatzDTO], monatsaufteilungen: [MonatsaufteilungSummaryDTO],
-                 erfassungsnachweise: [ErfassungsnachweisDTO], package_summaries: [PspPackageSummaryDTO],package_summaries_archived: [PspPackageSummaryDTO],
+                 erfassungsnachweise: [ErfassungsnachweisDTO], package_summaries: [PspPackageSummaryDTO],package_summaries_archived: [PspPackageSummaryDTO],missing_psp_elements,
                  last_updated: str) -> None:
         self.project = project
         self.umsaetze = umsaetze
@@ -34,6 +35,7 @@ class ProjectSummaryDTO:
         self.erfassungsnachweise = erfassungsnachweise
         self.package_summaries = package_summaries
         self.package_summaries_archived = package_summaries_archived
+        self.missing_psp_elements = missing_psp_elements
         self.last_updated = last_updated
 
     def _calculate_spent_and_rest(self):
