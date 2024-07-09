@@ -766,7 +766,7 @@ class ProjektService:
 
                     else:
                         bookingDTO.stundensatz = pmaDTO.stundensatz
-                        if bookingDTO.berechnungsmotiv.lower == "f":
+                        if bookingDTO.berechnungsmotiv.lower() == "f":
                             bookingDTO.umsatz = bookingDTO.stundensatz * bookingDTO.stunden
                         else:
                             bookingDTO.umsatz = 0
