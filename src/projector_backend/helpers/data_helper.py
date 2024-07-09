@@ -18,9 +18,9 @@ def read_json_file(file_path):
 def serialize(obj):
     try:
         if isinstance(obj, date):
-            return obj.strftime('%d.%m.%Y')
+            return obj.strftime('%d.%m.%Y - %H:%M')
         elif isinstance(obj, datetime):
-            return obj.strftime('%d.%m.%Y')
+            return obj.strftime('%d.%m.%Y - %H:%M')
         elif isinstance(obj, set):
             return list(obj)
         elif isinstance(obj, list):

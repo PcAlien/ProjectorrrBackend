@@ -2,7 +2,7 @@ from datetime import datetime
 
 from src.projector_backend.dto.PspPackageDTO import PspPackageDTO
 from src.projector_backend.dto.abwesenheiten import EmployeeDTO
-from src.projector_backend.entities.project_ent import ProjectData, ProjectEmployee
+from src.projector_backend.entities.project_ent import ProjectData, ProjectEmployee, ProjectIssue
 from src.projector_backend.services.tempclasses import Ma_Identifier_DTO
 
 
@@ -91,3 +91,20 @@ class ProjektDTO:
         return cls(projekt.projekt_name, projekt.project.psp, projekt.volumen, projekt.laufzeit_von, projekt.laufzeit_bis,
                    projektmitarbeiter, psp_packages,psp_packages_archived, projekt.project_id, projekt.id, uploaddatum=projekt.uploadDatum,
                    )
+
+
+class ProjectIssueDTO:
+    psp: str
+    type: str
+    issue: str
+    uploaddatum: datetime
+
+    def __init__(self, psp, type, issue, uploaddatum) -> None:
+        self.psp = psp
+        self.type = type
+        self.issue = issue
+        self.uploaddatum = uploaddatum
+
+    @classmethod
+    def create_from_db(cls, project_issue: ProjectIssue ):
+        return cls(project_issue.psp, project_issue.type,project_issue.issue,project_issue.uploadDatum)

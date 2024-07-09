@@ -5,7 +5,7 @@ from itertools import groupby
 from operator import attrgetter
 from typing import Type, Tuple, List
 
-from sqlalchemy import func, distinct
+from sqlalchemy import func, distinct, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker, aliased
 from sqlalchemy.util import NoneType
@@ -24,16 +24,16 @@ from src.projector_backend.dto.ma_bookings_summary_dto import MaBookingsSummaryD
 
 from src.projector_backend.dto.monatsaufteilung_dto import MonatsaufteilungSummaryDTO, MonatsaufteilungDTO
 from src.projector_backend.dto.project_summary import ProjectSummaryDTO, UmsatzDTO
-from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
+from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO, ProjectIssueDTO
 from src.projector_backend.dto.returners import DbResult
 
 from src.projector_backend.entities.PspPackage import PspPackage
-from src.projector_backend.entities.User import User
+from src.projector_backend.entities.User import User, user2projects
 from src.projector_backend.entities.abwesenheit_db import Employee
 from src.projector_backend.entities.booking_etc import Booking
 
 from src.projector_backend.entities.bundles import ProjectBundlePSPElement, ProjectBundle
-from src.projector_backend.entities.project_ent import ProjectEmployee, ProjectData, Project
+from src.projector_backend.entities.project_ent import ProjectEmployee, ProjectData, Project, ProjectIssue
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.helpers import data_helper, date_helper
 from src.projector_backend.helpers.date_helper import from_date_to_string_extended
@@ -134,6 +134,30 @@ class ProjektService:
                 session.refresh(project_data)
 
                 if update:
+                    # # Issues überprüfen!
+                    issues:ProjectIssue
+                    issues = session.query(ProjectIssue).filter(ProjectIssue.psp == projektDTO.psp).filter(ProjectIssue.type == "mpspe").all()
+
+                    if issues:
+                        to_delete_issues = []
+                        for i in issues:
+                            psp_element = i.issue
+                            for p in projektmitarbeiter:
+                                if p.psp_element == psp_element:
+                                    to_delete_issues.append(i)
+                                    break
+
+                        for td in to_delete_issues:
+                            session.delete(td)
+
+                        session.commit()
+
+
+
+
+
+
+
                     return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages,
                                                      projektDTO.psp_packages_archived), DbResult(True,
                                                                                                  "Project has been updated")
@@ -764,8 +788,6 @@ class ProjektService:
 
         return missing_psp_element_list, DbResult(True, "All bookings have been stored successfully.")
 
-
-
     def get_upload_date_list_for_psp(self, psp: str):
         with self.session_scope() as session:
             result = session.query(Booking.uploadDatum).filter(Booking.psp == psp).filter(
@@ -777,7 +799,7 @@ class ProjektService:
             dt: datetime
             counter = 0
             for dt in unique_datetimes:
-                counter+= 1
+                counter += 1
                 if counter <= 10:
                     datums_texte.append(from_date_to_string_extended(dt))
 
@@ -855,7 +877,8 @@ class ProjektService:
                             if stunden_changed:
                                 budDiff = item.booking.umsatz - item_from_two[0].booking.umsatz
                             # tODO: wo ist bm_changed?
-                            ei = EditedItem(item.booking.employee.name, "(" + item.booking.pspElement+")",text_changed, stunden_changed, date_changed, bm_changed, budDiff,
+                            ei = EditedItem(item.booking.employee.name, "(" + item.booking.pspElement + ")",
+                                            text_changed, stunden_changed, date_changed, bm_changed, budDiff,
                                             item_from_two[0].booking.text, item.booking.text,
                                             item.booking.datum,
                                             item_from_two[0].booking.datum,
@@ -1387,3 +1410,70 @@ class ProjektService:
                 # session.refresh(employee)
 
             return employee
+
+    def get_watched_psp_numbers(self):
+
+        with (self.session_scope() as session):
+            stmt_project_ids = select(distinct(user2projects.c.right_id))
+            project_ids_result = session.execute(stmt_project_ids).fetchall()
+
+            # Ergebnis verarbeiten und Projekt-IDs extrahieren
+            project_ids = [row[0] for row in project_ids_result]
+
+            if project_ids:  # Nur wenn es Projekt-IDs gibt
+                projects = session.query(Project).filter(Project.id.in_(project_ids)).all()
+
+                blas = []
+                p: Project
+                for p in projects:
+                    bla = p.psp, p.project_datas[0].laufzeit_von
+                    blas.append(bla)
+
+                # psp_values_result = session.execute(stmt_psp_values).fetchall()
+                #
+                # # Ergebnis verarbeiten und PSP-Werte extrahieren
+                # psp_values = [row[0] for row in psp_values_result]
+                # return psp_values
+                return blas
+            else:
+                return None
+
+
+    def get_issues(self, psp, json_format):
+        with (self.session_scope() as session):
+            issues = session.query(ProjectIssue).filter(ProjectIssue.psp == psp).all()
+
+            dtos = []
+            for i in issues:
+                dtos.append(ProjectIssueDTO.create_from_db(i))
+
+            if json_format:
+                return json.dumps(dtos, default=data_helper.serialize)
+            else:
+                return dtos
+
+
+    def save_issue(self, psp, type, issue):
+        with (self.session_scope() as session):
+            pi = ProjectIssue(psp, "mpspe", issue)
+            session.add(pi)
+            session.commit()
+
+    def delete_issues(self, psp):
+        with self.session_scope() as session:
+            try:
+                issuess =session.query(ProjectIssue).filter(ProjectIssue.psp == psp).all()
+
+                for i in issuess:
+                    session.delete(i)
+
+                session.commit()
+
+            except IntegrityError as e:
+                # Behandle den Fehler speziell für Integritätsverletzungen
+                session.rollback()
+                print(f"Fehler während der Transaktion: {e}")
+                result = DbResult(False, e)
+                return result
+
+            return DbResult(True, "Issues have been deleted")

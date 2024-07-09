@@ -1,13 +1,12 @@
 import os
 
-from flask import Blueprint, current_app, request, abort, send_file
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
-
 from src.projector_backend.dto.booking_dto import BookingDTO
 
 
-def create_bookings_blueprint(pservice,eh):
+def create_bookings_blueprint(pservice, eh):
     bookings_bp = Blueprint('bookings', __name__)
 
     @bookings_bp.route('/buchungen', methods=['GET'])
@@ -51,10 +50,30 @@ def create_bookings_blueprint(pservice,eh):
         mpsp_elements_str = ""
         if len(missing_psps) > 0:
             mpsp_str = missing_psps.__str__()
-            #print("Folgende PSPs fehlen:", mpsp_str)
 
         if len(missing_psp_element_list) > 0:
             mpsp_elements_str = missing_psp_element_list.__str__()
+
+        if dbResult.complete:
+            psp_set = set()
+            missing_psp_dict: dict = {}
+            m: str
+            for m in missing_psp_element_list:
+                psp_set.add(m.split(".")[0])
+
+            for psp in psp_set:
+                pservice.delete_issues(psp)
+                missing_psp_dict[psp] = []
+
+            for m in missing_psp_element_list:
+                missing_psp_dict[m.split(".")[0]].append(m)
+
+            # Kommaseparierte Listen erstellen und speichern
+            for psp,element_list in missing_psp_dict.items():
+                for e in element_list:
+                    pservice.save_issue(psp, "mpspe", e)
+
+
 
         os.remove("./uploads/" + filename)
         if (not dbResult.complete):
@@ -88,8 +107,5 @@ def create_bookings_blueprint(pservice,eh):
                                                pservice.get_project_by_psp(psp, False).volumen)
         file_path_umsaetze = os.path.join(os.getcwd(), 'exports', filename_umsaetze)
         return send_file(file_path_umsaetze, as_attachment=True)
-
-
-
 
     return bookings_bp

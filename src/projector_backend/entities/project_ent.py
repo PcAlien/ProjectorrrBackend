@@ -33,7 +33,7 @@ class ProjectEmployee(Base):
     __tablename__ = "project_employees"
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    employee: Mapped["Employee"] = relationship(back_populates="project_employees" ,lazy=False)
+    employee: Mapped["Employee"] = relationship(back_populates="project_employees", lazy=False)
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))
 
     psp_bezeichnung: Mapped[str] = mapped_column("psp_bezeichnung", String(200))
@@ -94,3 +94,21 @@ class ProjectData(Base):
         self.uploadDatum = datetime.now()
         self.changed_by = changed_by
 
+
+class ProjectIssue(Base):
+    __tablename__ = "project_issues"
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    psp: Mapped[str] = mapped_column("psp", String(10))
+    issue: Mapped[str] = mapped_column("issue", String(1000))
+    type: Mapped[str] = mapped_column("type", String(15))
+
+
+
+    uploadDatum: Mapped[datetime] = mapped_column("uploadDatum")
+
+    def __init__(self, psp: str, type: str, issue: str) -> None:
+        self.psp = psp
+        self.type = type
+        self.issue = issue
+        self.uploadDatum = datetime.now()
