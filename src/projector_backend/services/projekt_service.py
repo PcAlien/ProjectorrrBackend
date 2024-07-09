@@ -581,6 +581,7 @@ class ProjektService:
             last_updated = "-"
 
         sorted_madtos = sorted(monatsaufteilung_dtos, key=sortme)
+        sorted_madtos.reverse()
         sorted_umsaetze = sorted(umsaetze_dtos, key=sortme)
 
         missing_psp_elements = self.get_issues(psp, False)
