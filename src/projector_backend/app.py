@@ -69,10 +69,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.INFO)
-# handler = logging.StreamHandler()
-# formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%d/%b/%Y %H:%M:%S')
-# handler.setFormatter(formatter)
-# logger.addHandler(handler)
+
 
 # Replace with your MySQL credentials
 user = os.environ.get("DB_USER")
