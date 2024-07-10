@@ -22,6 +22,7 @@ from src.projector_backend.endpoints.bp_logging import create_auth_blueprint
 from src.projector_backend.endpoints.bg_bundles import create_bundles_blueprint
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
 from src.projector_backend.helpers import data_helper, date_helper
+from src.projector_backend.helpers.decorators import admin_required
 from src.projector_backend.services.DWService import DWService
 from src.projector_backend.services.UserService import UserService
 from src.projector_backend.services.auth_service import AuthService
@@ -36,7 +37,7 @@ api_user = os.environ.get("API_USER")
 api_password = os.environ.get("API_PW")
 
 # Security settings
-#CORS(app, supports_credentials=True)
+# CORS(app, supports_credentials=True)
 CORS(app)
 # CORS(app, origins=["http://" + origin + ":4200","http://127.0.0.1:4200", "http://localhost:4200", "http://rtgsrv1pmgmt1:4200", "http://" + origin + ":80","http://127.0.0.1:80", "http://localhost:80", "http://rtgsrv1pmgmt1:80" ])
 app.secret_key = os.environ.get("SECRET_KEY")
@@ -45,13 +46,10 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=60)
 app.config['JWT_BLACKLIST_ENABLED'] = False
 
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Optional, wenn du CSRF-Schutz für Cookies deaktivieren möchtest
-#app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "json", "query_string"]
+# app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "json", "query_string"]
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 
-
-
 jwt = JWTManager(app)
-
 
 blocklist = []
 
@@ -61,7 +59,6 @@ blocklist = []
 def token_in_blocklist_loader(jwt_header, jwt_payload):
     jti = jwt_payload["jti"]
     return jti in blocklist
-
 
 
 # Base.metadata.create_all(engine)
@@ -76,7 +73,8 @@ database = os.environ.get("DB_DB")
 
 # DB-Settings
 # engine = create_engine("sqlite:///db/datenbank.db", echo=True)
-engine: Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}?sql_mode=", pool_size=20, max_overflow=0)
+engine: Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}?sql_mode=", pool_size=20,
+                               max_overflow=0)
 # engine.connect().execute("SET sql_mode = ''")
 
 
@@ -120,7 +118,9 @@ def origin():
     return jsonify(message=request.headers.get('Origin'))
 
 
-
+@app.route('/callAPI', methods=['GET'])
+@jwt_required()
+@admin_required()
 def restme():
     uploadDatum = datetime.now()
 
@@ -129,24 +129,61 @@ def restme():
         uploadDatum) + " Uhr ausgefuehrt.")
 
     for pro in psp_infos:
-        booking_dtos = dwservice.callBookingsFromDataWarehouse(api_url, api_user, api_password, uploadDatum, pro)
 
-        if booking_dtos:
-            missing_psp_elements_list, dbResult = pservice.create_new_bookings_from_dtos_and_save(booking_dtos)
-            if dbResult.complete:
-                # Alte issues löschen
-                pservice.delete_issues(pro[0])
+        month = pro[1][3:5]
+        year = pro[1][6:]
+        search_start = year + month
 
-                if len(missing_psp_elements_list) > 0:
-                    print(f"Folgende PSP-Elemente fehlen für das PSP {pro[0]}:")
-                    for mpe in missing_psp_elements_list:
-                        print("\t" + mpe)
-                        pservice.save_issue(pro[0], "mpspe", mpe)
+        aktuelles_jahr = datetime.now().year
+        such_start_jahr = int(year)
+
+        call_old_data_from_db = False
+
+        if such_start_jahr < aktuelles_jahr:
+            search_start = str(aktuelles_jahr) + "01"
+            call_old_data_from_db = True
+
+        booking_dtos, connection_successful = dwservice.callBookingsFromDataWarehouse(api_url, api_user, api_password,
+                                                                                      uploadDatum, pro[0], search_start)
+
+        if connection_successful:
+            if call_old_data_from_db:
+                all_booking_dtos = pservice.get_bookings_for_psp(pro[0],False)
+
+                # Objekte mit Uploaddatum im aktuellen Jahr entfernen
+                all_booking_dtos = [buchung for buchung in all_booking_dtos if buchung.datum.year != aktuelles_jahr]
+
+                for b in all_booking_dtos:
+                    b.uploaddatum = uploadDatum
+
+                if booking_dtos:
+                    booking_dtos = booking_dtos + all_booking_dtos
+                else:
+                    booking_dtos = all_booking_dtos
+
+            if booking_dtos:
+                missing_psp_elements_list, dbResult = pservice.create_new_bookings_from_dtos_and_save(booking_dtos)
+                if dbResult.complete:
+                    # Alte issues löschen
+                    pservice.delete_issues(pro[0])
+
+                    if len(missing_psp_elements_list) > 0:
+                        print(f"Folgende PSP-Elemente fehlen für das PSP {pro[0]}:")
+                        for mpe in missing_psp_elements_list:
+                            print("\t" + mpe)
+                            pservice.save_issue(pro[0], "mpspe", mpe)
+
+                else:
+                    print(f"Der Upload für PSP {pro[0]} war nicht erfolgreich! Fehler:")
+                    print(dbResult.message)
             else:
-                print(f"Der Upload für PSP {pro[0]} war nicht erfolgreich! Fehler:")
-                print(dbResult.message)
+                print(f"Fuer PSP {pro[0]} gibt es keine Buchungen.")
         else:
-            print("Der Upload war nicht erfolgreich! Fehler: es konnte keine Verbindung zum DataWarehouse hergestellt werden.")
+            print(
+                "Der Upload war nicht erfolgreich! Fehler: es konnte keine Verbindung zum DataWarehouse hergestellt werden.",
+                pro)
+
+    return jsonify(message="Done.")
 
 
 def run_scheduler():
@@ -155,17 +192,17 @@ def run_scheduler():
     schedule.every().day.at("13:00").do(restme)
 
     # Zum Testen: jede Minute ausführen
-    #schedule.every().minute.do(restme)
+    # schedule.every().minute.do(restme)
 
     # Endlos-Schleife, um den Scheduler laufen zu lassen
     while True:
         schedule.run_pending()
         time.sleep(1)
 
+
 scheduler_thread = threading.Thread(target=run_scheduler)
 scheduler_thread.daemon = True  # Damit der Thread beendet wird, wenn das Hauptprogramm endet
 scheduler_thread.start()
-
 
 # if __name__ == '__main__':
 #     app.run()

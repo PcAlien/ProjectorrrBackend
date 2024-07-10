@@ -1,5 +1,5 @@
 import datetime
-from typing import Type
+from typing import Type, Tuple
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -23,16 +23,13 @@ class DWService:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
 
-    def callBookingsFromDataWarehouse(self, url, username, password, uploadDatum, project_info) -> [BookingDTO]:
+    def callBookingsFromDataWarehouse(self, url, username, password, uploadDatum, psp, search_start):
 
 
-        month= project_info[1][3:5]
-        year= project_info[1][6:]
-        search_start = year + month
         search_end = str(datetime.datetime.now().year) + "12"
         url = url.replace("STARTMONTH", search_start)
         url = url.replace("ENDMONTH", search_end)
-        url = url.replace("SEARCHPSP", project_info[0])
+        url = url.replace("SEARCHPSP", psp)
 
         try:
             response = requests.get(url, auth=HTTPBasicAuth(username, password))
@@ -74,6 +71,6 @@ class DWService:
                         dto.erstelltAm = dto.letzteAenderung
                     bookingDTOs.append(dto)
 
-            return bookingDTOs
+            return bookingDTOs, True
         except Exception:
-            return None
+            return None, False

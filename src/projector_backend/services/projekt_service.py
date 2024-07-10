@@ -135,8 +135,9 @@ class ProjektService:
 
                 if update:
                     # # Issues überprüfen!
-                    issues:ProjectIssue
-                    issues = session.query(ProjectIssue).filter(ProjectIssue.psp == projektDTO.psp).filter(ProjectIssue.type == "mpspe").all()
+                    issues: ProjectIssue
+                    issues = session.query(ProjectIssue).filter(ProjectIssue.psp == projektDTO.psp).filter(
+                        ProjectIssue.type == "mpspe").all()
 
                     if issues:
                         to_delete_issues = []
@@ -151,12 +152,6 @@ class ProjektService:
                             session.delete(td)
 
                         session.commit()
-
-
-
-
-
-
 
                     return ProjektDTO.create_from_db(project_data, projektDTO.psp_packages,
                                                      projektDTO.psp_packages_archived), DbResult(True,
@@ -564,8 +559,8 @@ class ProjektService:
         project_dto: ProjektDTO = self.get_project_by_psp(psp, False)
         erfassungs_nachweise: [ErfassungsnachweisDTO] = self.erstelle_erfassungsauswertung(project_dto, booking_dtos,
                                                                                            False)
-        package_summaries = self.get_package_summaries(project_dto, booking_dtos, False)
-        package_summaries_archived = self.get_package_summaries(project_dto, booking_dtos, False, True)
+        package_summaries: list = self.get_package_summaries(project_dto, booking_dtos, False)
+        package_summaries_archived: list = self.get_package_summaries(project_dto, booking_dtos, False, True)
 
         umsaetze_dtos: [UmsatzDTO] = []
 
@@ -585,7 +580,7 @@ class ProjektService:
         sorted_umsaetze = sorted(umsaetze_dtos, key=sortme)
 
         missing_psp_elements = self.get_issues(psp, False)
-        missing_psp_elements_str :str = ""
+        missing_psp_elements_str: str = ""
         for m in missing_psp_elements:
             if m.type == "mpspe":
                 missing_psp_elements_str += ", " + m.issue
@@ -593,10 +588,10 @@ class ProjektService:
         if missing_psp_elements_str:
             missing_psp_elements_str = missing_psp_elements_str[2:]
 
-
         ps_dto: ProjectSummaryDTO = ProjectSummaryDTO(project_dto, sorted_umsaetze, sorted_madtos,
                                                       erfassungs_nachweise, package_summaries,
-                                                      package_summaries_archived, missing_psp_elements_str, last_updated)
+                                                      package_summaries_archived, missing_psp_elements_str,
+                                                      last_updated)
 
         if json_format:
             return json.dumps(ps_dto, default=data_helper.serialize)
@@ -1258,6 +1253,7 @@ class ProjektService:
                 package_identifier_issues.append(Package_Identifier_Issues(b, booking_to_identifiers[b]))
 
         sorted_umsaetze = sorted(umsatz_dtos, key=sortme)
+        sorted_umsaetze.reverse()
 
         summary_dto: PspPackageSummaryDTO = PspPackageSummaryDTO(pspp_dto, sum_package_hours / 8.0, sorted_umsaetze,
                                                                  package_identifier_issues)
@@ -1449,7 +1445,6 @@ class ProjektService:
             else:
                 return None
 
-
     def get_issues(self, psp, json_format):
         with (self.session_scope() as session):
             issues = session.query(ProjectIssue).filter(ProjectIssue.psp == psp).all()
@@ -1463,7 +1458,6 @@ class ProjektService:
             else:
                 return dtos
 
-
     def save_issue(self, psp, type, issue):
         with (self.session_scope() as session):
             pi = ProjectIssue(psp, "mpspe", issue)
@@ -1473,7 +1467,7 @@ class ProjektService:
     def delete_issues(self, psp):
         with self.session_scope() as session:
             try:
-                issuess =session.query(ProjectIssue).filter(ProjectIssue.psp == psp).all()
+                issuess = session.query(ProjectIssue).filter(ProjectIssue.psp == psp).all()
 
                 for i in issuess:
                     session.delete(i)
