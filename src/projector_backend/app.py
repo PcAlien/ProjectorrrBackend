@@ -62,10 +62,17 @@ def token_in_blocklist_loader(jwt_header, jwt_payload):
 
 
 # Base.metadata.create_all(engine)
-logging.basicConfig()
+#logging.basicConfig()
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s', datefmt='%d/%b/%Y %H:%M:%S')
+
 logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
-logging.getLogger('__name__').setLevel(logging.INFO)
-logger = logging.getLogger('__name__')
+
+logger = logging.getLogger('app')
+logger.setLevel(logging.INFO)
+# handler = logging.StreamHandler()
+# formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%d/%b/%Y %H:%M:%S')
+# handler.setFormatter(formatter)
+# logger.addHandler(handler)
 
 # Replace with your MySQL credentials
 user = os.environ.get("DB_USER")
