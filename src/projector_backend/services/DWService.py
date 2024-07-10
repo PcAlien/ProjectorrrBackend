@@ -70,7 +70,10 @@ class DWService:
                     if dto.erstelltAm == None:
                         dto.erstelltAm = dto.letzteAenderung
                     bookingDTOs.append(dto)
+                return bookingDTOs, "success"
 
-            return bookingDTOs, True
+            else:
+                return None, "wc"
+
         except Exception:
-            return None, False
+            return None, "nc"

@@ -63,8 +63,9 @@ def token_in_blocklist_loader(jwt_header, jwt_payload):
 
 # Base.metadata.create_all(engine)
 logging.basicConfig()
-logger = logging.getLogger('sqlalchemy.engine')
-logger.setLevel(logging.CRITICAL)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
+logging.getLogger('__name__').setLevel(logging.INFO)
+logger = logging.getLogger('__name__')
 
 # Replace with your MySQL credentials
 user = os.environ.get("DB_USER")
@@ -110,7 +111,8 @@ app.register_blueprint(forecast_bp)
 
 @app.route('/')
 def hello_world():
-    return "Hi - this is Projectorrr backend."
+    logger.info("Hi - this is Projectorrr backend.")
+    return jsonify(message="HALLLOOOOO!")
 
 
 @app.route('/origin')
@@ -144,12 +146,13 @@ def restme():
             search_start = str(aktuelles_jahr) + "01"
             call_old_data_from_db = True
 
-        booking_dtos, connection_successful = dwservice.callBookingsFromDataWarehouse(api_url, api_user, api_password,
-                                                                                      uploadDatum, pro[0], search_start)
+        logger.info(f"Rufe Daten fuer PSP {pro[0]} ab (Start: {search_start})")
+        booking_dtos, connection_state = dwservice.callBookingsFromDataWarehouse(api_url, api_user, api_password,
+                                                                                 uploadDatum, pro[0], search_start)
 
-        if connection_successful:
+        if connection_state == "success":
             if call_old_data_from_db:
-                all_booking_dtos = pservice.get_bookings_for_psp(pro[0],False)
+                all_booking_dtos = pservice.get_bookings_for_psp(pro[0], False)
 
                 # Objekte mit Uploaddatum im aktuellen Jahr entfernen
                 all_booking_dtos = [buchung for buchung in all_booking_dtos if buchung.datum.year != aktuelles_jahr]
@@ -169,7 +172,7 @@ def restme():
                     pservice.delete_issues(pro[0])
 
                     if len(missing_psp_elements_list) > 0:
-                        logger.info(f"Folgende PSP-Elemente fehlen für das PSP {pro[0]}:")
+                        logger.info(f"Folgende PSP-Elemente fehlen fuer das PSP {pro[0]}:")
                         for mpe in missing_psp_elements_list:
                             logger.info("\t" + mpe)
                             pservice.save_issue(pro[0], "mpspe", mpe)
@@ -179,10 +182,12 @@ def restme():
                     logger.info(dbResult.message)
             else:
                 logger.info(f"Fuer PSP {pro[0]} gibt es keine Buchungen.")
+        elif connection_state == "wc":
+            logger.info( f"Die Zugangsdaten werden nicht akzeptiert. ({pro[0]})" )
+
         else:
             logger.info(
-                "Der Upload war nicht erfolgreich! Fehler: es konnte keine Verbindung zum DataWarehouse hergestellt werden.",
-                pro)
+                "Der Upload war nicht erfolgreich! Fehler: es konnte keine Verbindung zum DataWarehouse hergestellt werden.")
 
     return jsonify(message="Done.")
 
