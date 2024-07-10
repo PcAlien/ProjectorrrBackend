@@ -63,7 +63,8 @@ def token_in_blocklist_loader(jwt_header, jwt_payload):
 
 # Base.metadata.create_all(engine)
 logging.basicConfig()
-logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
+logger = logging.getLogger('sqlalchemy.engine')
+logger.setLevel(logging.CRITICAL)
 
 # Replace with your MySQL credentials
 user = os.environ.get("DB_USER")
@@ -125,7 +126,7 @@ def restme():
     uploadDatum = datetime.now()
 
     psp_infos = pservice.get_watched_psp_numbers()
-    print("Der automatische API-Buchungsupload wurde um " + date_helper.from_date_to_string_extended(
+    logger.info("Der automatische API-Buchungsupload wurde um " + date_helper.from_date_to_string_extended(
         uploadDatum) + " Uhr ausgefuehrt.")
 
     for pro in psp_infos:
@@ -168,18 +169,18 @@ def restme():
                     pservice.delete_issues(pro[0])
 
                     if len(missing_psp_elements_list) > 0:
-                        print(f"Folgende PSP-Elemente fehlen für das PSP {pro[0]}:")
+                        logger.info(f"Folgende PSP-Elemente fehlen für das PSP {pro[0]}:")
                         for mpe in missing_psp_elements_list:
-                            print("\t" + mpe)
+                            logger.info("\t" + mpe)
                             pservice.save_issue(pro[0], "mpspe", mpe)
 
                 else:
-                    print(f"Der Upload für PSP {pro[0]} war nicht erfolgreich! Fehler:")
-                    print(dbResult.message)
+                    logger.info(f"Der Upload für PSP {pro[0]} war nicht erfolgreich! Fehler:")
+                    logger.info(dbResult.message)
             else:
-                print(f"Fuer PSP {pro[0]} gibt es keine Buchungen.")
+                logger.info(f"Fuer PSP {pro[0]} gibt es keine Buchungen.")
         else:
-            print(
+            logger.info(
                 "Der Upload war nicht erfolgreich! Fehler: es konnte keine Verbindung zum DataWarehouse hergestellt werden.",
                 pro)
 
