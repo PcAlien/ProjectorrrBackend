@@ -129,6 +129,9 @@ def origin():
 @jwt_required()
 @admin_required()
 def restme():
+    return _callAPI()
+
+def _callAPI():
     uploadDatum = datetime.now()
 
     psp_infos = pservice.get_watched_psp_numbers()
@@ -187,7 +190,7 @@ def restme():
             else:
                 logger.info(f"Fuer PSP {pro[0]} gibt es keine Buchungen.")
         elif connection_state == "wc":
-            logger.info( f"Die Zugangsdaten werden nicht akzeptiert. ({pro[0]})" )
+            logger.info(f"Die Zugangsdaten werden nicht akzeptiert. ({pro[0]})")
 
         else:
             logger.info(
@@ -195,14 +198,13 @@ def restme():
 
     return jsonify(message="Done.")
 
-
 def run_scheduler():
     # Plane die Aktion für 7 Uhr und 13 Uhr
-    schedule.every().day.at("07:00").do(restme)
-    schedule.every().day.at("13:00").do(restme)
+    schedule.every().day.at("07:00").do(_callAPI)
+    schedule.every().day.at("13:00").do(_callAPI)
 
     # Zum Testen: jede Minute ausführen
-    # schedule.every().minute.do(restme)
+    #schedule.every().minute.do(_callAPI)
 
     # Endlos-Schleife, um den Scheduler laufen zu lassen
     while True:
