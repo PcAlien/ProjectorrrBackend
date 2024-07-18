@@ -199,10 +199,6 @@ def _callAPI():
     return jsonify(message="Done.")
 
 def run_scheduler():
-    # Plane die Aktion für 7 Uhr und 13 Uhr
-    schedule.every().day.at("07:00").do(_callAPI)
-    schedule.every().day.at("13:00").do(_callAPI)
-
     # Zum Testen: jede Minute ausführen
     #schedule.every().minute.do(_callAPI)
 
@@ -212,9 +208,18 @@ def run_scheduler():
         time.sleep(1)
 
 
-scheduler_thread = threading.Thread(target=run_scheduler)
-scheduler_thread.daemon = True  # Damit der Thread beendet wird, wenn das Hauptprogramm endet
-scheduler_thread.start()
+# scheduler_thread = threading.Thread(target=run_scheduler)
+# scheduler_thread.daemon = True  # Damit der Thread beendet wird, wenn das Hauptprogramm endet
+# scheduler_thread.start()
 
 # if __name__ == '__main__':
 #     app.run()
+
+schedule.every().day.at("07:00").do(_callAPI)
+schedule.every().day.at("13:00").do(_callAPI)
+
+
+scheduler_thread = threading.Thread(target=run_scheduler)
+scheduler_thread.daemon = True
+scheduler_thread.start()
+
