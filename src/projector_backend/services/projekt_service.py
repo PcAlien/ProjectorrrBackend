@@ -800,6 +800,7 @@ class ProjektService:
                 Booking.counter > 0).distinct().all()
             unique_datetimes = [row[0] for row in result]
 
+            unique_datetimes.reverse()
             datums_texte = []
 
             dt: datetime
@@ -809,7 +810,7 @@ class ProjektService:
                 if counter <= 10:
                     datums_texte.append(from_date_to_string_extended(dt))
 
-            datums_texte.reverse()
+            #datums_texte.reverse()
 
             # bla = self._get_upload_date_list_for_psp_with_range(psp,"","")
 
