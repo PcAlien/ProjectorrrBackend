@@ -1,27 +1,25 @@
-import json
 import logging
 import os
+import threading
+import time
 from datetime import timedelta, datetime
 
-from flask import Flask, request, jsonify, after_this_request
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager, get_jwt_identity, create_access_token, verify_jwt_in_request, \
-    get_current_user, jwt_required, get_jwt
-from sqlalchemy import create_engine, Engine
 import schedule
-import time
-import threading
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_jwt_extended import JWTManager, jwt_required
+from sqlalchemy import create_engine, Engine
 
-from src.projector_backend.endpoints.bg_absence import create_absence_blueprint
-from src.projector_backend.endpoints.bg_bookings import create_bookings_blueprint
-from src.projector_backend.endpoints.bg_forecast import create_forecast_blueprint
-from src.projector_backend.endpoints.bg_init import create_init_blueprint
-from src.projector_backend.endpoints.bg_package import create_package_blueprint
-from src.projector_backend.endpoints.bg_project import create_project_blueprint
+from src.projector_backend.endpoints.bp_absence import create_absence_blueprint
+from src.projector_backend.endpoints.bp_bookings import create_bookings_blueprint
+from src.projector_backend.endpoints.bp_bundles import create_bundles_blueprint
+from src.projector_backend.endpoints.bp_forecast import create_forecast_blueprint
+from src.projector_backend.endpoints.bp_init import create_init_blueprint
 from src.projector_backend.endpoints.bp_logging import create_auth_blueprint
-from src.projector_backend.endpoints.bg_bundles import create_bundles_blueprint
+from src.projector_backend.endpoints.bp_package import create_package_blueprint
+from src.projector_backend.endpoints.bp_project import create_project_blueprint
 from src.projector_backend.excel.eh_buchungen import EhBuchungen
-from src.projector_backend.helpers import data_helper, date_helper
+from src.projector_backend.helpers import date_helper
 from src.projector_backend.helpers.decorators import admin_required
 from src.projector_backend.services.DWService import DWService
 from src.projector_backend.services.UserService import UserService
@@ -37,9 +35,7 @@ api_user = os.environ.get("API_USER")
 api_password = os.environ.get("API_PW")
 
 # Security settings
-# CORS(app, supports_credentials=True)
 CORS(app)
-# CORS(app, origins=["http://" + origin + ":4200","http://127.0.0.1:4200", "http://localhost:4200", "http://rtgsrv1pmgmt1:4200", "http://" + origin + ":80","http://127.0.0.1:80", "http://localhost:80", "http://rtgsrv1pmgmt1:80" ])
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config['JWT_SECRET_KEY'] = os.environ.get("JWT_SECRET_KEY")
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=60)
@@ -62,14 +58,13 @@ def token_in_blocklist_loader(jwt_header, jwt_payload):
 
 
 # Base.metadata.create_all(engine)
-#logging.basicConfig()
+# logging.basicConfig()
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s', datefmt='%d/%b/%Y %H:%M:%S')
 
 logging.getLogger('sqlalchemy.engine').setLevel(logging.CRITICAL)
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.INFO)
-
 
 # Replace with your MySQL credentials
 user = os.environ.get("DB_USER")
@@ -78,10 +73,8 @@ host = os.environ.get("DB_HOST")
 database = os.environ.get("DB_DB")
 
 # DB-Settings
-# engine = create_engine("sqlite:///db/datenbank.db", echo=True)
 engine: Engine = create_engine(f"mysql+mysqlconnector://{user}:{password}@{host}/{database}?sql_mode=", pool_size=20,
                                max_overflow=0)
-# engine.connect().execute("SET sql_mode = ''")
 
 
 # Init Services
@@ -130,6 +123,7 @@ def origin():
 @admin_required()
 def restme():
     return _callAPI()
+
 
 def _callAPI():
     uploadDatum = datetime.now()
@@ -198,9 +192,10 @@ def _callAPI():
 
     return jsonify(message="Done.")
 
+
 def run_scheduler():
     # Zum Testen: jede Minute ausführen
-    #schedule.every().minute.do(_callAPI)
+    # schedule.every().minute.do(_callAPI)
 
     # Endlos-Schleife, um den Scheduler laufen zu lassen
     while True:
@@ -218,8 +213,6 @@ def run_scheduler():
 schedule.every().day.at("07:00").do(_callAPI)
 schedule.every().day.at("13:00").do(_callAPI)
 
-
 scheduler_thread = threading.Thread(target=run_scheduler)
 scheduler_thread.daemon = True
 scheduler_thread.start()
-
