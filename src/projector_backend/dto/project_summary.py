@@ -26,7 +26,8 @@ class ProjectSummaryDTO:
     missing_psp_elements: str = ""
 
     def __init__(self, project: ProjektDTO, umsaetze: [UmsatzDTO], monatsaufteilungen: [MonatsaufteilungSummaryDTO],
-                 erfassungsnachweise: [ErfassungsnachweisDTO], package_summaries: [PspPackageSummaryDTO],package_summaries_archived: [PspPackageSummaryDTO],missing_psp_elements,
+                 erfassungsnachweise: [ErfassungsnachweisDTO], package_summaries: [PspPackageSummaryDTO],
+                 package_summaries_archived: [PspPackageSummaryDTO], missing_psp_elements,
                  last_updated: str) -> None:
         self.project = project
         self.umsaetze = umsaetze

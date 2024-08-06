@@ -108,14 +108,13 @@ app.register_blueprint(forecast_bp)
 
 @app.route('/')
 def hello_world():
-    logger.info("Hi - this is Projectorrr backend.")
-    return jsonify(message="HALLLOOOOO!")
+    return jsonify(message="Hi - this is Projectorrr backend.!")
 
 
-@app.route('/origin')
-def origin():
-    print("ORIGIN-CALL: " + request.headers.get('Origin'))
-    return jsonify(message=request.headers.get('Origin'))
+# @app.route('/origin')
+# def origin():
+#     print("ORIGIN-CALL: " + request.headers.get('Origin'))
+#     return jsonify(message=request.headers.get('Origin'))
 
 
 @app.route('/callAPI', methods=['GET'])
@@ -148,8 +147,8 @@ def _callAPI():
             call_old_data_from_db = True
 
         logger.info(f"Rufe Daten fuer PSP {pro[0]} ab (Start: {search_start})")
-        booking_dtos, connection_state = dwservice.callBookingsFromDataWarehouse(api_url, api_user, api_password,
-                                                                                 uploadDatum, pro[0], search_start)
+        booking_dtos, connection_state = dwservice.call_bookings_from_data_warehouse(api_url, api_user, api_password,
+                                                                                     uploadDatum, pro[0], search_start)
 
         if connection_state == "success":
             if call_old_data_from_db:
@@ -191,28 +190,3 @@ def _callAPI():
                 "Der Upload war nicht erfolgreich! Fehler: es konnte keine Verbindung zum DataWarehouse hergestellt werden.")
 
     return jsonify(message="Done.")
-
-
-def run_scheduler():
-    # Zum Testen: jede Minute ausführen
-    # schedule.every().minute.do(_callAPI)
-
-    # Endlos-Schleife, um den Scheduler laufen zu lassen
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-
-# scheduler_thread = threading.Thread(target=run_scheduler)
-# scheduler_thread.daemon = True  # Damit der Thread beendet wird, wenn das Hauptprogramm endet
-# scheduler_thread.start()
-
-# if __name__ == '__main__':
-#     app.run()
-
-schedule.every().day.at("07:00").do(_callAPI)
-schedule.every().day.at("13:00").do(_callAPI)
-
-scheduler_thread = threading.Thread(target=run_scheduler)
-scheduler_thread.daemon = True
-scheduler_thread.start()

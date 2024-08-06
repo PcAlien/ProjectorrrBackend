@@ -40,39 +40,8 @@ def create_init_blueprint(engine, pservice, dbservice, uservice):
     def get_version():  # put application's code here
         return version
 
-
     def create_init_data():
         dbservice.create_import_settings()
         uservice.create_admin_users()
-        # _lade_demoprojekte()
-        # _lade_demobuchungen()
-        # _lade_demoabwesenheiten()
-
-    def _lade_demoprojekte():
-        # Schritt 1: kann ein JSON String in ein BookingDTO umgewandelt werden?
-        json_data = data_helper.read_json_file("src/projector_backend/helpers/json_templates/demoprojekte.json")
-        projekte: [ProjektDTO] = []
-
-        for pro in json_data:
-
-            pmas: [ProjektmitarbeiterDTO] = []
-
-            for pma in pro["projektmitarbeiter"]:
-                pmas.append(
-                    ProjektmitarbeiterDTO(pma["personalnummer"], pma["name"], pma["psp_bezeichnung"],
-                                          pma["psp_element"],
-                                          pma["stundensatz"], pma["stundenbudget"], pma["laufzeit_von"],
-                                          pma["laufzeit_bis"]))
-
-            projekte.append(
-                ProjektDTO(pro["projekt_name"], pro["psp"], pro["volumen"], pro["laufzeit_von"], pro["laufzeit_bis"],
-                           pmas))
-
-        for p in projekte:
-            pservice.save_update_project(p)
-
-
-    def _lade_demoabwesenheiten():
-        demo_calender_data_importer.run()
 
     return init_bp

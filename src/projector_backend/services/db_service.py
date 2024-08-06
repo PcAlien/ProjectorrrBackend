@@ -17,23 +17,22 @@ class DBService:
         return cls._instance
 
     @classmethod
-    def getInstance(cls: Type['DBService']) -> 'DBService':
+    def get_instance(cls: Type['DBService']) -> 'DBService':
         if cls._instance is None:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
 
-    def get_by_id(self, type: Type, id: int):
+    def get_by_id(self, element_type: Type, element_id: int):
         Session = sessionmaker(bind=self.engine)
         with Session() as session:
-            projekt = session.get(type, id)
+            projekt = session.get(element_type, element_id)
             return projekt
 
     def create_import_settings(self):
         Session = sessionmaker(bind=self.engine)
         with Session() as session:
             ipf = session.get(ImportFileColumns, 1)
-            if (ipf == None):
-                import os
+            if ipf == None:
                 json_data = dh.read_json_file("./src/projector_backend/helpers/json_templates/importFileColoums.json")
                 for i in json_data:
                     ifc = ImportFileColumns(**i)

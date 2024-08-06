@@ -5,7 +5,7 @@ class EmployeeDTO:
     name: str
     personalnummer: int
 
-    def __init__(self, name: str, personalnummer: int,) -> None:
+    def __init__(self, name: str, personalnummer: int, ) -> None:
         self.name = name
         self.personalnummer = personalnummer
 
@@ -24,17 +24,15 @@ class AbwesenheitDetailsDTO:
 
 
 class AbwesenheitDTO:
-
     employee: EmployeeDTO
     abwesenheitDetails: [AbwesenheitDetailsDTO]
 
-    def __init__(self, employee,  abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
+    def __init__(self, employee, abwesenheitDetails: [AbwesenheitDetailsDTO]) -> None:
         self.abwesenheitDetails: [AbwesenheitDetailsDTO] = abwesenheitDetails
         self.employee = employee
 
-
     @classmethod
-    def create_from_db(cls, employee: Employee, abwesenheiten: [AbwesenheitDetails] ):
+    def create_from_db(cls, employee: Employee, abwesenheiten: [AbwesenheitDetails]):
         abwesenheitDetailsDTOs: [AbwesenheitDetailsDTO] = []
         abd: AbwesenheitDetailsDTO
         for abd in abwesenheiten:
@@ -45,6 +43,7 @@ class AbwesenheitDTO:
         edto = EmployeeDTO(employee.name, employee.personalnummer)
 
         return cls(edto, abwesenheitDetailsDTOs)
+
 
 class AbwesenheitsRangeDTO:
     # TODO: echt?
@@ -58,7 +57,3 @@ class AbwesenheitsRangeDTO:
         self.abwStart = abwStart
         self.abwEnde = abwEnde
         self.abwType = abwType
-
-
-
-

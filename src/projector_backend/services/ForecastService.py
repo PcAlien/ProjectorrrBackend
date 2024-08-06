@@ -12,12 +12,12 @@ from src.projector_backend.services.tempclasses import Ma_Zwischenspeicher_DTO, 
 
 class ForecastService:
 
-    def create_forecast_by_alltime_avg(self, psp, booking_dtos: [BookingDTO], projektDTO: ProjektDTO) -> PspForecastDTO:
+    def create_forecast_by_alltime_avg(self, psp, booking_dtos: [BookingDTO], projekt_dto: ProjektDTO) -> PspForecastDTO:
         """
         Es wird für jeden Mitarbeiter errechnet, wie viel Stunden er am Tag arbeiten und welchen Umsatz er dabei macht.
         Grundlage sind dabei alle Buchungen von Projektbeginn an.
         Daraus wird ein PspForecastDTO erstellt, welches unter anderem angibt, wann das Budget aufgebraucht sein wird.
-        :param projektDTO:
+        :param projekt_dto:
         :param booking_dtos:
         :param psp: TODO
         :return: TODO
@@ -42,7 +42,7 @@ class ForecastService:
                 MaDailyAvgDTO((v.stunden / v.tage),(v.stundensatz * (v.stunden / v.tage))))
 
         # 3. Errechnen, was je tag verbraucht wird unter Berücksichtigung der Urlaube.
-        calender_data: CalenderData = CalendarService.getInstance().get_calender_data(False)
+        calender_data: CalenderData = CalendarService.get_instance().get_calender_data(False)
 
         ein_tag = timedelta(days=1)
 
@@ -71,7 +71,7 @@ class ForecastService:
 
             # für jeden Projektmitarbeiter
             ma: ProjektmitarbeiterDTO
-            for ma in projektDTO.projektmitarbeiter:
+            for ma in projekt_dto.projektmitarbeiter:
 
                 # Es kann vorkommen, dass Mitarbeiter dem Projekt angehören, aber noch nicht erfasst haben.
                 if ma.psp_element in ma_dict.keys():
@@ -135,14 +135,13 @@ class ForecastService:
             fdv = ForecastDayView(betrachteter_tag, psp_element_day_forecasts)
             forecast_day_views.append(fdv)
 
-            if fdv.summe >= projektDTO.volumen:
+            if fdv.summe >= projekt_dto.volumen:
                 fertig = True
             else:
                 betrachteter_tag = betrachteter_tag + ein_tag
                 betrachteter_tag_str = betrachteter_tag.strftime(datum_format)
 
-        pfcdto = PspForecastDTO(projektDTO, forecast_day_views, mas_without_entries)
-        #pfcdto = PspForecastDTO(projektDTO, forecast_day_views, mas_without_entries, ma_durchschnitt_dtos)
+        pfcdto = PspForecastDTO(projekt_dto, forecast_day_views, mas_without_entries)
 
         return pfcdto
 
@@ -191,7 +190,7 @@ class ForecastService:
         mas_without_entries: set = set()
 
         # 3. Errechnen, was je tag verbraucht wird unter Berücksichtigung der Urlaube.
-        calender_data: CalenderData = CalendarService.getInstance().get_calender_data(False)
+        calender_data: CalenderData = CalendarService.get_instance().get_calender_data(False)
 
         ein_tag = timedelta(days=1)
         datum_format = "%d.%m.%Y"

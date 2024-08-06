@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-def from_string_to_date_without_time(date: str) -> datetime:
+def from_string_to_date_without_time(date: str):
     # Das Format des Datums in deinem String
     datum_format = "%d.%m.%Y"
 
@@ -12,7 +12,8 @@ def from_string_to_date_without_time(date: str) -> datetime:
 
     return datum_objekt.date()
 
-def from_dw_date_string_to_date_without_time(date: str) -> datetime:
+
+def from_dw_date_string_to_date_without_time(date: str):
     # Das Format des Datums in deinem String
     datum_format = "%Y%m%d"
 
@@ -30,4 +31,3 @@ def from_date_to_string(date: datetime) -> str:
 
 def from_date_to_string_extended(date: datetime) -> str:
     return date.strftime("%d.%m.%Y - %H:%M:%S Uhr")
-

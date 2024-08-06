@@ -45,14 +45,14 @@ def create_absence_blueprint(cservice):
     @absence_bp.route('/abwesenheiten', methods=["GET"])
     @jwt_required()
     def get_abwesenheiten():
-        back = cservice.getInstance().get_calender_data(True)
+        back = cservice.get_instance().get_calender_data(True)
         return back
 
     @absence_bp.route('/addAbwesenheit', methods=["POST"])
     @jwt_required()
     def add_abwesenheit():
         abw = request.form.get("abwesenheit")
-        cservice.getInstance().add_abwesenheit(abw)
+        cservice.get_instance().add_abwesenheit(abw)
 
         return {'answer': "Added Abwesenheit!!!"}
 
@@ -62,7 +62,7 @@ def create_absence_blueprint(cservice):
         abw = request.form.get("abwData")
         jload = json.loads(abw)
         abwRange = AbwesenheitsRangeDTO(**jload)
-        back = cservice.getInstance().add_abwesenheits_range(abwRange)
+        back = cservice.get_instance().add_abwesenheits_range(abwRange)
 
         if back:
             return {'status': "Success"}
@@ -76,7 +76,7 @@ def create_absence_blueprint(cservice):
     @absence_bp.route('/getEmployees', methods=["GET"])
     @jwt_required()
     def get_employees():
-        back = cservice.getInstance().get_employees()
+        back = cservice.get_instance().get_employees()
         return back
 
     return absence_bp

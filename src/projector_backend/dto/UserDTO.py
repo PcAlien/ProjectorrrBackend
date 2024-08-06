@@ -4,10 +4,10 @@ from src.projector_backend.entities.User import User
 
 
 class UserDTO:
-    username:str
-    password:str
-    roles:[str]
-    access_token:str
+    username: str
+    password: str
+    roles: [str]
+    access_token: str
 
     def __init__(self, username, roles, password="") -> None:
         self.username = username
@@ -16,10 +16,10 @@ class UserDTO:
 
     @classmethod
     def create_from_db(cls, user: User):
-        tmp_roles =  []
+        tmp_roles = []
         for role in user.roles:
             tmp_roles.append(role.name)
-        return cls(user.username,tmp_roles)
+        return cls(user.username, tmp_roles)
 
     def create_access_token(self):
         claims = {}

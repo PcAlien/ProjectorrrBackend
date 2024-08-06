@@ -2,7 +2,6 @@ from src.projector_backend.dto.booking_dto import BookingDTO
 
 
 class EditedItem:
-
     employee_name: str
     psp_element: str
 
@@ -21,9 +20,9 @@ class EditedItem:
     new_bm: float
     old_bm: float
 
-    def __init__(self, employee_name, psp_element, text_changed, stunden_changed, datum_changed, berechnungsmotiv_changed, bugdet_diff, old_text, new_text,
-                 old_datum, new_datum, old_stunden, new_stunden,old_bm, new_bm) -> None:
-
+    def __init__(self, employee_name, psp_element, text_changed, stunden_changed, datum_changed,
+                 berechnungsmotiv_changed, bugdet_diff, old_text, new_text,
+                 old_datum, new_datum, old_stunden, new_stunden, old_bm, new_bm) -> None:
         self.employee_name = employee_name
         self.psp_element = psp_element
 
@@ -45,13 +44,13 @@ class EditedItem:
 
 class HistResult:
     datum: str
-    deleted_items : [BookingDTO] = []
-    edited_items : [EditedItem] = []
-    new_items : [BookingDTO] = []
+    deleted_items: [BookingDTO] = []
+    edited_items: [EditedItem] = []
+    new_items: [BookingDTO] = []
 
     umsatz_deleted: float
-    umsatz_edited:float
-    umsatz_new:float
+    umsatz_edited: float
+    umsatz_new: float
 
     def __init__(self, datum, deleted_items, edited_items, new_items) -> None:
         self.datum = datum
@@ -60,10 +59,10 @@ class HistResult:
         self.new_items = new_items
         self.umsatz_edited = 0
         self.umsatz_new = 0
-        self.umsatz_deleted =0
+        self.umsatz_deleted = 0
         self.umsatz_change = 0
 
-        item:BookingDTO
+        item: BookingDTO
         for item in self.deleted_items:
             self.umsatz_deleted -= item.umsatz
 
@@ -75,4 +74,3 @@ class HistResult:
             self.umsatz_edited += eitem.bugdet_diff
 
         self.umsatz_change = self.umsatz_deleted + self.umsatz_edited + self.umsatz_new
-

@@ -11,8 +11,8 @@ def create_forecast_blueprint(pservice):
     @jwt_required()
     def get_psp_forecast():
         psp = request.form.get("psp")
-        back = pservice.getInstance().create_forecast_by_alltime_avg(psp, True)
-        back_projektmeldung: PspForecastDTO = pservice.getInstance().create_forecast_by_projektmeldung(psp, False)
+        back = pservice.get_instance().create_forecast_by_alltime_avg(psp, True)
+        back_projektmeldung: PspForecastDTO = pservice.get_instance().create_forecast_by_projektmeldung(psp, False)
 
         return back
 
@@ -20,7 +20,7 @@ def create_forecast_blueprint(pservice):
     @jwt_required()
     def get_psp_forecast_test():
         psp = "11828"
-        back: PspForecastDTO = pservice.getInstance().create_forecast_by_alltime_avg(psp, False)
+        back: PspForecastDTO = pservice.get_instance().create_forecast_by_alltime_avg(psp, False)
         return back
 
     return forecast_bp

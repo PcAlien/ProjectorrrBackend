@@ -2,7 +2,6 @@ from src.projector_backend.dto.abwesenheiten import EmployeeDTO
 
 
 class MaBookingsSummaryElementDTO:
-
     employee: EmployeeDTO
     psp: str
     psp_element: str
@@ -32,4 +31,3 @@ class MaBookingsSummaryDTO:
     @classmethod
     def create_from_db_result(cls, test):
         pass
-

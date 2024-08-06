@@ -6,7 +6,6 @@ from typing import Type
 
 import holidays
 from openpyxl.cell import Cell
-from openpyxl.worksheet.worksheet import Worksheet
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
@@ -33,14 +32,13 @@ class CalendarService:
         return cls._instance
 
     @classmethod
-    def getInstance(cls: Type['CalendarService']) -> 'CalendarService':
+    def get_instance(cls: Type['CalendarService']) -> 'CalendarService':
         if cls._instance is None:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
 
     @contextmanager
     def session_scope(self):
-        """Provide a transactional scope around a series of operations."""
         if self._session is None:
             self._session = self.Session()
             own_session = True
@@ -61,10 +59,10 @@ class CalendarService:
                 self._session = None
 
     def get_calender_data(self, json_format: bool = True) -> CalenderData or str:
-        abwesenheitenDTOs: [AbwesenheitDTO] = self._get_all_abwesenheiten(False)
-        cd = CalenderData(abwesenheitenDTOs)
+        abwesenheiten_dtos: [AbwesenheitDTO] = self._get_all_abwesenheiten(False)
+        cd = CalenderData(abwesenheiten_dtos)
 
-        if (json_format):
+        if json_format:
             return json.dumps(cd, default=data_helper.serialize)
         else:
             return cd
@@ -74,8 +72,6 @@ class CalendarService:
 
             employee: Employee = session.query(Employee).filter(Employee.personalnummer == personalnummer).first()
 
-
-            # TODO: kann man das jetzt nicht vereinfachen?
             subquery = (
                 session.query(func.max(AbwesenheitDetails.uploadDatum))
                 .filter(AbwesenheitDetails.employee_id == employee.id)
@@ -93,42 +89,10 @@ class CalendarService:
             else:
                 abwesenheit_dto = AbwesenheitDTO.create_from_db(employee, abwesenheit_details)
 
-            if (json_format):
+            if json_format:
                 return json.dumps(abwesenheit_dto, default=data_helper.serialize)
             else:
                 return abwesenheit_dto
-
-    # def add_abwesenheit(self, abwesenheit_dto: AbwesenheitDTO or str):
-    #
-    #     datum = datetime.now()
-    #     dto = abwesenheit_dto
-    #     if type(abwesenheit_dto) == str:
-    #         jsontext = json.loads(abwesenheit_dto)
-    #         dto = AbwesenheitDTO(**jsontext)
-    #
-    #
-    #
-    #     session = sessionmaker(bind=self.engine)
-    #     with session() as session:
-    #         employee = session.query(Employee).filter(Employee.personalnummer).first()
-    #
-    #         if (not employee):
-    #             employee = Employee(abwesenheit_dto.employee_dto.name, abwesenheit_dto.employee_dto.personalnummer)
-    #             session.add(employee)
-    #             session.refresh(employee)
-    #
-    #         details = []
-    #         detail: AbwesenheitDetailsDTO
-    #         for detail in dto.abwesenheitDetails:
-    #             if (type(detail) == dict):
-    #                 details.append(AbwesenheitDetails(detail["datum"], detail["typ"], uploadDatum=datum))
-    #             else:
-    #                 details.append(AbwesenheitDetails(detail.datum, detail.typ, uploadDatum=datum))
-    #
-    #         abw = Employee(dto.name, dto.personalnummer, details, uploadDatum=datum)
-    #
-    #         session.add(abw)
-    #         session.commit()
 
     def add_abwesenheiten(self, abwesenheiten_dtos: [AbwesenheitDTO] or AbwesenheitDTO or str):
 
@@ -138,12 +102,10 @@ class CalendarService:
         if type(abwesenheiten_dtos) == str:
             jsontext = json.loads(abwesenheiten_dtos)
             dto = AbwesenheitDTO(**jsontext)
-            abwesenheiten_dtos = []
-            abwesenheiten_dtos.append(dto)
+            abwesenheiten_dtos = [dto]
         elif type(abwesenheiten_dtos) == AbwesenheitDTO:
             dto = abwesenheiten_dtos
-            abwesenheiten_dtos = []
-            abwesenheiten_dtos.append(dto)
+            abwesenheiten_dtos = [dto]
 
         with self.session_scope() as session:
             try:
@@ -151,22 +113,21 @@ class CalendarService:
                 dto: AbwesenheitDTO
                 for dto in abwesenheiten_dtos:
                     employee_dto = dto.employee
-                    employee = session.query(Employee).filter(Employee.personalnummer == employee_dto.personalnummer).first()
+                    employee = session.query(Employee).filter(
+                        Employee.personalnummer == employee_dto.personalnummer).first()
 
-                    if (not employee):
+                    if not employee:
                         employee = Employee(employee_dto.name, employee_dto.personalnummer)
                         session.add(employee)
-                        #session.refresh(employee)
-
 
                     detail: AbwesenheitDetailsDTO
                     for detail in dto.abwesenheitDetails:
-                        if (type(detail) == dict):
-                            abwesenheit_details.append(AbwesenheitDetails(employee, detail["datum"], detail["typ"], uploadDatum=datum))
+                        if type(detail) == dict:
+                            abwesenheit_details.append(
+                                AbwesenheitDetails(employee, detail["datum"], detail["typ"], uploadDatum=datum))
                         else:
-                            abwesenheit_details.append(AbwesenheitDetails(employee,detail.datum, detail.typ, uploadDatum=datum))
-
-
+                            abwesenheit_details.append(
+                                AbwesenheitDetails(employee, detail.datum, detail.typ, uploadDatum=datum))
 
                 # Füge alle Buchungen hinzu
                 session.add_all(abwesenheit_details)
@@ -217,14 +178,13 @@ class CalendarService:
 
     def _get_all_abwesenheiten(self, json_format: bool = True):
 
-
         abw_dtos: [AbwesenheitDTO] = []
         with self.session_scope() as session:
 
             employees = session.query(Employee).all()
 
             for employee in employees:
-                abwesenheitDetailDTOs: [AbwesenheitDetailsDTO] = []
+                abwesenheit_detail_dtos: [AbwesenheitDetailsDTO] = []
                 subquery = (
                     session.query(func.max(AbwesenheitDetails.uploadDatum))
                     .subquery()
@@ -237,9 +197,9 @@ class CalendarService:
 
                 a: AbwesenheitDetails
                 for a in abwesenheit_details:
-                    abwesenheitDetailDTOs.append(AbwesenheitDetailsDTO(a.datum, a.typ))
+                    abwesenheit_detail_dtos.append(AbwesenheitDetailsDTO(a.datum, a.typ))
 
-                abw_dtos.append(AbwesenheitDTO(EmployeeDTO.create_from_db(employee), abwesenheitDetailDTOs))
+                abw_dtos.append(AbwesenheitDTO(EmployeeDTO.create_from_db(employee), abwesenheit_detail_dtos))
 
         if json_format:
             return json.dumps(abw_dtos, default=data_helper.serialize)
@@ -266,7 +226,7 @@ class CalendarService:
                 employee_dto = EmployeeDTO.create_from_db(abw)
                 emp_dtos.append(employee_dto)
 
-            if (json_format):
+            if json_format:
                 return json.dumps(emp_dtos, default=data_helper.serialize)
             else:
                 return emp_dtos
@@ -274,15 +234,15 @@ class CalendarService:
     def prozeed_upload_abwesenheiten(self, filename: str):
 
         class Monatsabstufung:
-            def __init__(self, monat, spalte_start) -> None:
-                self.monat: datetime = monat
+            def __init__(self, month, spalte_start) -> None:
+                self.monat: datetime = month
                 self.spalte_beginn = spalte_start
                 self.spalte_ende = spalte_start + 1
 
         try:
             file_path = os.path.join(os.getcwd(), 'uploads', filename)
             wb = self.eh.load_workbook(file_path)
-            wb.active: Worksheet = 0
+            wb.active = 0
 
             liste_monate: [Monatsabstufung] = []
             liste_spaltennummern = {}
@@ -293,9 +253,10 @@ class CalendarService:
             nr_cell = wb.active['C2'].value
 
             # Grundsätzliches Format überprüfen
-            if (name_cell != "Name" or project_cell != "Projekt" or nr_cell != "Perso.-Nr."):
+            if name_cell != "Name" or project_cell != "Projekt" or nr_cell != "Perso.-Nr.":
                 return DbResult(False,
-                                "Die angegebene Datei hat das falsche Format. Handelt es sich dabei wirklich um die Abwesenheitsliste?")
+                                "Die angegebene Datei hat das falsche Format. Handelt es sich dabei wirklich "
+                                "um die Abwesenheitsliste?")
 
             # 1. Definieren, wo ein Monat anfängt.
             for row in wb.active.iter_rows(values_only=False, min_row=1, max_row=2):
@@ -303,13 +264,12 @@ class CalendarService:
                 cell: Cell
                 column = 1
                 for cell in row:
-                    if type(cell.value) == datetime:
+                    if isinstance(cell.value, datetime):
                         if len(liste_monate) > 0:
                             liste_monate[-1].spalte_ende = column - 1
 
                         monat = Monatsabstufung(cell.value, column)
                         liste_monate.append(monat)
-                        # print(column, cell.value)
                     column += 1
 
                 liste_monate[-1].spalte_ende = column - 1
@@ -335,7 +295,7 @@ class CalendarService:
                 ma_name = row[0].value
                 ma_nr = row[2].value
 
-                if (not ma_nr or ma_nr == ""):
+                if not ma_nr or ma_nr == "":
                     return DbResult(False,
                                     "Für den Mitarbeiter '" + ma_name + "' wurde keine Personalnummer angegeben.")
 
@@ -366,11 +326,6 @@ class CalendarService:
                                 else:
                                     abwdt_dtos.append(AbwesenheitDetailsDTO(date_helper.from_date_to_string(ut), "a"))
 
-                            # else:
-                            #     print("Kein passendes Element gefunden:")
-                            #     print("Passender Monat ist None. ")
-                            #     print("Zelle:", cv, cell.col_idx, cell.coordinate)
-
                     column += 1
 
                 abw_dtos.append(AbwesenheitDTO(employee_dto, abwdt_dtos))
@@ -395,16 +350,8 @@ class CalendarService:
 
         except IndexError:
             return DbResult(False,
-                            "Die Abwesenheitsdatei konnte nicht verarbeitet werden, da das Format nicht korrekt ist. Wurde die richtige Datei ausgewählt?")
+                            "Die Abwesenheitsdatei konnte nicht verarbeitet werden, da das Format nicht korrekt"
+                            " ist. Wurde die richtige Datei ausgewählt?")
 
         except Exception as e:
-            print("### ABW ERROR: ", e)
             return DbResult(False, "Die Abwesenheitsdatei konnte nicht verarbeitet werden. ")
-
-    # def get_employee_by_psnr(self, session, personalnummer):
-    #
-    #     employee: Employee = session.query(Employee).filter(Employee.personalnummer == personalnummer).first()
-    #     if not employee:
-    #         Em
-
-

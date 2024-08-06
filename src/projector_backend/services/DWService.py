@@ -18,13 +18,12 @@ class DWService:
         return cls._instance
 
     @classmethod
-    def getInstance(cls: Type['DWService']) -> 'DWService':
+    def get_instance(cls: Type['DWService']) -> 'DWService':
         if cls._instance is None:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
 
-    def callBookingsFromDataWarehouse(self, url, username, password, uploadDatum, psp, search_start):
-
+    def call_bookings_from_data_warehouse(self, url, username, password, uploadDatum, psp, search_start):
 
         search_end = str(datetime.datetime.now().year) + "12"
         url = url.replace("STARTMONTH", search_start)
