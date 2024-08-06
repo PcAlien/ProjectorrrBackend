@@ -1,13 +1,6 @@
-from datetime import datetime
+from flask import Blueprint
 
-from flask import Blueprint, current_app,request,abort
-
-from src.projector_backend.dto.booking_dto import BookingDTO
-from src.projector_backend.dto.projekt_dto import ProjektDTO, ProjektmitarbeiterDTO
 from src.projector_backend.entities.Base import Base
-from src.projector_backend.helpers import data_helper
-from src.projector_backend.helpers.decorators import admin_required
-from src.projector_backend.helpers.unfertig import demo_calender_data_importer
 from src.projector_backend.version import version
 
 

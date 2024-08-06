@@ -1,11 +1,8 @@
 import logging
 import os
-import threading
-import time
 from datetime import timedelta, datetime
 
-import schedule
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required
 from sqlalchemy import create_engine, Engine
