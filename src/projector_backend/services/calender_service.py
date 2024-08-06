@@ -1,5 +1,6 @@
 import json
 import os
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from typing import Type
 
@@ -27,6 +28,8 @@ class CalendarService:
             cls._instance = super(CalendarService, cls).__new__(cls)
             cls._instance.engine = engine
             cls._instance.eh = ExcelHelper()
+            cls._instance.Session = sessionmaker(bind=cls._instance.engine)
+            cls._instance._session = None
         return cls._instance
 
     @classmethod
@@ -34,6 +37,28 @@ class CalendarService:
         if cls._instance is None:
             raise ValueError("Die Singleton-Instanz wurde noch nicht erstellt.")
         return cls._instance
+
+    @contextmanager
+    def session_scope(self):
+        """Provide a transactional scope around a series of operations."""
+        if self._session is None:
+            self._session = self.Session()
+            own_session = True
+        else:
+            own_session = False
+
+        try:
+            yield self._session
+            if own_session:
+                self._session.commit()
+        except Exception:
+            if own_session:
+                self._session.rollback()
+            raise
+        finally:
+            if own_session:
+                self._session.close()
+                self._session = None
 
     def get_calender_data(self, json_format: bool = True) -> CalenderData or str:
         abwesenheitenDTOs: [AbwesenheitDTO] = self._get_all_abwesenheiten(False)
@@ -45,9 +70,7 @@ class CalendarService:
             return cd
 
     def get_abwesenheiten_for_psnr(self, personalnummer: int, json_format: bool = True) -> AbwesenheitDTO or str:
-        Session = sessionmaker(bind=self.engine)
-
-        with Session() as session:
+        with self.session_scope() as session:
 
             employee: Employee = session.query(Employee).filter(Employee.personalnummer == personalnummer).first()
 
@@ -122,8 +145,7 @@ class CalendarService:
             abwesenheiten_dtos = []
             abwesenheiten_dtos.append(dto)
 
-        session = sessionmaker(bind=self.engine)
-        with session() as session:
+        with self.session_scope() as session:
             try:
 
                 dto: AbwesenheitDTO
@@ -134,7 +156,7 @@ class CalendarService:
                     if (not employee):
                         employee = Employee(employee_dto.name, employee_dto.personalnummer)
                         session.add(employee)
-                        session.refresh(employee)
+                        #session.refresh(employee)
 
 
                     detail: AbwesenheitDetailsDTO
@@ -179,8 +201,7 @@ class CalendarService:
         abw_details = []
 
         try:
-            Session = sessionmaker(bind=self.engine)
-            with Session() as session:
+            with self.session_scope() as session:
                 employee = session.query(Employee).filter(Employee.personalnummer == abw_r_dto.personalnummer).first()
 
                 for datum in date_list:
@@ -195,10 +216,10 @@ class CalendarService:
             return False
 
     def _get_all_abwesenheiten(self, json_format: bool = True):
-        Session = sessionmaker(bind=self.engine)
+
 
         abw_dtos: [AbwesenheitDTO] = []
-        with Session() as session:
+        with self.session_scope() as session:
 
             employees = session.query(Employee).all()
 
@@ -226,8 +247,7 @@ class CalendarService:
             return abw_dtos
 
     def proceed_demodaten(self, abwesenheiten: [Employee]):
-        Session = sessionmaker(bind=self.engine)
-        with Session() as session:
+        with self.session_scope() as session:
             session.query(Employee).delete()
             session.query(AbwesenheitDetails).delete()
             session.commit()
@@ -237,9 +257,7 @@ class CalendarService:
             session.commit()
 
     def get_employees(self, json_format: bool = True):
-        Session = sessionmaker(bind=self.engine)
-
-        with Session() as session:
+        with self.session_scope() as session:
 
             abwesenheiten = session.query(Employee).all()
 
